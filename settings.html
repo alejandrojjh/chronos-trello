@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chronos Settings</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #1d2125;
+      --surface:  #22272b;
+      --surface2: #282e33;
+      --border:   #2c3338;
+      --txt:      #b6c2cf;
+      --txt-dim:  #738496;
+      --accent:   #579dff;
+      --green:    #4bce97;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      padding: 24px 28px 32px;
+    }
+
+    /* ── Header ───────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-icon {
+      width: 32px; height: 32px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    h1 { font-size: 16px; font-weight: 700; color: #fff; }
+    .page-sub { font-size: 12px; color: var(--txt-dim); margin-top: 1px; }
+
+    /* ── Section ──────────────────────────── */
+    .section { margin-bottom: 20px; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--txt-dim);
+      margin-bottom: 10px;
+    }
+
+    /* ── Toggle row ───────────────────────── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      gap: 16px;
+    }
+    .toggle-info { flex: 1; min-width: 0; }
+    .toggle-label { font-weight: 500; color: #fff; font-size: 13px; }
+    .toggle-desc  { font-size: 12px; color: var(--txt-dim); margin-top: 3px; line-height: 1.4; }
+
+    /* Toggle switch */
+    .switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 2px; top: 2px;
+      background: var(--txt-dim);
+      border-radius: 50%;
+      transition: transform .2s, background .2s;
+    }
+    .switch input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+    .switch input:checked + .slider::before { transform: translateX(18px); background: #fff; }
+
+    /* ── Divider ──────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* ── Save feedback ────────────────────── */
+    .save-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+    .save-hint { font-size: 12px; color: var(--txt-dim); }
+    .saved-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--green);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .saved-badge.show { opacity: 1; }
+
+    /* ── Reset link ───────────────────────── */
+    .reset-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .reset-header { display: flex; align-items: center; justify-content: space-between; }
+    .reset-label { font-size: 13px; font-weight: 500; color: #fff; }
+    .reset-desc  { font-size: 12px; color: var(--txt-dim); margin-top: 4px; }
+    .btn-danger {
+      background: rgba(248,113,104,.15);
+      border: 1px solid rgba(248,113,104,.3);
+      color: #f87168;
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-danger:hover { background: rgba(248,113,104,.25); }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div class="page-icon">⚙️</div>
+    <div>
+      <h1>Chronos – Configuración</h1>
+      <div class="page-sub">Ajustes guardados por tablero</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Visualización en tarjetas</div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Mostrar badge de tiempo</div>
+        <div class="toggle-desc">Muestra el tiempo total registrado en la cara frontal de cada tarjeta.</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggle-badges" onchange="save()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Mostrar avatares activos</div>
+        <div class="toggle-desc">Resalta el avatar de miembros con un timer corriendo en este momento.</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggle-avatars" onchange="save()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">Badge en verde cuando está activo</div>
+        <div class="toggle-desc">Cambia el color del badge a verde mientras el timer está corriendo.</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggle-green" onchange="save()">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-title">Datos del tablero</div>
+    <div class="reset-section">
+      <div class="reset-header">
+        <div>
+          <div class="reset-label">Exportar datos</div>
+          <div class="reset-desc">Descarga todos los registros de tiempo del tablero en formato JSON.</div>
+        </div>
+        <button class="btn-danger" onclick="exportData()">Exportar JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="save-row">
+    <span class="save-hint">Los cambios se guardan automáticamente.</span>
+    <span class="saved-badge" id="saved-badge">✓ Guardado</span>
+  </div>
+
+  <script>
+  (function () {
+    var SKEY = 'chronos-settings';
+    var DKEY = 'chronos';
+    var t = window.TrelloPowerUp.iframe();
+    var saveTimer = null;
+
+    function applySettings(s) {
+      s = s || {};
+      document.getElementById('toggle-badges').checked  = s.showBadges  !== false;
+      document.getElementById('toggle-avatars').checked = !!s.showAvatars;
+      document.getElementById('toggle-green').checked   = s.greenOnActive !== false;
+    }
+
+    window.save = function () {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function () {
+        var settings = {
+          showBadges:    document.getElementById('toggle-badges').checked,
+          showAvatars:   document.getElementById('toggle-avatars').checked,
+          greenOnActive: document.getElementById('toggle-green').checked
+        };
+        t.set('board', 'private', SKEY, settings).then(function () {
+          var badge = document.getElementById('saved-badge');
+          badge.classList.add('show');
+          setTimeout(function () { badge.classList.remove('show'); }, 2000);
+          t.sizeTo('body').catch(function () {});
+        });
+      }, 400);
+    };
+
+    window.exportData = function () {
+      t.cards('name', 'pluginData').then(function (cards) {
+        var out = [];
+        cards.forEach(function (card) {
+          if (!card.pluginData) return;
+          card.pluginData.forEach(function (pd) {
+            if (pd.visibility === 'shared') {
+              try {
+                var obj = JSON.parse(pd.value);
+                if (obj && obj[DKEY]) {
+                  out.push({ card: card.name, data: obj[DKEY] });
+                }
+              } catch (e) {}
+            }
+          });
+        });
+        var blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        a.href = url; a.download = 'chronos-export.json'; a.click();
+        URL.revokeObjectURL(url);
+      });
+    };
+
+    t.get('board', 'private', SKEY).then(function (s) {
+      applySettings(s);
+      t.sizeTo('body').catch(function () {});
+    });
+  })();
+  </script>
+</body>
+</html>
