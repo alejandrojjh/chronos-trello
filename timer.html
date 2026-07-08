@@ -146,7 +146,7 @@
 
     <div class="top-row">
       <div class="clock-block">
-        <div class="clock" id="clock">--:--:--</div>
+        <div class="clock" id="clock">--:--</div>
         <div class="clock-status" id="status">Cargando…</div>
       </div>
       <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
@@ -157,11 +157,11 @@
     <div class="time-summary">
       <div class="time-row">
         <span class="time-lbl">Mi tiempo registrado</span>
-        <span class="time-val mine" id="my-total">--:--:--</span>
+        <span class="time-val mine" id="my-total">--:--</span>
       </div>
       <div class="time-row">
         <span class="time-lbl">Tiempo total de la tarjeta</span>
-        <span class="time-val" id="all-total">--:--:--</span>
+        <span class="time-val" id="all-total">--:--</span>
       </div>
     </div>
 
@@ -194,8 +194,7 @@
       sec = Math.max(0, Math.floor(sec||0));
       var h = Math.floor(sec / 3600);
       var m = Math.floor((sec % 3600) / 60);
-      var s = sec % 60;
-      return [h,m,s].map(function(v){ return String(v).padStart(2,'0'); }).join(':');
+      return [h,m].map(function(v){ return String(v).padStart(2,'0'); }).join(':');
     }
     function fmtTime(ts) {
       var d = new Date(ts);
@@ -287,7 +286,7 @@
       } else {
         if (tick) { clearInterval(tick); tick = null; }
         clockEl.className   = 'clock';
-        clockEl.textContent = '00:00:00';
+        clockEl.textContent = '00:00';
         statusEl.className  = 'clock-status';
         statusEl.textContent= 'Listo';
         btn.className = 'btn btn-start';
@@ -332,12 +331,6 @@
 
     /* ── save ────────────────────────────────────────────── */
     function save() {
-      /*
-       * ONLY writes to card shared storage.
-       * Board summary is updated by the connector's card-badges callback.
-       * This prevents t.set('board','shared',...) from this iframe,
-       * which would cause Trello to destroy and recreate this iframe.
-       */
       setSaveStatus('Guardando…');
       return t.set('card', 'shared', KEY, state).then(function(){
         setSaveStatus('');
@@ -400,7 +393,6 @@
 
     /* ── init ────────────────────────────────────────────── */
     var memberFetch = t.member('id', 'fullName', 'username', 'avatar').catch(function () {
-      /* Fallback: still works as anonymous user */
       return { id: 'anon-' + Math.random().toString(36).slice(2), fullName: 'Usuario', username: 'usuario', avatar: null };
     });
 
@@ -411,19 +403,17 @@
       var raw = results[0];
       var m   = results[1];
 
-      /* Build avatar URL from hash if present */
       var avatarUrl = '';
       if (m && m.avatar) {
         avatarUrl = 'https://trello-members.s3.amazonaws.com/' + m.id + '/' + m.avatar + '/50.png';
       }
 
       me = {
-        id:       (m && m.id) || 'anon',
+        id:        (m && m.id) || 'anon',
         fullName: (m && (m.fullName || m.username)) || 'Usuario',
         avatarUrl: avatarUrl
       };
 
-      /* Migrate from legacy format */
       if (raw && raw.running !== undefined && !raw.sessions) {
         state = {
           sessions: {},
