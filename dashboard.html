@@ -135,7 +135,7 @@
   /* ── utils ─────────────────────────────────────────────── */
   function fmt(s) {
     s = Math.max(0, Math.floor(s));
-    return [Math.floor(s/3600), Math.floor((s%3600)/60)]
+    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
       .map(function(v){ return String(v).padStart(2,'0'); }).join(':');
   }
   function fmtH(s){ return (s/3600).toFixed(1)+'h'; }
