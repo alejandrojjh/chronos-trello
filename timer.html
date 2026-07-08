@@ -146,7 +146,7 @@
 
     <div class="top-row">
       <div class="clock-block">
-        <div class="clock" id="clock">--:--</div>
+        <div class="clock" id="clock">--:--:--</div>
         <div class="clock-status" id="status">Cargando…</div>
       </div>
       <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
@@ -157,11 +157,11 @@
     <div class="time-summary">
       <div class="time-row">
         <span class="time-lbl">Mi tiempo registrado</span>
-        <span class="time-val mine" id="my-total">--:--</span>
+        <span class="time-val mine" id="my-total">--:--:--</span>
       </div>
       <div class="time-row">
         <span class="time-lbl">Tiempo total de la tarjeta</span>
-        <span class="time-val" id="all-total">--:--</span>
+        <span class="time-val" id="all-total">--:--:--</span>
       </div>
     </div>
 
@@ -194,7 +194,8 @@
       sec = Math.max(0, Math.floor(sec||0));
       var h = Math.floor(sec / 3600);
       var m = Math.floor((sec % 3600) / 60);
-      return [h,m].map(function(v){ return String(v).padStart(2,'0'); }).join(':');
+      var s = sec % 60;
+      return [h,m,s].map(function(v){ return String(v).padStart(2,'0'); }).join(':');
     }
     function fmtTime(ts) {
       var d = new Date(ts);
@@ -286,7 +287,7 @@
       } else {
         if (tick) { clearInterval(tick); tick = null; }
         clockEl.className   = 'clock';
-        clockEl.textContent = '00:00';
+        clockEl.textContent = '00:00:00';
         statusEl.className  = 'clock-status';
         statusEl.textContent= 'Listo';
         btn.className = 'btn btn-start';
