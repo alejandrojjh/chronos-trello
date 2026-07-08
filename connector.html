@@ -29,7 +29,6 @@
     return !!(d&&d.sessions&&Object.keys(d.sessions).length>0);
   }
   function memberTotals(d) {
-    /* Returns { memberId: { name, avatarUrl, total } } */
     var map = {};
     ((d&&d.entries)||[]).forEach(function(e){
       if (!e.memberId) return;
@@ -46,16 +45,10 @@
   }
 
   /*
-   * updateBoardSummary — called from card-badges dynamic callback.
-   * Runs in CONNECTOR context (not timer iframe), so it safely updates
-   * board shared storage without triggering card-back-section reloads.
+   * updateBoardSummary — actualiza el estado global del reporte.
+   * Modificado para procesar correctamente las tarjetas reiniciadas (0 tiempo).
    */
   function updateBoardSummary(t, cardId, cardName, chronosData) {
-    if (!chronosData) return Promise.resolve();
-    var total   = getTotalAll(chronosData);
-    var running = anyRunning(chronosData);
-    if (!total && !running) return Promise.resolve();
-
     return Promise.all([
       t.get('board', 'shared', SUM_KEY).catch(function(){ return {}; }),
       t.get('board', 'shared', DAILY_KEY).catch(function(){ return {}; })
@@ -63,44 +56,57 @@
       var summary = r[0] || {};
       var daily   = r[1] || {};
 
-      /* Per-card summary */
-      var mMap  = memberTotals(chronosData);
-      var mList = Object.keys(mMap).map(function(id){
-        return { id:id, name:mMap[id].name, avatarUrl:mMap[id].avatarUrl, total:mMap[id].total };
-      });
-      summary[cardId] = {
-        name:    cardName,
-        total:   total,
-        running: running,
-        members: mList,
-        updatedAt: Date.now()
-      };
+      var total   = getTotalAll(chronosData);
+      var running = anyRunning(chronosData);
 
-      /* Per-day (last 7 days of completed entries only) */
-      var cutoff = Date.now() - 7*24*3600*1000;
-      /* prune old days */
+      // 1. Limpiar registros diarios anteriores de esta tarjeta para evitar duplicados o fantasmas
       Object.keys(daily).forEach(function(day){
-        if (new Date(day).getTime() < cutoff) delete daily[day];
+        daily[day] = daily[day].filter(function(d){ return d.cardId !== cardId; });
+        if (daily[day].length === 0) delete daily[day];
       });
-      /* upsert entries for this card */
-      ((chronosData&&chronosData.entries)||[]).forEach(function(e){
-        if (!e.start || e.start < cutoff) return;
-        var day = new Date(e.start).toISOString().slice(0,10);
-        if (!daily[day]) daily[day] = [];
-        /* remove stale entry for same card+member+start */
-        daily[day] = daily[day].filter(function(d){
-          return !(d.cardId===cardId && d.memberId===e.memberId && d.start===e.start);
+
+      // 2. Si la tarjeta fue reiniciada (no tiene tiempo ni está corriendo), la borramos del reporte
+      if (!chronosData || (!total && !running)) {
+        delete summary[cardId];
+      } else {
+        /* Per-card summary */
+        var mMap  = memberTotals(chronosData);
+        var mList = Object.keys(mMap).map(function(id){
+          return { id:id, name:mMap[id].name, avatarUrl:mMap[id].avatarUrl, total:mMap[id].total };
         });
-        daily[day].push({
-          cardId:     cardId,
-          cardName:   cardName,
-          memberId:   e.memberId||'',
-          memberName: e.memberName||'',
-          avatarUrl:  e.avatarUrl||'',
-          duration:   e.duration||0,
-          start:      e.start
+        summary[cardId] = {
+          name:    cardName,
+          total:   total,
+          running: running,
+          members: mList,
+          updatedAt: Date.now()
+        };
+
+        /* Per-day (last 7 days of completed entries only) */
+        var cutoff = Date.now() - 7*24*3600*1000;
+        ((chronosData&&chronosData.entries)||[]).forEach(function(e){
+          if (!e.start || e.start < cutoff) return;
+          var day = new Date(e.start).toISOString().slice(0,10);
+          if (!daily[day]) daily[day] = [];
+          
+          daily[day].push({
+            cardId:     cardId,
+            cardName:   cardName,
+            memberId:   e.memberId||'',
+            memberName: e.memberName||'',
+            avatarUrl:  e.avatarUrl||'',
+            duration:   e.duration||0,
+            start:      e.start
+          });
         });
+      }
+
+      /* prune general old days (7 days rule) */
+      var cutoffGeneral = Date.now() - 7*24*3600*1000;
+      Object.keys(daily).forEach(function(day){
+        if (new Date(day).getTime() < cutoffGeneral) delete daily[day];
       });
+
       /* cap total entries to ~150 */
       var total150 = Object.keys(daily).reduce(function(s,k){ return s+daily[k].length; },0);
       if (total150 > 150) {
@@ -149,7 +155,7 @@
             var total   = getTotalAll(d);
             var running = anyRunning(d);
 
-            /* Update board summary in background (connector context, safe) */
+            /* Update board summary in background */
             if (card.id) updateBoardSummary(t, card.id, card.name, d);
 
             if (!total && !running) return [];
