@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chronos</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: transparent;
+      color: var(--ds-text, #b6c2cf);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      padding: 10px 14px 14px;
+    }
+
+    .top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .clock-block { display: flex; align-items: baseline; gap: 6px; }
+    .clock {
+      font-size: 32px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+      color: var(--ds-text, #c7d1db);
+      line-height: 1;
+    }
+    .clock.running { color: var(--ds-icon-brand, #579dff); }
+    .clock-status {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--ds-text-subtlest, #738496);
+    }
+    .clock-status.running { color: var(--ds-icon-brand, #579dff); }
+
+    .btn {
+      flex-shrink: 0;
+      padding: 6px 13px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .15s;
+    }
+    .btn:hover  { opacity: .85; }
+    .btn:active { opacity: .65; }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn-start { background: var(--ds-background-brand-bold, #0052cc); color: #fff; }
+    .btn-stop  { background: var(--ds-background-danger-bold, #de350b); color: #fff; }
+
+    .divider { height: 1px; background: var(--ds-border, #2c3338); margin: 8px 0; }
+
+    .time-summary { margin-bottom: 8px; }
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0;
+      font-size: 12px;
+    }
+    .time-lbl { color: var(--ds-text-subtlest, #738496); }
+    .time-val  { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ds-text, #b6c2cf); }
+    .time-val.mine { color: var(--ds-icon-brand, #579dff); }
+
+    .active-others {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #4bce97;
+      margin-bottom: 6px;
+    }
+    .dot-pulse {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 1.4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .entries-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--ds-text-subtlest, #738496);
+      margin-bottom: 5px;
+    }
+    .entries { list-style: none; }
+    .entry {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(44,51,56,.4);
+    }
+    .entry:last-child { border-bottom: none; }
+
+    .av {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      overflow: hidden;
+    }
+    .av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-name {
+      font-size: 11px; font-weight: 600;
+      color: var(--ds-text, #b6c2cf);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .entry-time { font-size: 10px; color: var(--ds-text-subtlest, #738496); margin-top: 1px; }
+    .entry-dur  { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ds-text, #b6c2cf); flex-shrink: 0; }
+
+    .empty-msg { font-size: 12px; color: var(--ds-text-subtlest, #738496); padding: 6px 0; font-style: italic; }
+
+    .footer { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; gap: 8px; }
+    .reset-btn { background: none; border: none; font-size: 11px; color: var(--ds-text-subtlest, #738496); cursor: pointer; text-decoration: underline; }
+    .reset-btn:hover { color: #f87168; }
+    .save-status { font-size: 10px; color: var(--ds-text-subtlest, #738496); }
+    .save-status.err { color: #f87168; }
+
+    .err-banner { display:none; background:#3d1f1f; border:1px solid #7a2d2d; border-radius:4px; padding:6px 10px; font-size:11px; color:#f87168; margin-bottom:6px; word-break:break-word; }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="err-banner" id="err-banner"></div>
+
+    <div class="top-row">
+      <div class="clock-block">
+        <div class="clock" id="clock">--:--:--</div>
+        <div class="clock-status" id="status">Cargando…</div>
+      </div>
+      <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="time-summary">
+      <div class="time-row">
+        <span class="time-lbl">Mi tiempo registrado</span>
+        <span class="time-val mine" id="my-total">--:--:--</span>
+      </div>
+      <div class="time-row">
+        <span class="time-lbl">Tiempo total de la tarjeta</span>
+        <span class="time-val" id="all-total">--:--:--</span>
+      </div>
+    </div>
+
+    <div class="active-others" id="others-running">
+      <span class="dot-pulse"></span>
+      <span id="others-text"></span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="entries-lbl">Entradas recientes</div>
+    <ul class="entries" id="entries"></ul>
+
+    <div class="footer">
+      <button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button>
+      <span class="save-status" id="save-status"></span>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var KEY  = 'chronos';
+    var t    = window.TrelloPowerUp.iframe();
+    var state = null;
+    var me    = null;
+    var tick  = null;
+
+    /* ── helpers ─────────────────────────────────────────── */
+    function fmt(sec) {
+      sec = Math.max(0, Math.floor(sec||0));
+      var h = Math.floor(sec / 3600);
+      var m = Math.floor((sec % 3600) / 60);
+      var s = sec % 60;
+      return [h,m,s].map(function(v){ return String(v).padStart(2,'0'); }).join(':');
+    }
+    function fmtTime(ts) {
+      var d = new Date(ts);
+      return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+    function esc(s) {
+      return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function initials(name) {
+      return (name||'?').trim().split(/\s+/).slice(0,2).map(function(w){ return w[0]||'?'; }).join('').toUpperCase();
+    }
+    var COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
+    function memberColor(id) {
+      var h = 0;
+      for (var i = 0; i < (id||'').length; i++) { h = (h * 31 + id.charCodeAt(i)) | 0; }
+      return COLORS[Math.abs(h) % COLORS.length];
+    }
+    function avatarHtml(memberId, memberName, avatarUrl) {
+      var color = memberColor(memberId || 'x');
+      if (avatarUrl) {
+        return '<div class="av"><img src="' + esc(avatarUrl) + '" onerror="this.parentNode.style.background=\'' + color + '\';this.remove()"></div>';
+      }
+      return '<div class="av" style="background:' + color + '">' + esc(initials(memberName)) + '</div>';
+    }
+    function showError(msg) {
+      var el = document.getElementById('err-banner');
+      el.textContent = msg;
+      el.style.display = msg ? 'block' : 'none';
+    }
+    function setSaveStatus(msg, isErr) {
+      var el = document.getElementById('save-status');
+      el.textContent = msg;
+      el.className = 'save-status' + (isErr ? ' err' : '');
+    }
+
+    /* ── time calculations ───────────────────────────────── */
+    function myTotal() {
+      if (!state || !me) return 0;
+      var base = (state.entries||[]).filter(function(e){ return e.memberId === me.id; })
+                                    .reduce(function(s,e){ return s+(e.duration||0); },0);
+      var sess = state.sessions && state.sessions[me.id];
+      if (sess && sess.startTime) base += Math.floor((Date.now()-sess.startTime)/1000);
+      return base;
+    }
+    function allTotal() {
+      if (!state) return 0;
+      var base = (state.entries||[]).reduce(function(s,e){ return s+(e.duration||0); },0);
+      if (state.sessions) {
+        Object.keys(state.sessions).forEach(function(id){
+          var s = state.sessions[id];
+          if (s && s.startTime) base += Math.floor((Date.now()-s.startTime)/1000);
+        });
+      }
+      return base;
+    }
+
+    /* ── clock tick ──────────────────────────────────────── */
+    function updateClock() {
+      if (!state || !me) return;
+      var sess = state.sessions && state.sessions[me.id];
+      if (!sess || !sess.startTime) return;
+      var elapsed = Math.floor((Date.now()-sess.startTime)/1000);
+      document.getElementById('clock').textContent    = fmt(elapsed);
+      document.getElementById('my-total').textContent = fmt(myTotal());
+      document.getElementById('all-total').textContent= fmt(allTotal());
+    }
+
+    /* ── render ──────────────────────────────────────────── */
+    function render() {
+      if (!state || !me) return;
+
+      var btn     = document.getElementById('toggle-btn');
+      var resetBtn= document.getElementById('reset-btn');
+      btn.disabled     = false;
+      resetBtn.disabled= false;
+
+      var mySess  = state.sessions && state.sessions[me.id];
+      var running = !!mySess;
+      var clockEl  = document.getElementById('clock');
+      var statusEl = document.getElementById('status');
+
+      if (running) {
+        clockEl.className  = 'clock running';
+        statusEl.className = 'clock-status running';
+        statusEl.textContent = 'Corriendo…';
+        btn.className = 'btn btn-stop';
+        btn.textContent = '⏹ Detener';
+        if (!tick) { updateClock(); tick = setInterval(updateClock, 1000); }
+      } else {
+        if (tick) { clearInterval(tick); tick = null; }
+        clockEl.className   = 'clock';
+        clockEl.textContent = '00:00:00';
+        statusEl.className  = 'clock-status';
+        statusEl.textContent= 'Listo';
+        btn.className = 'btn btn-start';
+        btn.textContent = '▶ Iniciar';
+        document.getElementById('my-total').textContent  = fmt(myTotal());
+        document.getElementById('all-total').textContent = fmt(allTotal());
+      }
+
+      /* Otros timers activos */
+      var others = Object.keys(state.sessions||{}).filter(function(id){ return id!==me.id; });
+      var othDiv = document.getElementById('others-running');
+      if (others.length) {
+        othDiv.style.display = 'flex';
+        var names = others.map(function(id){ var s=state.sessions[id]; return s&&s.memberName?s.memberName.split(' ')[0]:'Alguien'; });
+        document.getElementById('others-text').textContent = names.join(', ') + (others.length===1?' tiene':' tienen') + ' un timer activo';
+      } else {
+        othDiv.style.display = 'none';
+      }
+
+      /* Entradas recientes */
+      var entries = (state.entries||[]).slice().reverse().slice(0,7);
+      var el = document.getElementById('entries');
+      if (!entries.length) {
+        el.innerHTML = '<li class="empty-msg">Sin entradas aún</li>';
+      } else {
+        el.innerHTML = entries.map(function(e){
+          var isMe = e.memberId===me.id;
+          var name = isMe ? 'Tú' : (e.memberName||'Desconocido');
+          return '<li class="entry">' +
+            avatarHtml(e.memberId, e.memberName, e.avatarUrl) +
+            '<div class="entry-info">' +
+              '<div class="entry-name">'+esc(name)+'</div>' +
+              '<div class="entry-time">'+fmtTime(e.start)+' – '+fmtTime(e.end)+'</div>' +
+            '</div>' +
+            '<div class="entry-dur">'+fmt(e.duration)+'</div>' +
+          '</li>';
+        }).join('');
+      }
+
+      t.sizeTo('#root').catch(function(){});
+    }
+
+    /* ── save ────────────────────────────────────────────── */
+    function save() {
+      /*
+       * ONLY writes to card shared storage.
+       * Board summary is updated by the connector's card-badges callback.
+       * This prevents t.set('board','shared',...) from this iframe,
+       * which would cause Trello to destroy and recreate this iframe.
+       */
+      setSaveStatus('Guardando…');
+      return t.set('card', 'shared', KEY, state).then(function(){
+        setSaveStatus('');
+      }).catch(function(err){
+        setSaveStatus('Error al guardar', true);
+        showError('No se pudo guardar: ' + String(err));
+        throw err;
+      });
+    }
+
+    /* ── button click (optimistic-update pattern) ────────── */
+    document.getElementById('toggle-btn').addEventListener('click', function () {
+      if (!state || !me) {
+        showError('Timer aún cargando. Espera un momento e intenta de nuevo.');
+        return;
+      }
+
+      /* 1. Modify state immediately */
+      if (state.sessions && state.sessions[me.id]) {
+        /* STOP */
+        var sess = state.sessions[me.id];
+        var now  = Date.now();
+        var dur  = Math.floor((now - sess.startTime) / 1000);
+        if (dur > 0) {
+          state.entries = (state.entries||[]).concat([{
+            memberId:   me.id,
+            memberName: me.fullName,
+            avatarUrl:  me.avatarUrl || '',
+            start:      sess.startTime,
+            end:        now,
+            duration:   dur
+          }]);
+        }
+        delete state.sessions[me.id];
+      } else {
+        /* START */
+        if (!state.sessions) state.sessions = {};
+        state.sessions[me.id] = {
+          startTime:  Date.now(),
+          memberName: me.fullName,
+          avatarUrl:  me.avatarUrl || ''
+        };
+      }
+
+      /* 2. Render immediately (optimistic) — UI responds at once */
+      render();
+
+      /* 3. Persist in background */
+      save();
+    });
+
+    /* ── reset button ────────────────────────────────────── */
+    document.getElementById('reset-btn').addEventListener('click', function () {
+      if (!state || !me || !confirm('¿Eliminar solo TUS registros en esta tarjeta?')) return;
+      if (state.sessions) delete state.sessions[me.id];
+      state.entries = (state.entries||[]).filter(function(e){ return e.memberId!==me.id; });
+      render();
+      save();
+    });
+
+    /* ── init ────────────────────────────────────────────── */
+    var memberFetch = t.member('id', 'fullName', 'username', 'avatar').catch(function () {
+      /* Fallback: still works as anonymous user */
+      return { id: 'anon-' + Math.random().toString(36).slice(2), fullName: 'Usuario', username: 'usuario', avatar: null };
+    });
+
+    Promise.all([
+      t.get('card', 'shared', KEY).catch(function(){ return null; }),
+      memberFetch
+    ]).then(function (results) {
+      var raw = results[0];
+      var m   = results[1];
+
+      /* Build avatar URL from hash if present */
+      var avatarUrl = '';
+      if (m && m.avatar) {
+        avatarUrl = 'https://trello-members.s3.amazonaws.com/' + m.id + '/' + m.avatar + '/50.png';
+      }
+
+      me = {
+        id:       (m && m.id) || 'anon',
+        fullName: (m && (m.fullName || m.username)) || 'Usuario',
+        avatarUrl: avatarUrl
+      };
+
+      /* Migrate from legacy format */
+      if (raw && raw.running !== undefined && !raw.sessions) {
+        state = {
+          sessions: {},
+          entries: (raw.entries||[]).map(function(e){
+            return Object.assign({ memberId:'legacy', memberName:'Anterior', avatarUrl:'' }, e);
+          })
+        };
+        if (raw.running && raw.startTime) {
+          state.sessions[me.id] = { startTime: raw.startTime, memberName: me.fullName, avatarUrl: me.avatarUrl };
+        }
+      } else {
+        state = raw || {};
+        if (!state.sessions) state.sessions = {};
+        if (!state.entries)  state.entries  = [];
+      }
+
+      render();
+    }).catch(function (err) {
+      document.getElementById('status').textContent = 'Error';
+      showError('Error al iniciar el timer: ' + String(err) + '. Recarga la tarjeta.');
+    });
+
+  })();
+  </script>
+</body>
+</html>
