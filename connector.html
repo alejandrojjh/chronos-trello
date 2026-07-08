@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Chronos – IT Pal</title>
+  <script src="https://p.trellocdn.com/power-up.min.js"></script>
+</head>
+<body>
+<script>
+(function () {
+  var KEY         = 'chronos';
+  var SUM_KEY     = 'chronos-summary';   /* board shared: totals per card + per member */
+  var DAILY_KEY   = 'chronos-daily';     /* board shared: per-day entries (last 7 days) */
+
+  /* ── helpers ─────────────────────────────────────────────── */
+  function fmt(s) {
+    s = Math.max(0, Math.floor(s));
+    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
+      .map(function(v){ return String(v).padStart(2,'0'); }).join(':');
+  }
+  function getTotalAll(d) {
+    var base = ((d&&d.entries)||[]).reduce(function(a,e){ return a+(e.duration||0); },0);
+    if (d&&d.sessions) Object.keys(d.sessions).forEach(function(id){
+      var s=d.sessions[id]; if(s&&s.startTime) base+=Math.floor((Date.now()-s.startTime)/1000);
+    });
+    return base;
+  }
+  function anyRunning(d) {
+    return !!(d&&d.sessions&&Object.keys(d.sessions).length>0);
+  }
+  function memberTotals(d) {
+    /* Returns { memberId: { name, avatarUrl, total } } */
+    var map = {};
+    ((d&&d.entries)||[]).forEach(function(e){
+      if (!e.memberId) return;
+      if (!map[e.memberId]) map[e.memberId]={ name:e.memberName||'', avatarUrl:e.avatarUrl||'', total:0 };
+      map[e.memberId].total += e.duration||0;
+    });
+    if (d&&d.sessions) Object.keys(d.sessions).forEach(function(id){
+      var s=d.sessions[id]; if(!s||!s.startTime) return;
+      var live=Math.floor((Date.now()-s.startTime)/1000);
+      if (!map[id]) map[id]={ name:s.memberName||'', avatarUrl:s.avatarUrl||'', total:0 };
+      map[id].total += live;
+    });
+    return map;
+  }
+
+  /*
+   * updateBoardSummary — called from card-badges dynamic callback.
+   * Runs in CONNECTOR context (not timer iframe), so it safely updates
+   * board shared storage without triggering card-back-section reloads.
+   */
+  function updateBoardSummary(t, cardId, cardName, chronosData) {
+    if (!chronosData) return Promise.resolve();
+    var total   = getTotalAll(chronosData);
+    var running = anyRunning(chronosData);
+    if (!total && !running) return Promise.resolve();
+
+    return Promise.all([
+      t.get('board', 'shared', SUM_KEY).catch(function(){ return {}; }),
+      t.get('board', 'shared', DAILY_KEY).catch(function(){ return {}; })
+    ]).then(function(r) {
+      var summary = r[0] || {};
+      var daily   = r[1] || {};
+
+      /* Per-card summary */
+      var mMap  = memberTotals(chronosData);
+      var mList = Object.keys(mMap).map(function(id){
+        return { id:id, name:mMap[id].name, avatarUrl:mMap[id].avatarUrl, total:mMap[id].total };
+      });
+      summary[cardId] = {
+        name:    cardName,
+        total:   total,
+        running: running,
+        members: mList,
+        updatedAt: Date.now()
+      };
+
+      /* Per-day (last 7 days of completed entries only) */
+      var cutoff = Date.now() - 7*24*3600*1000;
+      /* prune old days */
+      Object.keys(daily).forEach(function(day){
+        if (new Date(day).getTime() < cutoff) delete daily[day];
+      });
+      /* upsert entries for this card */
+      ((chronosData&&chronosData.entries)||[]).forEach(function(e){
+        if (!e.start || e.start < cutoff) return;
+        var day = new Date(e.start).toISOString().slice(0,10);
+        if (!daily[day]) daily[day] = [];
+        /* remove stale entry for same card+member+start */
+        daily[day] = daily[day].filter(function(d){
+          return !(d.cardId===cardId && d.memberId===e.memberId && d.start===e.start);
+        });
+        daily[day].push({
+          cardId:     cardId,
+          cardName:   cardName,
+          memberId:   e.memberId||'',
+          memberName: e.memberName||'',
+          avatarUrl:  e.avatarUrl||'',
+          duration:   e.duration||0,
+          start:      e.start
+        });
+      });
+      /* cap total entries to ~150 */
+      var total150 = Object.keys(daily).reduce(function(s,k){ return s+daily[k].length; },0);
+      if (total150 > 150) {
+        var oldDays = Object.keys(daily).sort();
+        while (Object.keys(daily).reduce(function(s,k){ return s+daily[k].length; },0) > 150) {
+          if (!oldDays.length) break;
+          delete daily[oldDays.shift()];
+        }
+      }
+
+      return Promise.all([
+        t.set('board', 'shared', SUM_KEY,   summary),
+        t.set('board', 'shared', DAILY_KEY, daily)
+      ]);
+    }).catch(function(err){ console.warn('Chronos summary update failed:', err); });
+  }
+
+  var baseUrl = location.href.replace(/\/[^/]*$/, '');
+
+  window.TrelloPowerUp.initialize({
+
+    /* ── card-buttons ─────────────────────────────────────── */
+    'card-buttons': function (t) {
+      return t.get('card', 'shared', KEY).then(function(d){
+        var running = anyRunning(d);
+        return [{
+          icon: 'https://cdn-icons-png.flaticon.com/512/111/111168.png',
+          text: running ? '⏹ Detener mi timer' : '▶ Iniciar mi timer',
+          callback: function (t) {
+            return t.popup({ title:'Chronos – IT Pal', url: baseUrl+'/timer.html', height:420 });
+          }
+        }];
+      });
+    },
+
+    /* ── card-badges ──────────────────────────────────────── */
+    'card-badges': function (t) {
+      return [{
+        dynamic: function () {
+          return Promise.all([
+            t.get('card', 'shared', KEY),
+            t.card('id', 'name').catch(function(){ return { id:'', name:'' }; })
+          ]).then(function(r){
+            var d       = r[0];
+            var card    = r[1];
+            var total   = getTotalAll(d);
+            var running = anyRunning(d);
+
+            /* Update board summary in background (connector context, safe) */
+            if (card.id) updateBoardSummary(t, card.id, card.name, d);
+
+            if (!total && !running) return [];
+            return {
+              icon:    'https://cdn-icons-png.flaticon.com/512/111/111168.png',
+              text:    fmt(total),
+              color:   running ? 'green' : null,
+              refresh: running ? 10 : 3600
+            };
+          });
+        }
+      }];
+    },
+
+    /* ── card-detail-badges ───────────────────────────────── */
+    'card-detail-badges': function (t) {
+      return [{
+        dynamic: function () {
+          return t.get('card', 'shared', KEY).then(function(d){
+            var total   = getTotalAll(d);
+            var running = anyRunning(d);
+            if (!total && !running) return [];
+            return {
+              title:   'Tiempo registrado',
+              text:    fmt(total),
+              color:   running ? 'green' : null,
+              refresh: running ? 10 : 3600
+            };
+          });
+        }
+      }];
+    },
+
+    /* ── card-back-section ────────────────────────────────── */
+    'card-back-section': function (t) {
+      return {
+        title: 'Chronos – IT Pal',
+        icon:  'https://cdn-icons-png.flaticon.com/512/111/111168.png',
+        content: { type:'iframe', url: t.signUrl(baseUrl+'/timer.html'), height:230 }
+      };
+    },
+
+    /* ── board-buttons ────────────────────────────────────── */
+    'board-buttons': function (t) {
+      return [{
+        icon: {
+          dark:  'https://cdn-icons-png.flaticon.com/512/111/111168.png',
+          light: 'https://cdn-icons-png.flaticon.com/512/111/111168.png'
+        },
+        text: 'Chronos Reports',
+        callback: function (t) {
+          return t.modal({
+            title:      'Chronos Reports',
+            url:        t.signUrl(baseUrl+'/dashboard.html'),
+            fullscreen: false,
+            height:     700
+          });
+        }
+      }];
+    },
+
+    /* ── show-settings ────────────────────────────────────── */
+    'show-settings': function (t) {
+      return t.popup({
+        title:  'Chronos – Configuración',
+        url:    t.signUrl(baseUrl+'/settings.html'),
+        height: 420
+      });
+    }
+
+  });
+})();
+</script>
+</body>
+</html>
