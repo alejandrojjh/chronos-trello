@@ -194,22 +194,18 @@
 
     /* ── board-buttons ────────────────────────────────────── */
     'board-buttons': function (t) {
-      return [{
-        icon: {
-          dark:  'https://cdn-icons-png.flaticon.com/512/111/111168.png',
-          light: 'https://cdn-icons-png.flaticon.com/512/111/111168.png'
-        },
-        text: 'TrackingTime Reports',
-        callback: function (t) {
-          return t.modal({
-            title:      'TrackingTime Reports',
-            url:        t.signUrl(baseUrl+'/dashboard.html'),
-            fullscreen: false,
-            height:     700
-          });
-        }
-      }];
-    },
+  return [{
+    // Al NO incluir la propiedad 'icon', Trello muestra solo el texto
+    text: 'TrackingTime Reports',
+    callback: function (t) {
+      return t.modal({
+        title: 'TrackingTime Reports',
+        url: './dashboard.html',
+        fullscreen: true
+      });
+    }
+  }];
+}
 
     /* ── show-settings ────────────────────────────────────── */
     'show-settings': function (t) {
