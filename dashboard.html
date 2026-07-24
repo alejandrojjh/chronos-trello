@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>TrackingTime Reports</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  <!-- 🔴 IMPORTAMOS LA LIBRERÍA CHART.JS 🔴 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     
@@ -109,7 +112,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     .stat-card {
       background: var(--surf);
@@ -122,6 +125,19 @@
     .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
     .stat-val.blue { color: var(--accent); }
     .stat-val.green { color: var(--green); }
+
+    /* ── Chart Container ──────────────────────────────────── */
+    .chart-box {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+      height: 280px;
+      display: none; /* Se activa por JS si hay datos */
+      flex-direction: column;
+    }
+    .chart-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 12px; }
 
     /* ── Cards UI ─────────────────────────────────────────── */
     .data-block {
@@ -224,6 +240,12 @@
       border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Scrollbar Estilizado */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-app); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--txt-mut); }
   </style>
 </head>
 <body>
@@ -236,13 +258,9 @@
     </div>
     <nav class="sb-nav">
       <div class="nav-item active" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
-      <!-- Pestañas separadas -->
       <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo</div>
       <div class="nav-item" onclick="switchTab('tab-weeks', this)">📅 Semanas</div>
-      <!-- Nueva pestaña Custom (reemplaza Exportar Custom) -->
       <div class="nav-item" onclick="switchTab('tab-custom-view', this)">🔍 Desglose Custom</div>
-      
-      <!-- Pestaña de Exportación Global -->
       <div class="nav-item" onclick="switchTab('tab-export', this)">📥 Exportar Datos</div>
     </nav>
     <div class="sb-footer" id="last-update">Sincronizando...</div>
@@ -270,6 +288,14 @@
         </div>
       </div>
 
+      <!-- 🔴 CONTENEDOR DEL GRÁFICO 🔴 -->
+      <div class="chart-box" id="chart-container">
+        <div class="chart-title">Distribución de tiempo por Equipo (Horas)</div>
+        <div style="flex: 1; position: relative;">
+          <canvas id="teamChart"></canvas>
+        </div>
+      </div>
+
       <div id="cards-container">
         <div class="empty-state"><div class="spinner"></div>Analizando tarjetas en tiempo real...</div>
       </div>
@@ -291,7 +317,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: DESGLOSE Y EXPORTACIÓN CUSTOM (NUEVA PANTALLA) -->
+    <!-- TAB 4: DESGLOSE Y EXPORTACIÓN CUSTOM -->
     <div id="tab-custom-view" class="tab-pane">
       <h1 class="page-title">Desglose Custom (Filtros Avanzados)</h1>
       <div class="export-card">
@@ -300,15 +326,12 @@
         </div>
         
         <div class="date-row" style="margin-bottom: 16px;">
-          <!-- Filtro 1 -->
           <div class="form-group">
             <label class="form-label">1. Campo Personalizado</label>
             <select class="form-select" id="cf-select" onchange="updateCustomValues()">
               <option value="">Cargando campos...</option>
             </select>
           </div>
-
-          <!-- Filtro 2 -->
           <div class="form-group">
             <label class="form-label">2. Opción (Filtro)</label>
             <select class="form-select" id="cf-value-select" disabled>
@@ -318,7 +341,6 @@
         </div>
 
         <div class="date-row" style="margin-bottom: 16px;">
-          <!-- Filtro 3 (Tiempo) -->
           <div class="form-group">
             <label class="form-label">3. Rango de tiempo</label>
             <select class="form-select" id="custom-range" onchange="toggleCustomDates2()">
@@ -330,7 +352,6 @@
           </div>
         </div>
 
-        <!-- Fechas Personalizadas (Oculto por defecto) -->
         <div class="date-row" id="custom-dates2" style="display: none; margin-bottom: 24px;">
           <div class="form-group">
             <label class="form-label">Fecha Inicio</label>
@@ -342,18 +363,12 @@
           </div>
         </div>
 
-        <!-- Botones de Acción -->
         <div style="display: flex; gap: 12px; margin-top: 10px;">
-          <button class="btn-secondary" onclick="executeCustomAction('view')">
-            👁️ Ver en Pantalla
-          </button>
-          <button class="btn-primary-green" onclick="executeCustomAction('export')">
-            📥 Descargar CSV Filtrado
-          </button>
+          <button class="btn-secondary" onclick="executeCustomAction('view')">👁️ Ver en Pantalla</button>
+          <button class="btn-primary-green" onclick="executeCustomAction('export')">📥 Descargar CSV Filtrado</button>
         </div>
       </div>
 
-      <!-- Aquí aparecerán los resultados visuales -->
       <div id="custom-results-container" style="margin-top: 24px; max-width: 650px;"></div>
     </div>
 
@@ -397,9 +412,11 @@
   var KEY = 'chronos';
   
   var rawCardStore = []; 
-  var boardCustomFields = []; // Almacenará los custom fields del tablero
+  var boardCustomFields = [];
   
-  // 🔴 LÍMITE MÁXIMO DE SESIÓN (En horas - Debe coincidir con timer.html) 🔴
+  // Variable Global para almacenar la instancia del gráfico
+  var teamChartInstance = null;
+  
   var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
 
@@ -426,9 +443,9 @@
   function getWeekLabel(dateObj) {
     const d = new Date(dateObj);
     const day = d.getDay() || 7; 
-    d.setDate(d.getDate() - (day - 1)); // Lunes
+    d.setDate(d.getDate() - (day - 1)); 
     const startStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
-    d.setDate(d.getDate() + 6); // Domingo
+    d.setDate(d.getDate() + 6); 
     const endStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
     return `Semana del ${startStr} al ${endStr}`;
   }
@@ -455,12 +472,9 @@
   function fetchCustomFieldsList() {
     t.board('customFields').then(board => {
       if (board && board.customFields) {
-        // Filtramos solo los campos de tipo lista (desplegables)
         boardCustomFields = board.customFields.filter(cf => cf.type === 'list');
-        
         const cfSelect = document.getElementById('cf-select');
         cfSelect.innerHTML = '<option value="">-- Elige un campo --</option>';
-        
         boardCustomFields.forEach(cf => {
           let option = document.createElement('option');
           option.value = cf.id;
@@ -474,15 +488,12 @@
   window.updateCustomValues = function() {
     const selectedFieldId = document.getElementById('cf-select').value;
     const valueSelect = document.getElementById('cf-value-select');
-    
     if (!selectedFieldId) {
       valueSelect.innerHTML = '<option value="">Selecciona un campo primero...</option>';
       valueSelect.disabled = true;
       return;
     }
-
     const selectedField = boardCustomFields.find(cf => cf.id === selectedFieldId);
-    
     valueSelect.innerHTML = '<option value="">-- Selecciona el filtro --</option>';
     if (selectedField && selectedField.options) {
       selectedField.options.forEach(opt => {
@@ -495,7 +506,7 @@
     }
   };
 
-  /* ── LECTURA DIRECTA Y FILTRADO DE TARJETAS VIVAS ───────── */
+  /* ── LECTURA DIRECTA Y FILTRADO ───────── */
   function fetchLiveBoardData() {
     return t.cards('id', 'name', 'customFieldItems').then(cards => {
       return Promise.all(cards.map(c => {
@@ -523,10 +534,8 @@
       cardStore.forEach(item => {
         let card = item.card;
         let state = item.state;
-
         let entries = state.entries || [];
         let sessions = state.sessions || {};
-
         let cardTotalSecs = 0;
         let cardMembersMap = {}; 
         let isRunningOnCard = Object.keys(sessions).length > 0;
@@ -535,15 +544,12 @@
 
         const applyTimeToMaps = (dur, pid, pName, pAv, timestamp) => {
           cardTotalSecs += dur;
-
           if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
           cardMembersMap[pid].total += dur;
-
           if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
           teamDataMap[pid].total += dur;
           if (!teamDataMap[pid].cards[card.name]) teamDataMap[pid].cards[card.name] = 0;
           teamDataMap[pid].cards[card.name] += dur;
-
           let weekLbl = getWeekLabel(timestamp);
           if (!weeksDataMap[weekLbl]) weeksDataMap[weekLbl] = { total: 0, cards: {} };
           weeksDataMap[weekLbl].total += dur;
@@ -563,7 +569,6 @@
           let sess = sessions[pid];
           let elapsed = Math.floor((now - sess.startTime) / 1000);
           elapsed = Math.min(elapsed, MAX_SECONDS);
-
           if (elapsed > 0) {
             let pName = sess.memberName || 'Desconocido';
             let pAv = sess.avatarUrl || '';
@@ -582,17 +587,84 @@
       document.getElementById('s-cards').textContent = workedCardsCount;
       document.getElementById('s-active').textContent = activeTimersCount;
 
+      renderChart(teamDataMap); // 🔴 Dibujar gráfico antes de la lista
       renderCardsTab(cardsDataList);
       renderTeamTab(teamDataMap);
       renderWeeksTab(weeksDataMap);
-      
-      // Si la pestaña de Desglose Custom está abierta, actualizarla sutilmente si ya generó una vista
-      if(document.getElementById('tab-custom-view').classList.contains('active') && document.getElementById('custom-results-container').innerHTML !== '') {
-          // Opcional: auto-refrescar la vista custom (silenciado para no interrumpir lectura)
-      }
 
       document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     });
+  }
+
+  /* ── 🔴 LÓGICA DEL GRÁFICO (CHART.JS) 🔴 ── */
+  function renderChart(teamDataMap) {
+    const pids = Object.keys(teamDataMap);
+    const container = document.getElementById('chart-container');
+    const ctx = document.getElementById('teamChart');
+
+    if (pids.length === 0) {
+      container.style.display = 'none'; // Ocultar si no hay datos
+      return;
+    }
+
+    container.style.display = 'flex'; // Mostrar contenedor
+    
+    // Preparar datos para el gráfico
+    const labels = [];
+    const dataValues = [];
+    const backgroundColors = [];
+
+    // Ordenar de mayor a menor
+    pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach(pid => {
+      let member = teamDataMap[pid];
+      labels.push(member.name);
+      dataValues.push((member.total / 3600).toFixed(2)); // Mostrar en horas decimales
+      backgroundColors.push(mColor(member.name)); // Usar nuestra función de colores
+    });
+
+    if (teamChartInstance) {
+      // Si el gráfico ya existe, solo actualizamos los datos para que no parpadee
+      teamChartInstance.data.labels = labels;
+      teamChartInstance.data.datasets[0].data = dataValues;
+      teamChartInstance.data.datasets[0].backgroundColor = backgroundColors;
+      teamChartInstance.update();
+    } else {
+      // Si no existe, creamos el gráfico Donut por primera vez
+      teamChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: dataValues,
+            backgroundColor: backgroundColors,
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%', // Grosor del anillo
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                color: '#c7d1db',
+                font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 },
+                padding: 20
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` ${context.raw} Horas`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
   }
 
   function renderCardsTab(cardsDataList) {
@@ -687,7 +759,6 @@
       alert("Por favor selecciona un Campo Personalizado y una Opción (Filtro).");
       return null;
     }
-
     if (!rawCardStore || rawCardStore.length === 0) {
       alert("No hay datos en el tablero.");
       return null;
@@ -711,25 +782,21 @@
       endD = new Date(eVal + 'T23:59:59');
     }
 
-    let aggregated = {}; // Data para exportar CSV
-    let displayData = []; // Data para desglose visual
+    let aggregated = {}; 
+    let displayData = []; 
 
     rawCardStore.forEach(item => {
       const cfItems = item.card.customFieldItems;
-      // Saltamos la tarjeta si NO tiene el Custom Field o el Valor exacto que el usuario seleccionó
       if (!cfItems || !cfItems.some(cf => cf.idCustomField === cfId && cf.idValue === valId)) return;
 
       let cardName = item.card.name;
       let entries = item.state.entries || [];
       let sessions = item.state.sessions || {};
-      
       let cardTotalSecs = 0;
       let cardMembersMap = {}; 
 
-      // 1. Entradas finalizadas
       entries.forEach(e => {
         let eDate = new Date(e.start || Date.now());
-        // Filtrar por fechas
         if (startD && eDate < startD) return;
         if (endD && eDate > endD) return;
 
@@ -737,17 +804,14 @@
         let dur = e.duration || 0;
         let key = `${member}___${cardName}`;
 
-        // Acumular para CSV
         if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
         aggregated[key].totalDuration += dur;
 
-        // Acumular para Vista HTML
         if (!cardMembersMap[e.memberId]) cardMembersMap[e.memberId] = { name: member, avatarUrl: e.avatarUrl, total: 0 };
         cardMembersMap[e.memberId].total += dur;
         cardTotalSecs += dur;
       });
 
-      // 2. Sesiones Activas (Si aplican en la fecha)
       if (!endD || now.getTime() <= endD.getTime()) {
         if (!startD || now.getTime() >= startD.getTime()) {
           Object.keys(sessions).forEach(pid => {
@@ -759,11 +823,9 @@
               let member = sess.memberName || 'Desconocido';
               let key = `${member}___${cardName}`;
 
-              // CSV
               if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
               aggregated[key].totalDuration += elapsed;
 
-              // Vista HTML
               if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: member, avatarUrl: sess.avatarUrl, total: 0 };
               cardMembersMap[pid].total += elapsed;
               cardTotalSecs += elapsed;
@@ -808,9 +870,7 @@
         return;
       }
 
-      // Ordenar tarjetas por tiempo de mayor a menor
       result.displayData.sort((a,b) => b.total - a.total);
-      
       let grandTotal = 0;
 
       let html = result.displayData.map(card => {
@@ -846,7 +906,6 @@
           <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${fmt(grandTotal)} <span style="font-size:14px; color:var(--txt-mut); font-weight:normal;">(${fmtH(grandTotal)})</span></div>
         </div>
       `;
-
       container.innerHTML = headerHtml + html;
     }
   };
@@ -854,7 +913,6 @@
   /* ── EXPORTACIÓN GLOBAL (NORMAL) ────────────────────────────── */
   window.executeExport = function() {
     if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos para exportar."); return; }
-
     const rangeType = document.getElementById('export-range').value;
     let startD = null, endD = null;
     const now = new Date();
@@ -875,11 +933,9 @@
     }
 
     let aggregated = {};
-
     rawCardStore.forEach(item => {
       let cardName = item.card.name;
       let entries = item.state.entries || [];
-
       entries.forEach(e => {
         let eDate = new Date(e.start || Date.now());
         if (startD && eDate < startD) return;
@@ -902,7 +958,6 @@
     if (!aggregatedList.length) { alert("No se encontraron registros de tiempo que coincidan con los filtros."); return; }
 
     aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration);
-
     let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (HH:MM:SS),Horas\n";
     let rows = aggregatedList.map(item => {
       let safeMember   = `"${item.member.replace(/"/g, '""')}"`;
@@ -910,7 +965,6 @@
       let durationSec  = item.totalDuration;
       let durationFmt  = fmt(durationSec);
       let hoursDecimal = (durationSec / 3600).toFixed(2);
-      
       return `${safeMember},${safeCard},${durationFmt},${hoursDecimal}`;
     });
     csvContent += rows.join("\n");
