@@ -13,11 +13,6 @@
   var DAILY_KEY   = 'chronos-daily';     /* board shared: per-day entries */
 
   /* ── helpers ─────────────────────────────────────────────── */
-  function fmt(s) {
-    s = Math.max(0, Math.floor(s));
-    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
-      .map(function(v){ return String(v).padStart(2,'0'); }).join(':');
-  }
   function getTotalAll(d) {
     var base = ((d&&d.entries)||[]).reduce(function(a,e){ return a+(e.duration||0); },0);
     if (d&&d.sessions) Object.keys(d.sessions).forEach(function(id){
@@ -27,6 +22,16 @@
   }
   function anyRunning(d) {
     return !!(d&&d.sessions&&Object.keys(d.sessions).length>0);
+  }
+  function getActiveUsersText(d) {
+    if (!d || !d.sessions) return '';
+    var names = [];
+    Object.keys(d.sessions).forEach(function(id){
+      var s = d.sessions[id];
+      if (s && s.memberName) names.push(s.memberName);
+    });
+    if (names.length === 0) return 'Working on it...';
+    return names.join(', ') + ' working on it...';
   }
   function memberTotals(d) {
     var map = {};
@@ -123,7 +128,7 @@
       });
     },
 
-    /* ── card-badges (en la portada de la tarjeta) ─────────── */
+    /* ── card-badges (vista frontal en la tarjeta del tablero) ─────────── */
     'card-badges': function (t) {
       return [{
         dynamic: function () {
@@ -133,50 +138,38 @@
           ]).then(function(r){
             var d       = r[0];
             var card    = r[1];
-            var total   = getTotalAll(d);
             var running = anyRunning(d);
 
             if (card.id) updateBoardSummary(t, card.id, card.name, d);
 
-            if (!total && !running) return [];
+            // Si nadie está trabajando en la tarjeta, NO se muestra nada
+            if (!running) return [];
+
             return {
-              icon:    'https://cdn-icons-png.flaticon.com/512/111/111168.png',
-              text:    fmt(total),
-              color:   running ? 'green' : null,
-              refresh: running ? 10 : 3600
+              text:    getActiveUsersText(d),
+              color:   null, // Sin borde destacado ni color de fondo
+              refresh: 10
             };
           });
         }
       }];
     },
 
-    /* ── card-detail-badges (insignia superior dentro de la tarjeta) ── */
+    /* ── card-detail-badges (insignia en la parte superior interna de la tarjeta) ── */
     'card-detail-badges': function (t) {
       return [{
         dynamic: function () {
           return t.get('card', 'shared', KEY).then(function(d){
-            var total   = getTotalAll(d);
             var running = anyRunning(d);
-            if (!total && !running) return [];
 
-            // Detectar nombre del usuario activo
-            var activeUser = '';
-            if (d && d.sessions) {
-              var activeId = Object.keys(d.sessions)[0];
-              if (activeId && d.sessions[activeId]) {
-                activeUser = d.sessions[activeId].memberName || 'Alguien';
-              }
-            }
-
-            var badgeText = running 
-              ? activeUser + ' working on it...' 
-              : fmt(total);
+            // Si nadie está trabajando, NO se muestra nada arriba
+            if (!running) return [];
 
             return {
-              title:   running ? 'En progreso' : 'Tiempo registrado',
-              text:    badgeText,
-              color:   running ? 'green' : null,
-              refresh: running ? 10 : 3600
+              title:   '',
+              text:    getActiveUsersText(d),
+              color:   null, // Texto plano sin contenedores de color
+              refresh: 10
             };
           });
         }
