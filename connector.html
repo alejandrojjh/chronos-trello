@@ -186,7 +186,7 @@
     /* ── card-back-section ────────────────────────────────── */
     'card-back-section': function (t) {
       return {
-        title: 'TrackingTime',
+        title: '', // <--- Déjalo vacío para que Trello no ponga título
         icon:  'https://cdn-icons-png.flaticon.com/512/111/111168.png',
         content: { type:'iframe', url: t.signUrl(baseUrl+'/timer.html'), height:230 }
       };
