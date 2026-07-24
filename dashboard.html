@@ -7,7 +7,7 @@
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-   
+    
     :root {
       --bg-app:     #1d2125;
       --bg-sidebar: #161a1d;
@@ -351,7 +351,7 @@
   var boardCustomFields = []; // Almacenará los custom fields del tablero
   
   // 🔴 LÍMITE MÁXIMO DE SESIÓN (En horas - Debe coincidir con timer.html) 🔴
-  var MAX_SESSION_HOURS = 12;
+  var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
 
   /* ── UTILIDADES ──────────────────────────────────────────── */
@@ -731,14 +731,17 @@
 
     aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration);
 
-    let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (Segundos),Tiempo Total (HH:MM:SS),Horas (Decimal)\n";
+    // Encabezados limpios: Sin Segundos, y 'Horas' limpio
+    let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (HH:MM:SS),Horas\n";
     let rows = aggregatedList.map(item => {
       let safeMember   = `"${item.member.replace(/"/g, '""')}"`;
       let safeCard     = `"${item.card.replace(/"/g, '""')}"`;
       let durationSec  = item.totalDuration;
       let durationFmt  = fmt(durationSec);
       let hoursDecimal = (durationSec / 3600).toFixed(2);
-      return `${safeMember},${safeCard},${durationSec},${durationFmt},${hoursDecimal}`;
+      
+      // Ya no incluimos durationSec en la línea del CSV
+      return `${safeMember},${safeCard},${durationFmt},${hoursDecimal}`;
     });
     csvContent += rows.join("\n");
 
