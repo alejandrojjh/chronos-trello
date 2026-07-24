@@ -10,7 +10,7 @@
 (function () {
   var KEY         = 'chronos';
   var SUM_KEY     = 'chronos-summary';   /* board shared: totals per card + per member */
-  var DAILY_KEY   = 'chronos-daily';     /* board shared: per-day entries (last 7 days) */
+  var DAILY_KEY   = 'chronos-daily';     /* board shared: per-day entries */
 
   /* ── helpers ─────────────────────────────────────────────── */
   function fmt(s) {
@@ -46,7 +46,7 @@
 
   /*
    * updateBoardSummary — actualiza el estado global del reporte.
-   * Modificado para procesar correctamente las tarjetas reiniciadas (0 tiempo).
+   * Rango histórico extendido a 365 días para evitar pérdida de registros pasados.
    */
   function updateBoardSummary(t, cardId, cardName, chronosData) {
     return Promise.all([
@@ -59,31 +59,31 @@
       var total   = getTotalAll(chronosData);
       var running = anyRunning(chronosData);
 
-      // 1. Limpiar registros diarios anteriores de esta tarjeta para evitar duplicados o fantasmas
+      // 1. Limpiar los registros existentes de esta tarjeta específica para regenerarlos completos
       Object.keys(daily).forEach(function(day){
         daily[day] = daily[day].filter(function(d){ return d.cardId !== cardId; });
         if (daily[day].length === 0) delete daily[day];
       });
 
-      // 2. Si la tarjeta fue reiniciada (no tiene tiempo ni está corriendo), la borramos del reporte
+      // 2. Si la tarjeta fue reiniciada a cero, se elimina del resumen del tablero
       if (!chronosData || (!total && !running)) {
         delete summary[cardId];
       } else {
-        /* Per-card summary */
+        /* Desglose por tarjeta */
         var mMap  = memberTotals(chronosData);
         var mList = Object.keys(mMap).map(function(id){
           return { id:id, name:mMap[id].name, avatarUrl:mMap[id].avatarUrl, total:mMap[id].total };
         });
         summary[cardId] = {
-          name:    cardName,
-          total:   total,
-          running: running,
-          members: mList,
+          name:      cardName,
+          total:     total,
+          running:   running,
+          members:   mList,
           updatedAt: Date.now()
         };
 
-        /* Per-day (last 7 days of completed entries only) */
-        var cutoff = Date.now() - 7*24*3600*1000;
+        /* Desglose por persona y día (retención de hasta 365 días) */
+        var cutoff = Date.now() - 365*24*3600*1000;
         ((chronosData&&chronosData.entries)||[]).forEach(function(e){
           if (!e.start || e.start < cutoff) return;
           var day = new Date(e.start).toISOString().slice(0,10);
@@ -101,21 +101,11 @@
         });
       }
 
-      /* prune general old days (7 days rule) */
-      var cutoffGeneral = Date.now() - 7*24*3600*1000;
+      /* Eliminar únicamente días con más de 1 año de antigüedad */
+      var cutoffGeneral = Date.now() - 365*24*3600*1000;
       Object.keys(daily).forEach(function(day){
         if (new Date(day).getTime() < cutoffGeneral) delete daily[day];
       });
-
-      /* cap total entries to ~150 */
-      var total150 = Object.keys(daily).reduce(function(s,k){ return s+daily[k].length; },0);
-      if (total150 > 150) {
-        var oldDays = Object.keys(daily).sort();
-        while (Object.keys(daily).reduce(function(s,k){ return s+daily[k].length; },0) > 150) {
-          if (!oldDays.length) break;
-          delete daily[oldDays.shift()];
-        }
-      }
 
       return Promise.all([
         t.set('board', 'shared', SUM_KEY,   summary),
@@ -155,7 +145,7 @@
             var total   = getTotalAll(d);
             var running = anyRunning(d);
 
-            /* Update board summary in background */
+            /* Actualizar resumen en segundo plano */
             if (card.id) updateBoardSummary(t, card.id, card.name, d);
 
             if (!total && !running) return [];
