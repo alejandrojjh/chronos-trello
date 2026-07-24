@@ -234,7 +234,6 @@
       <button class="wl-toggle-btn" id="toggle-details-btn">Show Details</button>
     </div>
 
-    <!-- Sección esencial limpia sin ícono ni punto -->
     <div class="tracker-box">
       <div class="tracker-left">
         <input type="text" class="tracker-input" value="Tiempo de tarea activo" id="task-title-mock">
@@ -243,7 +242,6 @@
       <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
     </div>
 
-    <!-- Sección de detalles (Oculta por defecto) -->
     <div id="details-section" style="display: none;">
       <div class="estimate-row">
         <div class="estimate-left">
@@ -281,11 +279,12 @@
 
   <script>
   (function () {
-    var KEY  = 'chronos';
-    var t    = window.TrelloPowerUp.iframe();
-    var state = null;
-    var me    = null;
-    var tick  = null;
+    var KEY        = 'chronos';
+    var ACTIVE_KEY = 'chronos-active-users';
+    var t          = window.TrelloPowerUp.iframe();
+    var state      = null;
+    var me         = null;
+    var tick       = null;
 
     /* ── helpers ─────────────────────────────────────────── */
     function fmt(sec) {
@@ -365,14 +364,14 @@
     function render() {
       if (!state || !me) return;
 
-      var btn     = document.getElementById('toggle-btn');
-      var resetBtn= document.getElementById('reset-btn');
-      btn.disabled     = false;
-      resetBtn.disabled= false;
+      var btn      = document.getElementById('toggle-btn');
+      var resetBtn = document.getElementById('reset-btn');
+      btn.disabled      = false;
+      resetBtn.disabled = false;
 
       var mySess  = state.sessions && state.sessions[me.id];
       var running = !!mySess;
-      var clockEl  = document.getElementById('clock');
+      var clockEl = document.getElementById('clock');
 
       if (running) {
         clockEl.className = 'clock running';
@@ -437,48 +436,115 @@
       t.sizeTo('#root').catch(function(){});
     });
 
-    /* ── save ────────────────────────────────────────────── */
-    function save() {
-      setSaveStatus('Guardando…');
-      return t.set('card', 'shared', KEY, state).then(function(){
-        setSaveStatus('');
-      }).catch(function(err){
-        setSaveStatus('Error', true);
-        showError('No se pudo guardar: ' + String(err));
-        throw err;
-      });
-    }
-
-    /* ── button click ────────────────────────────────────── */
+    /* ── toggle start/stop click (CON CONTROL CONCURRENTE Y AUTOPAUSA) ── */
     document.getElementById('toggle-btn').addEventListener('click', function () {
       if (!state || !me) return;
+      var btn = this;
+      btn.disabled = true; // Previene doble clic o congelamiento de la interfaz
+      showError('');
+      setSaveStatus('Guardando…');
 
-      if (state.sessions && state.sessions[me.id]) {
-        var sess = state.sessions[me.id];
-        var now  = Date.now();
-        var dur  = Math.floor((now - sess.startTime) / 1000);
-        if (dur > 0) {
-          state.entries = (state.entries||[]).concat([{
-            memberId:   me.id,
-            memberName: me.fullName,
-            avatarUrl:  me.avatarUrl || '',
-            start:      sess.startTime,
-            end:        now,
-            duration:   dur
-          }]);
+      Promise.all([
+        t.get('card', 'shared', KEY).catch(function(){ return null; }),
+        t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; }),
+        t.card('id', 'name').catch(function(){ return { id: '', name: '' }; })
+      ]).then(function(results) {
+        var freshCardState = results[0] || {};
+        var activeUsers    = results[1] || {};
+        var currentCard    = results[2];
+
+        if (!freshCardState.sessions) freshCardState.sessions = {};
+        if (!freshCardState.entries)  freshCardState.entries  = [];
+
+        var isRunningOnThisCard = !!freshCardState.sessions[me.id];
+
+        if (isRunningOnThisCard) {
+          /* ── OPCIÓN A: DETENER EL TIMER ACTUAL ── */
+          var sess = freshCardState.sessions[me.id];
+          var now  = Date.now();
+          var dur  = Math.floor((now - sess.startTime) / 1000);
+          if (dur > 0) {
+            freshCardState.entries.push({
+              memberId:   me.id,
+              memberName: me.fullName,
+              avatarUrl:  me.avatarUrl || '',
+              start:      sess.startTime,
+              end:        now,
+              duration:   dur
+            });
+          }
+          delete freshCardState.sessions[me.id];
+          delete activeUsers[me.id];
+
+          return Promise.all([
+            t.set('card', 'shared', KEY, freshCardState),
+            t.set('board', 'shared', ACTIVE_KEY, activeUsers)
+          ]).then(function() {
+            state = freshCardState;
+            render();
+            setSaveStatus('');
+          });
+
+        } else {
+          /* ── OPCIÓN B: INICIAR TIMER EN ESTA TARJETA ── */
+          // 1. Revisar si el usuario tenía un timer corriendo en OTRA tarjeta y pausarlo automáticamente
+          var prevSession = activeUsers[me.id];
+          var closePrevCardPromise = Promise.resolve();
+
+          if (prevSession && prevSession.cardId && prevSession.cardId !== currentCard.id) {
+            closePrevCardPromise = t.get(prevSession.cardId, 'shared', KEY).then(function(prevCardState) {
+              if (prevCardState && prevCardState.sessions && prevCardState.sessions[me.id]) {
+                var pSess = prevCardState.sessions[me.id];
+                var now   = Date.now();
+                var dur   = Math.floor((now - pSess.startTime) / 1000);
+                if (dur > 0) {
+                  if (!prevCardState.entries) prevCardState.entries = [];
+                  prevCardState.entries.push({
+                    memberId:   me.id,
+                    memberName: me.fullName,
+                    avatarUrl:  me.avatarUrl || '',
+                    start:      pSess.startTime,
+                    end:        now,
+                    duration:   dur
+                  });
+                }
+                delete prevCardState.sessions[me.id];
+                return t.set(prevSession.cardId, 'shared', KEY, prevCardState);
+              }
+            }).catch(function(e) {
+              console.warn('Advertencia al cerrar la tarjeta previa:', e);
+            });
+          }
+
+          return closePrevCardPromise.then(function() {
+            var now = Date.now();
+            freshCardState.sessions[me.id] = {
+              startTime:  now,
+              memberName: me.fullName,
+              avatarUrl:  me.avatarUrl || ''
+            };
+            activeUsers[me.id] = {
+              cardId:    currentCard.id,
+              cardName:  currentCard.name,
+              startTime: now
+            };
+
+            return Promise.all([
+              t.set('card', 'shared', KEY, freshCardState),
+              t.set('board', 'shared', ACTIVE_KEY, activeUsers)
+            ]).then(function() {
+              state = freshCardState;
+              render();
+              setSaveStatus('');
+            });
+          });
         }
-        delete state.sessions[me.id];
-      } else {
-        if (!state.sessions) state.sessions = {};
-        state.sessions[me.id] = {
-          startTime:  Date.now(),
-          memberName: me.fullName,
-          avatarUrl:  me.avatarUrl || ''
-        };
-      }
-
-      render();
-      save();
+      }).catch(function(err) {
+        setSaveStatus('Error', true);
+        showError('No se pudo guardar el cambio: ' + String(err));
+      }).then(function() {
+        btn.disabled = false;
+      });
     });
 
     /* ── reset button ────────────────────────────────────── */
@@ -487,7 +553,15 @@
       if (state.sessions) delete state.sessions[me.id];
       state.entries = (state.entries||[]).filter(function(e){ return e.memberId!==me.id; });
       render();
-      save();
+      
+      t.get('board', 'shared', ACTIVE_KEY).then(function(activeUsers){
+        activeUsers = activeUsers || {};
+        delete activeUsers[me.id];
+        return Promise.all([
+          t.set('card', 'shared', KEY, state),
+          t.set('board', 'shared', ACTIVE_KEY, activeUsers)
+        ]);
+      });
     });
 
     /* ── init ────────────────────────────────────────────── */
@@ -525,7 +599,7 @@
 
       render();
     }).catch(function (err) {
-      showError('Error: ' + String(err));
+      showError('Error al inicializar: ' + String(err));
     });
 
   })();
