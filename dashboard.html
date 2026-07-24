@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>TrackingTime Reports</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <!-- 🔴 IMPORTAMOS LA LIBRERÍA CHART.JS 🔴 -->
+  <!-- LIBRERÍA CHART.JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
@@ -107,12 +107,23 @@
 
     .page-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 24px; }
 
+    /* ── Top Row Layout (Stats + Chart) ───────────────────── */
+    .top-row {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 24px;
+      flex-wrap: wrap; /* Se adapta a pantallas pequeñas */
+      align-items: stretch;
+    }
+
     /* ── Summary Stats ────────────────────────────────────── */
     .summary-grid {
+      flex: 1;
+      min-width: 300px;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
-      margin-bottom: 24px;
+      align-content: start;
     }
     .stat-card {
       background: var(--surf);
@@ -132,10 +143,11 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 20px;
-      margin-bottom: 24px;
-      height: 280px;
+      width: 350px;
+      min-height: 250px;
       display: none; /* Se activa por JS si hay datos */
       flex-direction: column;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .chart-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 12px; }
 
@@ -273,26 +285,30 @@
     <div id="tab-cards" class="tab-pane active">
       <h1 class="page-title">Resumen del Tablero</h1>
       
-      <div class="summary-grid">
-        <div class="stat-card">
-          <div class="stat-lbl">Tiempo Total Invertido</div>
-          <div class="stat-val blue" id="s-total">--:--:--</div>
+      <!-- TOP ROW: Stats + Chart en dos columnas -->
+      <div class="top-row">
+        <!-- Bloque Izquierdo: Stats -->
+        <div class="summary-grid">
+          <div class="stat-card">
+            <div class="stat-lbl">Tiempo Total Invertido</div>
+            <div class="stat-val blue" id="s-total">--:--:--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Tarjetas Trabajadas</div>
+            <div class="stat-val" id="s-cards">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Timers Activos</div>
+            <div class="stat-val green" id="s-active">-</div>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-lbl">Tarjetas Trabajadas</div>
-          <div class="stat-val" id="s-cards">-</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-lbl">Timers Activos</div>
-          <div class="stat-val green" id="s-active">-</div>
-        </div>
-      </div>
 
-      <!-- 🔴 CONTENEDOR DEL GRÁFICO 🔴 -->
-      <div class="chart-box" id="chart-container">
-        <div class="chart-title">Distribución de tiempo por Equipo (Horas)</div>
-        <div style="flex: 1; position: relative;">
-          <canvas id="teamChart"></canvas>
+        <!-- Bloque Derecho: Chart -->
+        <div class="chart-box" id="chart-container">
+          <div class="chart-title">Distribución por Equipo (Horas)</div>
+          <div style="flex: 1; position: relative;">
+            <canvas id="teamChart"></canvas>
+          </div>
         </div>
       </div>
 
@@ -414,7 +430,6 @@
   var rawCardStore = []; 
   var boardCustomFields = [];
   
-  // Variable Global para almacenar la instancia del gráfico
   var teamChartInstance = null;
   
   var MAX_SESSION_HOURS = 9;
@@ -429,10 +444,11 @@
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function initials(n) { return (n||'?').trim().split(/\s+/).slice(0,2).map(w => w[0]||'?').join('').toUpperCase(); }
   
-  const COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
+  // Función general para generar colores base de los Avatares
+  const AVATAR_COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
   function mColor(n) { 
     let h=0; for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; 
-    return COLORS[Math.abs(h) % COLORS.length]; 
+    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]; 
   }
   
   function avHtml(name, url) {
@@ -587,7 +603,7 @@
       document.getElementById('s-cards').textContent = workedCardsCount;
       document.getElementById('s-active').textContent = activeTimersCount;
 
-      renderChart(teamDataMap); // 🔴 Dibujar gráfico antes de la lista
+      renderChart(teamDataMap);
       renderCardsTab(cardsDataList);
       renderTeamTab(teamDataMap);
       renderWeeksTab(weeksDataMap);
@@ -596,40 +612,47 @@
     });
   }
 
-  /* ── 🔴 LÓGICA DEL GRÁFICO (CHART.JS) 🔴 ── */
+  /* ── GRÁFICO (CHART.JS) CON COLORES ÚNICOS ── */
   function renderChart(teamDataMap) {
     const pids = Object.keys(teamDataMap);
     const container = document.getElementById('chart-container');
     const ctx = document.getElementById('teamChart');
 
     if (pids.length === 0) {
-      container.style.display = 'none'; // Ocultar si no hay datos
+      container.style.display = 'none'; 
       return;
     }
 
-    container.style.display = 'flex'; // Mostrar contenedor
+    container.style.display = 'flex'; 
     
-    // Preparar datos para el gráfico
     const labels = [];
     const dataValues = [];
     const backgroundColors = [];
 
-    // Ordenar de mayor a menor
+    // Paleta extendida para asignar dinámicamente y no repetir
+    const DYNAMIC_PALETTE = ['#f87168', '#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#00c7e6', '#ff8f73', '#ffc400', '#8777d9'];
+    let colorMap = {};
+    let colorIndex = 0;
+
     pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach(pid => {
       let member = teamDataMap[pid];
       labels.push(member.name);
-      dataValues.push((member.total / 3600).toFixed(2)); // Mostrar en horas decimales
-      backgroundColors.push(mColor(member.name)); // Usar nuestra función de colores
+      dataValues.push((member.total / 3600).toFixed(2)); 
+
+      // Asigna un color único a cada persona en orden (independiente del nombre)
+      if (!colorMap[member.name]) {
+        colorMap[member.name] = DYNAMIC_PALETTE[colorIndex % DYNAMIC_PALETTE.length];
+        colorIndex++;
+      }
+      backgroundColors.push(colorMap[member.name]);
     });
 
     if (teamChartInstance) {
-      // Si el gráfico ya existe, solo actualizamos los datos para que no parpadee
       teamChartInstance.data.labels = labels;
       teamChartInstance.data.datasets[0].data = dataValues;
       teamChartInstance.data.datasets[0].backgroundColor = backgroundColors;
       teamChartInstance.update();
     } else {
-      // Si no existe, creamos el gráfico Donut por primera vez
       teamChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -644,7 +667,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: '65%', // Grosor del anillo
+          cutout: '65%', 
           plugins: {
             legend: {
               position: 'right',
@@ -986,7 +1009,10 @@
 
   fetchCustomFieldsList();
   renderDashboard();
-  setInterval(renderDashboard, 4000);
+  
+  // 🔥 AQUÍ: Actualización constante cada segundo (1000 ms) en lugar de cada 4 (4000)
+  setInterval(renderDashboard, 1000);
+  
   window.addEventListener('focus', renderDashboard);
   document.addEventListener('visibilitychange', function() { if (!document.hidden) renderDashboard(); });
 </script>
