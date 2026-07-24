@@ -16,12 +16,17 @@
       padding: 0;
     }
 
-    /* ── Header alineado a la derecha ─────────────────────── */
+    /* ── Header ───────────────────────────────────────────── */
     .wl-header {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between; /* Alinea el título a la izq y el botón a la der */
       align-items: center;
       margin-bottom: 8px;
+    }
+    .app-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #dee4ea;
     }
     .wl-toggle-btn {
       background: #2c2e33;
@@ -244,6 +249,7 @@
     <div class="err-banner" id="err-banner"></div>
 
     <div class="wl-header">
+      <div class="app-title">TrackingTime</div>
       <button class="wl-toggle-btn" id="toggle-details-btn">Show Details</button>
     </div>
 
@@ -256,8 +262,7 @@
     </div>
 
     <div id="details-section" style="display: none;">
-      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #8c9199; margin-bottom: 10px;">
-        <span>Mi total: <strong id="my-total" style="color:#dee4ea;">--:--:--</strong></span>
+      <div style="display: flex; justify-content: flex-end; font-size: 12px; color: #8c9199; margin-bottom: 10px;">
         <span>Total tarjeta: <strong id="all-total" style="color:#dee4ea;">--:--:--</strong></span>
       </div>
 
@@ -409,15 +414,8 @@
     /* ── clock tick ──────────────────────────────────────── */
     function updateClock() {
       if (!state || !me) return;
-      var sess = state.sessions && state.sessions[me.id];
-      if (!sess || !sess.startTime) return;
-      
-      var elapsed = Math.floor((Date.now()-sess.startTime)/1000);
-      elapsed = Math.min(elapsed, MAX_SECONDS); // Aplicar límite al reloj visual
-
-      document.getElementById('clock').textContent    = fmt(elapsed);
-      document.getElementById('my-total').textContent = fmt(myTotal());
-      document.getElementById('all-total').textContent= fmt(allTotal());
+      document.getElementById('clock').textContent     = fmt(myTotal());
+      document.getElementById('all-total').textContent = fmt(allTotal());
     }
 
     /* ── render ──────────────────────────────────────────── */
@@ -443,10 +441,9 @@
       } else {
         if (tick) { clearInterval(tick); tick = null; }
         clockEl.className   = 'clock';
-        clockEl.textContent = '00:00:00';
+        clockEl.textContent = fmt(myTotal()); // Reloj acumulativo siempre visible
         btn.className = 'btn btn-start';
         btn.textContent = '▶ Play';
-        document.getElementById('my-total').textContent  = fmt(myTotal());
         document.getElementById('all-total').textContent = fmt(allTotal());
       }
 
