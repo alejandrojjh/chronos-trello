@@ -4,8 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>TrackingTime</title>
-  <!-- SDK de Trello y CSS Oficial de Atlassian/Trello Power-Ups -->
-  <link rel="stylesheet" href="https://p.trellocdn.com/power-up.css">
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -78,7 +76,7 @@
       color: #fff;
     }
     
-    /* Botones principales */
+    /* Botones */
     .btn {
       border: none;
       background: #3a3d45;
@@ -94,9 +92,7 @@
       transition: background 0.2s;
     }
     .btn-start { background: #0052cc; }
-    .btn-start:hover { background: #0747a6; }
     .btn-stop  { background: #de350b; }
-    .btn-stop:hover  { background: #bf2600; }
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
     .divider {
@@ -162,77 +158,82 @@
 
     .empty-msg { font-style: italic; color: #8c9199; padding: 8px 0; }
 
-    /* ── Footer NATIVO DE TRELLO ───────────────────────────── */
-    .footer-bar {
+    /* ── Footer / Acciones en el mismo eje ────────────────── */
+    .footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-top: 14px;
       padding-top: 4px;
     }
-    .action-link {
+    .reset-btn {
       background: none;
       border: none;
+      color: #8c9199;
       font-size: 11px;
       cursor: pointer;
       text-decoration: underline;
-      padding: 0;
     }
-    .action-link.danger { color: #8c9199; }
-    .action-link.danger:hover { color: #f87168; }
-    .action-link.primary { color: #579dff; }
-    .action-link.primary:hover { color: #85b8ff; }
-    .action-link:disabled { opacity: 0.3; cursor: not-allowed; }
+    .reset-btn:hover { color: #f87168; }
+    .edit-btn {
+      background: none;
+      border: none;
+      color: #579dff;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .edit-btn:hover { color: #85b8ff; }
+    .reset-btn:disabled, .edit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-    /* Bloques de confirmación y edición inline */
-    .inline-block {
+    /* ── Paneles Inline (Reinicio y Edición) ──────────────── */
+    .inline-panel {
       display: none;
-      margin-top: 12px;
-      padding: 10px;
-      background: #22272b;
-      border: 1px solid #2c333a;
+      background: #282a2e; /* Mismo fondo que tracker-box */
       border-radius: 4px;
+      padding: 12px;
+      margin-top: 14px;
     }
     .inline-title {
       font-size: 11px;
       font-weight: 700;
-      color: #9fadbc;
-      margin-bottom: 6px;
+      color: #8c9199;
       text-transform: uppercase;
+      margin-bottom: 8px;
     }
-    .inline-controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .trello-field {
-      background: #1d2125 !important;
-      border: 1px solid #3c444d !important;
-      color: #fff !important;
-      padding: 4px 8px !important;
-      font-size: 12px !important;
-      border-radius: 3px !important;
+    .inline-input {
+      background: #1e1f22;
+      border: 1px solid #3a3d45;
+      color: #dee4ea;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      width: 100%;
       outline: none;
-      flex: 1;
-      margin-bottom: 0 !important;
+      margin-bottom: 10px;
+      font-family: monospace;
     }
-    .trello-field:focus {
-      border-color: #579dff !important;
+    .inline-input:focus { border-color: #579dff; }
+    .inline-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
     }
-    .inline-btn {
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      border-radius: 3px;
+    .btn-sm {
       border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
       cursor: pointer;
+      transition: background 0.2s;
     }
-    .btn-confirm-reset { background: #de350b; color: #fff; }
-    .btn-confirm-reset:hover { background: #bf2600; }
-    .btn-confirm-save { background: #0052cc; color: #fff; }
-    .btn-confirm-save:hover { background: #0747a6; }
-    .btn-cancel-inline { background: #2c2e33; color: #9f9f9f; }
-    .btn-cancel-inline:hover { background: #3a3d45; color: #fff; }
+    .btn-cancel { background: #3a3d45; color: #fff; }
+    .btn-cancel:hover { background: #4a4d55; }
+    .btn-confirm { background: #de350b; color: #fff; }
+    .btn-confirm:hover { background: #bf2600; }
+    .btn-save { background: #0052cc; color: #fff; }
+    .btn-save:hover { background: #0747a6; }
 
     .save-status { font-size: 11px; color: #8c9199; text-align: right; margin-top: 4px; display: block; }
     .err-banner { display:none; background:#3d1f1f; border:1px solid #7a2d2d; border-radius:4px; padding:6px 10px; font-size:11px; color:#f87168; margin-bottom:6px; }
@@ -266,32 +267,31 @@
       <div class="entries-lbl">Logs de trabajo</div>
       <ul class="entries" id="entries"></ul>
 
-      <!-- Footer con acciones principales -->
-      <div class="footer-bar">
-        <button class="action-link danger" id="reset-btn" disabled>Reiniciar mis datos</button>
-        <button class="action-link primary" id="edit-btn" disabled>Modificar datos</button>
+      <div class="footer">
+        <button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button>
+        <button class="edit-btn" id="edit-btn" disabled>Modificar datos</button>
       </div>
-
-      <!-- Panel de confirmación de reinicio (Inline) -->
-      <div class="inline-block" id="reset-panel">
-        <div class="inline-title" style="color:#f87168;">¿Eliminar todos tus registros en esta tarjeta?</div>
-        <div class="inline-controls">
-          <button class="inline-btn btn-confirm-reset" id="confirm-reset-btn">Sí, borrar</button>
-          <button class="inline-btn btn-cancel-inline" id="cancel-reset-btn">Cancelar</button>
-        </div>
-      </div>
-
-      <!-- Panel de modificación de datos (Inline) -->
-      <div class="inline-block" id="edit-panel">
-        <div class="inline-title">Nuevo tiempo (Ej: 01:30:00, 1h 30m o mins)</div>
-        <div class="inline-controls">
-          <input type="text" id="edit-input" class="trello-field" placeholder="00:00:00">
-          <button class="inline-btn btn-confirm-save" id="save-edit-btn">Guardar</button>
-          <button class="inline-btn btn-cancel-inline" id="cancel-edit-btn">Cancelar</button>
-        </div>
-      </div>
-
       <span class="save-status" id="save-status"></span>
+
+      <!-- Panel Confirmar Reinicio -->
+      <div class="inline-panel" id="reset-panel">
+        <div class="inline-title" style="color: #f87168;">¿Eliminar tus registros?</div>
+        <div class="inline-actions">
+          <button class="btn-sm btn-cancel" id="cancel-reset">Cancelar</button>
+          <button class="btn-sm btn-confirm" id="confirm-reset">Sí, eliminar</button>
+        </div>
+      </div>
+
+      <!-- Panel Modificar Tiempo -->
+      <div class="inline-panel" id="edit-panel">
+        <div class="inline-title">Nuevo tiempo (Ej: 01:30:00, 1h 30m o 90)</div>
+        <input type="text" class="inline-input" id="edit-input" placeholder="00:00:00">
+        <div class="inline-actions">
+          <button class="btn-sm btn-cancel" id="cancel-edit">Cancelar</button>
+          <button class="btn-sm btn-save" id="save-edit">Guardar</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -479,7 +479,7 @@
       t.sizeTo('#root').catch(function(){});
     });
 
-    /* ── toggle start/stop click ─────────────────────────── */
+    /* ── toggle start/stop click (CON CONTROL CONCURRENTE Y AUTOPAUSA) ── */
     document.getElementById('toggle-btn').addEventListener('click', function () {
       if (!state || !me) return;
       var btn = this;
@@ -502,6 +502,7 @@
         var isRunningOnThisCard = !!freshCardState.sessions[me.id];
 
         if (isRunningOnThisCard) {
+          /* ── DETENER EL TIMER ACTUAL ── */
           var sess = freshCardState.sessions[me.id];
           var now  = Date.now();
           var dur  = Math.floor((now - sess.startTime) / 1000);
@@ -528,6 +529,7 @@
           });
 
         } else {
+          /* ── INICIAR TIMER EN ESTA TARJETA ── */
           var prevSession = activeUsers[me.id];
           var closePrevCardPromise = Promise.resolve();
 
@@ -587,27 +589,42 @@
       });
     });
 
-    /* ── Lógica Inline de Reinicio ───────────────────────── */
+    /* ── PANELS INLINE (REINICIAR / MODIFICAR) ────────────────── */
     var resetPanel = document.getElementById('reset-panel');
-    
+    var editPanel  = document.getElementById('edit-panel');
+    var editInput  = document.getElementById('edit-input');
+
+    // Botón "Reiniciar mis datos"
     document.getElementById('reset-btn').addEventListener('click', function () {
-      document.getElementById('edit-panel').style.display = 'none';
+      if (!state || !me) return;
+      editPanel.style.display = 'none';
       resetPanel.style.display = 'block';
       t.sizeTo('#root').catch(function(){});
     });
 
-    document.getElementById('cancel-reset-btn').addEventListener('click', function () {
+    // Botón "Modificar datos"
+    document.getElementById('edit-btn').addEventListener('click', function () {
+      if (!state || !me) return;
+      resetPanel.style.display = 'none';
+      editInput.value = fmt(myTotal()); // Cargar tiempo actual
+      editPanel.style.display = 'block';
+      t.sizeTo('#root').catch(function(){});
+    });
+
+    // Cancelar Reinicio
+    document.getElementById('cancel-reset').addEventListener('click', function () {
       resetPanel.style.display = 'none';
       t.sizeTo('#root').catch(function(){});
     });
 
-    document.getElementById('confirm-reset-btn').addEventListener('click', function () {
+    // Confirmar Reinicio
+    document.getElementById('confirm-reset').addEventListener('click', function () {
       if (!state || !me) return;
       resetPanel.style.display = 'none';
-      setSaveStatus('Guardando…');
-
+      
       if (state.sessions) delete state.sessions[me.id];
       state.entries = (state.entries||[]).filter(function(e){ return e.memberId!==me.id; });
+      render();
       
       t.get('board', 'shared', ACTIVE_KEY).then(function(activeUsers){
         activeUsers = activeUsers || {};
@@ -616,38 +633,22 @@
           t.set('card', 'shared', KEY, state),
           t.set('board', 'shared', ACTIVE_KEY, activeUsers)
         ]);
-      }).then(function(){
-        render();
-        setSaveStatus('');
-      }).catch(function(err){
-        setSaveStatus('Error', true);
-        showError('Error al reiniciar: ' + String(err));
       });
     });
 
-    /* ── Lógica Inline de Modificación de Datos ──────────── */
-    var editPanel = document.getElementById('edit-panel');
-    var editInput = document.getElementById('edit-input');
-
-    document.getElementById('edit-btn').addEventListener('click', function () {
-      if (!state || !me) return;
-      resetPanel.style.display = 'none';
-      editInput.value = fmt(myTotal());
-      editPanel.style.display = 'block';
-      t.sizeTo('#root').catch(function(){});
-    });
-
-    document.getElementById('cancel-edit-btn').addEventListener('click', function () {
+    // Cancelar Edición
+    document.getElementById('cancel-edit').addEventListener('click', function () {
       editPanel.style.display = 'none';
       t.sizeTo('#root').catch(function(){});
     });
 
-    document.getElementById('save-edit-btn').addEventListener('click', function () {
+    // Guardar Edición
+    document.getElementById('save-edit').addEventListener('click', function () {
       if (!state || !me) return;
 
       var newSeconds = parseTimeToSeconds(editInput.value);
       if (newSeconds === null || newSeconds < 0) {
-        showError('Formato de tiempo no válido. Ejemplos: 01:30:00, 1h 30m, 90');
+        showError("Formato no válido. Usa '01:30:00', '1h 30m' o minutos.");
         return;
       }
 
@@ -660,7 +661,7 @@
         delete state.sessions[me.id];
       }
 
-      // Se consolidan los datos del usuario en un registro con el nuevo total
+      // Reemplaza las entradas del usuario por una consolidada
       state.entries = (state.entries || []).filter(function(e){ return e.memberId !== me.id; });
 
       if (newSeconds > 0) {
