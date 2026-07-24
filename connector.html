@@ -150,8 +150,12 @@
               color:   null,
               refresh: 10,
               callback: function (t) {
-                // 🟢 Fuerza a Trello a abrir la tarjeta al hacer clic en el texto
-                return t.showCard(card.id);
+                // 🟢 Abre directamente el popup de control del temporizador al hacer clic
+                return t.popup({
+                  title:  'TrackingTime',
+                  url:    baseUrl + '/timer.html',
+                  height: 420
+                });
               }
             };
           });
