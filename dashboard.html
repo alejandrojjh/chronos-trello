@@ -182,10 +182,10 @@
 
     /* ── Export UI ────────────────────────────────────────── */
     .export-card {
-      background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 600px;
+      background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 650px;
     }
     .export-desc { color: var(--txt-mut); margin-bottom: 20px; line-height: 1.5; }
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; flex: 1; }
     .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 6px; }
     .form-select, .form-input {
       width: 100%; background: var(--bg-app); border: 1px solid var(--border); color: #fff;
@@ -194,7 +194,6 @@
     .form-select:focus, .form-input:focus { border-color: var(--accent); }
     .form-select:disabled { opacity: 0.5; cursor: not-allowed; }
     .date-row { display: flex; gap: 16px; }
-    .date-row > div { flex: 1; }
     
     .btn-export {
       background: var(--accent); color: #091e42; border: none; padding: 12px 24px;
@@ -202,6 +201,20 @@
       display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; width: 100%; justify-content: center;
     }
     .btn-export:hover { background: var(--accent-hvr); }
+
+    .btn-secondary {
+      background: var(--bg-app); color: var(--txt-main); border: 1px solid var(--border); padding: 12px 24px;
+      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
+    }
+    .btn-secondary:hover { background: var(--surf-hover); }
+
+    .btn-primary-green {
+      background: var(--green); color: #161a1d; border: none; padding: 12px 24px;
+      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: filter 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
+    }
+    .btn-primary-green:hover { filter: brightness(1.1); }
 
     /* ── Utilities ────────────────────────────────────────── */
     .empty-state { text-align: center; padding: 60px 20px; color: var(--txt-mut); }
@@ -226,9 +239,11 @@
       <!-- Pestañas separadas -->
       <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo</div>
       <div class="nav-item" onclick="switchTab('tab-weeks', this)">📅 Semanas</div>
-      <!-- Pestañas de Exportación -->
+      <!-- Nueva pestaña Custom (reemplaza Exportar Custom) -->
+      <div class="nav-item" onclick="switchTab('tab-custom-view', this)">🔍 Desglose Custom</div>
+      
+      <!-- Pestaña de Exportación Global -->
       <div class="nav-item" onclick="switchTab('tab-export', this)">📥 Exportar Datos</div>
-      <div class="nav-item" onclick="switchTab('tab-export-custom', this)">⚙️ Exportar Custom</div>
     </nav>
     <div class="sb-footer" id="last-update">Sincronizando...</div>
   </aside>
@@ -260,7 +275,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: EQUIPO (Separado) -->
+    <!-- TAB 2: EQUIPO -->
     <div id="tab-team" class="tab-pane">
       <h1 class="page-title">Desglose por Equipo</h1>
       <div id="team-container">
@@ -268,7 +283,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: SEMANAS (Separado) -->
+    <!-- TAB 3: SEMANAS -->
     <div id="tab-weeks" class="tab-pane">
       <h1 class="page-title">Desglose por Semanas</h1>
       <div id="weeks-container">
@@ -276,12 +291,78 @@
       </div>
     </div>
 
-    <!-- TAB 4: EXPORTAR NORMAL -->
-    <div id="tab-export" class="tab-pane">
-      <h1 class="page-title">Exportar Registros Consolidados (CSV)</h1>
+    <!-- TAB 4: DESGLOSE Y EXPORTACIÓN CUSTOM (NUEVA PANTALLA) -->
+    <div id="tab-custom-view" class="tab-pane">
+      <h1 class="page-title">Desglose Custom (Filtros Avanzados)</h1>
       <div class="export-card">
         <div class="export-desc">
-          Descarga un reporte consolidado en archivo <strong>.csv</strong> con la suma total global de tiempo por actividad y miembro.
+          Filtra, visualiza y descarga el tiempo registrado basándote en un <strong>Custom Field</strong> y un <strong>Rango de Fechas</strong> específico.
+        </div>
+        
+        <div class="date-row" style="margin-bottom: 16px;">
+          <!-- Filtro 1 -->
+          <div class="form-group">
+            <label class="form-label">1. Campo Personalizado</label>
+            <select class="form-select" id="cf-select" onchange="updateCustomValues()">
+              <option value="">Cargando campos...</option>
+            </select>
+          </div>
+
+          <!-- Filtro 2 -->
+          <div class="form-group">
+            <label class="form-label">2. Opción (Filtro)</label>
+            <select class="form-select" id="cf-value-select" disabled>
+              <option value="">Selecciona un campo primero...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="date-row" style="margin-bottom: 16px;">
+          <!-- Filtro 3 (Tiempo) -->
+          <div class="form-group">
+            <label class="form-label">3. Rango de tiempo</label>
+            <select class="form-select" id="custom-range" onchange="toggleCustomDates2()">
+              <option value="all">Todo el historial</option>
+              <option value="month">Este mes</option>
+              <option value="week">Esta semana</option>
+              <option value="custom">Personalizado (Elegir fechas)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Fechas Personalizadas (Oculto por defecto) -->
+        <div class="date-row" id="custom-dates2" style="display: none; margin-bottom: 24px;">
+          <div class="form-group">
+            <label class="form-label">Fecha Inicio</label>
+            <input type="date" class="form-input" id="custom-start">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha Fin</label>
+            <input type="date" class="form-input" id="custom-end">
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div style="display: flex; gap: 12px; margin-top: 10px;">
+          <button class="btn-secondary" onclick="executeCustomAction('view')">
+            👁️ Ver en Pantalla
+          </button>
+          <button class="btn-primary-green" onclick="executeCustomAction('export')">
+            📥 Descargar CSV Filtrado
+          </button>
+        </div>
+      </div>
+
+      <!-- Aquí aparecerán los resultados visuales -->
+      <div id="custom-results-container" style="margin-top: 24px; max-width: 650px;"></div>
+    </div>
+
+    <!-- TAB 5: EXPORTAR NORMAL -->
+    <div id="tab-export" class="tab-pane">
+      <h1 class="page-title">Exportar Datos (Global)</h1>
+      <div class="export-card">
+        <div class="export-desc">
+          Descarga un reporte consolidado en archivo <strong>.csv</strong> con todo el tiempo de tu tablero por actividad y miembro.
         </div>
         
         <div class="form-group">
@@ -306,38 +387,6 @@
         </div>
 
         <button class="btn-export" onclick="executeExport()">Descargar Reporte Consolidado</button>
-      </div>
-    </div>
-
-    <!-- TAB 5: EXPORTAR DATOS CUSTOM FIELDS -->
-    <div id="tab-export-custom" class="tab-pane">
-      <h1 class="page-title">Exportar Datos Custom (Filtros)</h1>
-      <div class="export-card">
-        <div class="export-desc">
-          Filtra y descarga el tiempo registrado basándote exclusivamente en los campos personalizados <strong>(Custom Fields)</strong> que hayas configurado en tu tablero.
-        </div>
-        
-        <div class="date-row" style="margin-bottom: 20px;">
-          <!-- Filtro 1 -->
-          <div class="form-group">
-            <label class="form-label">1. Selecciona el Campo Personalizado</label>
-            <select class="form-select" id="cf-select" onchange="updateCustomValues()">
-              <option value="">Cargando campos...</option>
-            </select>
-          </div>
-
-          <!-- Filtro 2 -->
-          <div class="form-group">
-            <label class="form-label">2. Selecciona la Opción a Filtrar</label>
-            <select class="form-select" id="cf-value-select" disabled>
-              <option value="">Selecciona un campo primero...</option>
-            </select>
-          </div>
-        </div>
-
-        <button class="btn-export" style="background: #4bce97; color: #161a1d;" onclick="executeCustomExport()">
-          Descargar Reporte Filtrado
-        </button>
       </div>
     </div>
 
@@ -397,6 +446,11 @@
     document.getElementById('custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
   }
 
+  function toggleCustomDates2() {
+    const val = document.getElementById('custom-range').value;
+    document.getElementById('custom-dates2').style.display = (val === 'custom') ? 'flex' : 'none';
+  }
+
   /* ── INICIALIZACIÓN DE CUSTOM FIELDS ─────────────────────── */
   function fetchCustomFieldsList() {
     t.board('customFields').then(board => {
@@ -429,7 +483,7 @@
 
     const selectedField = boardCustomFields.find(cf => cf.id === selectedFieldId);
     
-    valueSelect.innerHTML = '<option value="">-- Todos los valores (Selecciona uno) --</option>';
+    valueSelect.innerHTML = '<option value="">-- Selecciona el filtro --</option>';
     if (selectedField && selectedField.options) {
       selectedField.options.forEach(opt => {
         let optionHTML = document.createElement('option');
@@ -443,7 +497,6 @@
 
   /* ── LECTURA DIRECTA Y FILTRADO DE TARJETAS VIVAS ───────── */
   function fetchLiveBoardData() {
-    // IMPORTANTE: Agregamos 'customFieldItems' para que Trello nos traiga la data de los selectores
     return t.cards('id', 'name', 'customFieldItems').then(cards => {
       return Promise.all(cards.map(c => {
         return t.get(c.id, 'shared', KEY).then(cState => {
@@ -462,8 +515,8 @@
       let workedCardsCount = 0;
 
       let cardsDataList = [];
-      let teamDataMap = {}; // Agrupación por Equipo
-      let weeksDataMap = {}; // Agrupación por Semanas
+      let teamDataMap = {}; 
+      let weeksDataMap = {}; 
 
       const now = Date.now();
 
@@ -480,21 +533,17 @@
 
         if (isRunningOnCard) activeTimersCount += Object.keys(sessions).length;
 
-        // Función auxiliar para sumar tiempos a los mapas
         const applyTimeToMaps = (dur, pid, pName, pAv, timestamp) => {
           cardTotalSecs += dur;
 
-          // Mapa de Tarjetas (Miembros dentro de la tarjeta)
           if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
           cardMembersMap[pid].total += dur;
 
-          // Mapa de Equipo (Tarjetas dentro del miembro)
           if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
           teamDataMap[pid].total += dur;
           if (!teamDataMap[pid].cards[card.name]) teamDataMap[pid].cards[card.name] = 0;
           teamDataMap[pid].cards[card.name] += dur;
 
-          // Mapa de Semanas (Tarjetas dentro de la semana)
           let weekLbl = getWeekLabel(timestamp);
           if (!weeksDataMap[weekLbl]) weeksDataMap[weekLbl] = { total: 0, cards: {} };
           weeksDataMap[weekLbl].total += dur;
@@ -502,7 +551,6 @@
           weeksDataMap[weekLbl].cards[card.name] += dur;
         };
 
-        // 1. Procesar registros de tiempo finalizados
         entries.forEach(e => {
           let dur = e.duration || 0;
           let pid = e.memberId || 'unknown';
@@ -511,11 +559,9 @@
           applyTimeToMaps(dur, pid, pName, pAv, e.start || now);
         });
 
-        // 2. Procesar sesiones activas aplicando el tope máximo de horas
         Object.keys(sessions).forEach(pid => {
           let sess = sessions[pid];
           let elapsed = Math.floor((now - sess.startTime) / 1000);
-          
           elapsed = Math.min(elapsed, MAX_SECONDS);
 
           if (elapsed > 0) {
@@ -539,6 +585,12 @@
       renderCardsTab(cardsDataList);
       renderTeamTab(teamDataMap);
       renderWeeksTab(weeksDataMap);
+      
+      // Si la pestaña de Desglose Custom está abierta, actualizarla sutilmente si ya generó una vista
+      if(document.getElementById('tab-custom-view').classList.contains('active') && document.getElementById('custom-results-container').innerHTML !== '') {
+          // Opcional: auto-refrescar la vista custom (silenciado para no interrumpir lectura)
+      }
+
       document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     });
   }
@@ -549,9 +601,7 @@
       container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay registros de tiempo en las tarjetas.</div>`;
       return;
     }
-
     cardsDataList.sort((a,b) => b.total - a.total);
-
     let html = cardsDataList.map(card => {
       let membersHtml = '';
       if (card.members && card.members.length) {
@@ -581,22 +631,18 @@
     container.innerHTML = html;
   }
 
-  /* PESTAÑA: SÓLO EQUIPO */
   function renderTeamTab(teamDataMap) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
-    
     if (!pids.length) {
       container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado.</div>`;
       return;
     }
-
     let html = pids.map(pid => {
       let p = teamDataMap[pid];
       let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
         <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(p.cards[cName])}</div></div>
       `).join('');
-      
       return `
         <div class="data-block">
           <div class="person-header">${avHtml(p.name, p.avatarUrl)}<div class="person-name">${esc(p.name)}</div><div class="person-total">${fmt(p.total)}</div></div>
@@ -606,22 +652,18 @@
     container.innerHTML = html;
   }
 
-  /* PESTAÑA: SÓLO SEMANAS */
   function renderWeeksTab(weeksDataMap) {
     const weeks = Object.keys(weeksDataMap);
     const container = document.getElementById('weeks-container');
-
     if (!weeks.length) {
       container.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div>No hay datos para mostrar por semanas.</div>`;
       return;
     }
-
     let html = weeks.map(wName => {
       let w = weeksDataMap[wName];
       let cardsHtml = Object.keys(w.cards).sort((a,b) => w.cards[b] - w.cards[a]).map(cName => `
         <div class="log-row" style="margin: 0 20px 4px 20px;"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(w.cards[cName])}</div></div>
       `).join('');
-      
       return `
         <div class="data-block">
           <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
@@ -635,7 +677,181 @@
     container.innerHTML = html;
   }
 
-  /* ── EXPORTACIÓN CONSOLIDADA A CSV (NORMAL) ───────────────── */
+  /* ── LÓGICA: DESGLOSE Y EXPORTACIÓN CUSTOM ───────────────── */
+  function getFilteredCustomData() {
+    const cfId = document.getElementById('cf-select').value;
+    const valId = document.getElementById('cf-value-select').value;
+    const rangeType = document.getElementById('custom-range').value;
+
+    if (!cfId || !valId) {
+      alert("Por favor selecciona un Campo Personalizado y una Opción (Filtro).");
+      return null;
+    }
+
+    if (!rawCardStore || rawCardStore.length === 0) {
+      alert("No hay datos en el tablero.");
+      return null;
+    }
+
+    let startD = null, endD = null;
+    const now = new Date();
+
+    if (rangeType === 'month') {
+      startD = new Date(now.getFullYear(), now.getMonth(), 1);
+      endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    } else if (rangeType === 'week') {
+      let day = now.getDay() || 7; 
+      startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0);
+      endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999);
+    } else if (rangeType === 'custom') {
+      const sVal = document.getElementById('custom-start').value;
+      const eVal = document.getElementById('custom-end').value;
+      if (!sVal || !eVal) { alert("Selecciona fechas de inicio y fin válidas."); return null; }
+      startD = new Date(sVal + 'T00:00:00');
+      endD = new Date(eVal + 'T23:59:59');
+    }
+
+    let aggregated = {}; // Data para exportar CSV
+    let displayData = []; // Data para desglose visual
+
+    rawCardStore.forEach(item => {
+      const cfItems = item.card.customFieldItems;
+      // Saltamos la tarjeta si NO tiene el Custom Field o el Valor exacto que el usuario seleccionó
+      if (!cfItems || !cfItems.some(cf => cf.idCustomField === cfId && cf.idValue === valId)) return;
+
+      let cardName = item.card.name;
+      let entries = item.state.entries || [];
+      let sessions = item.state.sessions || {};
+      
+      let cardTotalSecs = 0;
+      let cardMembersMap = {}; 
+
+      // 1. Entradas finalizadas
+      entries.forEach(e => {
+        let eDate = new Date(e.start || Date.now());
+        // Filtrar por fechas
+        if (startD && eDate < startD) return;
+        if (endD && eDate > endD) return;
+
+        let member = e.memberName || 'Desconocido';
+        let dur = e.duration || 0;
+        let key = `${member}___${cardName}`;
+
+        // Acumular para CSV
+        if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
+        aggregated[key].totalDuration += dur;
+
+        // Acumular para Vista HTML
+        if (!cardMembersMap[e.memberId]) cardMembersMap[e.memberId] = { name: member, avatarUrl: e.avatarUrl, total: 0 };
+        cardMembersMap[e.memberId].total += dur;
+        cardTotalSecs += dur;
+      });
+
+      // 2. Sesiones Activas (Si aplican en la fecha)
+      if (!endD || now.getTime() <= endD.getTime()) {
+        if (!startD || now.getTime() >= startD.getTime()) {
+          Object.keys(sessions).forEach(pid => {
+            let sess = sessions[pid];
+            let elapsed = Math.floor((now - sess.startTime) / 1000);
+            elapsed = Math.min(elapsed, MAX_SECONDS);
+
+            if (elapsed > 0) {
+              let member = sess.memberName || 'Desconocido';
+              let key = `${member}___${cardName}`;
+
+              // CSV
+              if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
+              aggregated[key].totalDuration += elapsed;
+
+              // Vista HTML
+              if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: member, avatarUrl: sess.avatarUrl, total: 0 };
+              cardMembersMap[pid].total += elapsed;
+              cardTotalSecs += elapsed;
+            }
+          });
+        }
+      }
+
+      if (cardTotalSecs > 0) {
+        displayData.push({
+          name: cardName,
+          total: cardTotalSecs,
+          members: Object.values(cardMembersMap)
+        });
+      }
+    });
+
+    return { aggregated, displayData };
+  }
+
+  window.executeCustomAction = function(actionType) {
+    let result = getFilteredCustomData();
+    if (!result) return;
+
+    if (actionType === 'export') {
+      const cfSelect = document.getElementById('cf-select');
+      const valSelect = document.getElementById('cf-value-select');
+      const cfName = cfSelect.options[cfSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
+      const cfValue = valSelect.options[valSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
+
+      if (Object.keys(result.aggregated).length === 0) {
+        alert("No hay registros de tiempo en las fechas y filtros indicados.");
+        return;
+      }
+      downloadCSV(result.aggregated, `Desglose_${cfName}_${cfValue}.csv`);
+
+    } else if (actionType === 'view') {
+      const container = document.getElementById('custom-results-container');
+      
+      if (result.displayData.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo registrado para esta opción y rango de fechas.</div>`;
+        return;
+      }
+
+      // Ordenar tarjetas por tiempo de mayor a menor
+      result.displayData.sort((a,b) => b.total - a.total);
+      
+      let grandTotal = 0;
+
+      let html = result.displayData.map(card => {
+        grandTotal += card.total;
+        let membersHtml = '';
+        if (card.members && card.members.length) {
+          card.members.sort((a,b) => b.total - a.total);
+          membersHtml = card.members.map(m => `
+            <div class="log-row" style="margin: 0 20px 8px 40px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                ${avHtml(m.name, m.avatarUrl)}
+                <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
+              </div>
+              <div class="log-dur">${fmt(m.total)}</div>
+            </div>
+          `).join('');
+        }
+        return `
+          <div class="data-block">
+            <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+              <span class="db-caret open">▶</span>
+              <span class="db-title">${esc(card.name)}</span>
+              <span class="db-total">${fmt(card.total)}</span>
+            </div>
+            <div class="db-body open"><div style="padding: 10px 0;">${membersHtml}</div></div>
+          </div>
+        `;
+      }).join('');
+
+      let headerHtml = `
+        <div style="background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <div style="font-size: 14px; font-weight: bold; color: var(--txt-mut); text-transform: uppercase;">Total del Filtro Seleccionado</div>
+          <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${fmt(grandTotal)} <span style="font-size:14px; color:var(--txt-mut); font-weight:normal;">(${fmtH(grandTotal)})</span></div>
+        </div>
+      `;
+
+      container.innerHTML = headerHtml + html;
+    }
+  };
+
+  /* ── EXPORTACIÓN GLOBAL (NORMAL) ────────────────────────────── */
   window.executeExport = function() {
     if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos para exportar."); return; }
 
@@ -677,51 +893,7 @@
       });
     });
 
-    downloadCSV(aggregated, `TrackingTime_Consolidado_${new Date().toISOString().slice(0,10)}.csv`);
-  };
-
-  /* ── EXPORTACIÓN CUSTOM (FILTRO POR CUSTOM FIELDS) ─────────── */
-  window.executeCustomExport = function() {
-    const selectedFieldId = document.getElementById('cf-select').value;
-    const selectedValueId = document.getElementById('cf-value-select').value;
-
-    if (!selectedFieldId || !selectedValueId) {
-      alert("Por favor selecciona un Campo Personalizado y una Opción para poder exportar.");
-      return;
-    }
-
-    if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos en el tablero."); return; }
-
-    let aggregated = {};
-
-    // Filtramos las tarjetas que tengan ESE custom field con ESE valor
-    rawCardStore.forEach(item => {
-      const cfItems = item.card.customFieldItems;
-      
-      // Si la tarjeta no tiene el custom field asignado que coincida con el filtro, la saltamos
-      if (!cfItems || !cfItems.some(cf => cf.idCustomField === selectedFieldId && cf.idValue === selectedValueId)) {
-        return; 
-      }
-
-      let cardName = item.card.name;
-      let entries = item.state.entries || [];
-
-      // Consolidar entradas de esta tarjeta
-      entries.forEach(e => {
-        let member = e.memberName || 'Desconocido';
-        let key = `${member}___${cardName}`;
-
-        if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
-        aggregated[key].totalDuration += (e.duration || 0);
-      });
-    });
-
-    const cfSelect = document.getElementById('cf-select');
-    const valSelect = document.getElementById('cf-value-select');
-    const cfName = cfSelect.options[cfSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
-    const cfValue = valSelect.options[valSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
-
-    downloadCSV(aggregated, `Reporte_Filtrado_${cfName}_${cfValue}.csv`);
+    downloadCSV(aggregated, `TrackingTime_Global_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   /* ── FUNCIÓN DE DESCARGA CSV (Reutilizable) ────────────────── */
@@ -731,7 +903,6 @@
 
     aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration);
 
-    // Encabezados limpios: Sin Segundos, y 'Horas' limpio
     let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (HH:MM:SS),Horas\n";
     let rows = aggregatedList.map(item => {
       let safeMember   = `"${item.member.replace(/"/g, '""')}"`;
@@ -740,7 +911,6 @@
       let durationFmt  = fmt(durationSec);
       let hoursDecimal = (durationSec / 3600).toFixed(2);
       
-      // Ya no incluimos durationSec en la línea del CSV
       return `${safeMember},${safeCard},${durationFmt},${hoursDecimal}`;
     });
     csvContent += rows.join("\n");
@@ -760,16 +930,9 @@
     document.getElementById('board-name').textContent = board.name || 'Tablero Actual';
   }).catch(() => {});
 
-  // 1. Cargar Custom Fields para el desplegable
   fetchCustomFieldsList();
-
-  // 2. Carga inicial de datos de las tarjetas
   renderDashboard();
-
-  // 3. Polling automático en tiempo real cada 4 segundos
   setInterval(renderDashboard, 4000);
-
-  // 4. Sincronización instantánea cuando el usuario enfoca la pestaña
   window.addEventListener('focus', renderDashboard);
   document.addEventListener('visibilitychange', function() { if (!document.hidden) renderDashboard(); });
 </script>
