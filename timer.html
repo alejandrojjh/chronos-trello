@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Chronos</title>
+  <title>TrackingTime</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,8 +38,12 @@
       font-weight: 600;
       cursor: pointer;
     }
+    .wl-toggle-btn:hover {
+      background: #3a3d45;
+      color: #fff;
+    }
 
-    /* ── Active Timer Block (Igual a la foto) ─────────────── */
+    /* ── Active Timer Block ───────────────────────────────── */
     .tracker-box {
       background: #282a2e;
       border-radius: 4px;
@@ -142,8 +146,8 @@
     }
     .progress-bar-fill {
       height: 100%;
-      background: #de350b; /* Rojo de exceso como la foto */
-      width: 100%; /* Simulado al 100% por ahora */
+      background: #de350b;
+      width: 100%;
     }
     .progress-labels {
       display: flex;
@@ -158,7 +162,7 @@
       margin: 14px 0;
     }
 
-    /* ── Entries List (Historial de Empleados) ─────────────── */
+    /* ── Entries List ─────────────────────────────────────── */
     .entries-lbl {
       font-size: 11px;
       font-weight: 700;
@@ -241,9 +245,10 @@
 
     <div class="wl-header">
       <span class="wl-title">Work log</span>
-      <button class="wl-toggle-btn">Hide Details</button>
+      <button class="wl-toggle-btn" id="toggle-details-btn">Show Details</button>
     </div>
 
+    <!-- Sección esencial (Siempre visible) -->
     <div class="tracker-box">
       <div class="tracker-left">
         <span class="loop-icon">⟳</span>
@@ -254,36 +259,39 @@
       <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
     </div>
 
-    <div class="estimate-row">
-      <div class="estimate-left">
-        <span>Estimate time <strong>29h 30m</strong></span>
-        <div class="avatars-preview" id="avatars-container-mock"></div>
+    <!-- Sección de detalles (Oculta por defecto) -->
+    <div id="details-section" style="display: none;">
+      <div class="estimate-row">
+        <div class="estimate-left">
+          <span>Estimate time <strong>29h 30m</strong></span>
+          <div class="avatars-preview" id="avatars-container-mock"></div>
+        </div>
+        <span class="wl-toggle-btn" style="background:transparent; padding:0;">+</span>
       </div>
-      <span class="wl-toggle-btn" style="background:transparent; padding:0;">+</span>
-    </div>
-    <div class="progress-container">
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill"></div>
+      <div class="progress-container">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill"></div>
+        </div>
+        <div class="progress-labels">
+          <span>635h 7m</span>
+          <span style="color:#f87168;">615h 37m over estimate</span>
+        </div>
       </div>
-      <div class="progress-labels">
-        <span>635h 7m</span>
-        <span style="color:#f87168;">615h 37m over estimate</span>
+
+      <div style="display: flex; justify-content: space-between; font-size: 11px; color: #8c9199; margin-bottom: 10px;">
+        <span>Mi total: <strong id="my-total" style="color:#dee4ea;">--:--:--</strong></span>
+        <span>Total tarjeta: <strong id="all-total" style="color:#dee4ea;">--:--:--</strong></span>
       </div>
-    </div>
 
-    <div style="display: flex; justify-content: space-between; font-size: 11px; color: #8c9199; margin-bottom: 10px;">
-      <span>Mi total: <strong id="my-total" style="color:#dee4ea;">--:--:--</strong></span>
-      <span>Total tarjeta: <strong id="all-total" style="color:#dee4ea;">--:--:--</strong></span>
-    </div>
+      <div class="divider"></div>
 
-    <div class="divider"></div>
+      <div class="entries-lbl">Logs de trabajo</div>
+      <ul class="entries" id="entries"></ul>
 
-    <div class="entries-lbl">Logs de trabajo</div>
-    <ul class="entries" id="entries"></ul>
-
-    <div class="footer">
-      <button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button>
-      <span class="save-status" id="save-status"></span>
+      <div class="footer">
+        <button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button>
+        <span class="save-status" id="save-status"></span>
+      </div>
     </div>
   </div>
 
@@ -411,7 +419,6 @@
           var isMe = e.memberId===me.id;
           var name = isMe ? 'Tú' : (e.memberName||'Desconocido');
           
-          // Guardar avatar único para la barra superior
           uniqueAvatars[e.memberId] = avatarHtml(e.memberId, e.memberName, e.avatarUrl);
 
           return '<li class="entry">' +
@@ -424,12 +431,27 @@
           '</li>';
         }).join('');
 
-        // Pintar avatares en la barra de estimación
         avContainerMock.innerHTML = Object.keys(uniqueAvatars).map(function(k){ return uniqueAvatars[k]; }).join('');
       }
 
       t.sizeTo('#root').catch(function(){});
     }
+
+    /* ── toggle details event ────────────────────────────── */
+    document.getElementById('toggle-details-btn').addEventListener('click', function () {
+      var detailsSec = document.getElementById('details-section');
+      var btn = this;
+      
+      if (detailsSec.style.display === 'none') {
+        detailsSec.style.display = 'block';
+        btn.textContent = 'Hide Details';
+      } else {
+        detailsSec.style.display = 'none';
+        btn.textContent = 'Show Details';
+      }
+      
+      t.sizeTo('#root').catch(function(){});
+    });
 
     /* ── save ────────────────────────────────────────────── */
     function save() {
