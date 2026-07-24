@@ -189,7 +189,7 @@
     /* ── Paneles Inline (Reinicio y Edición) ──────────────── */
     .inline-panel {
       display: none;
-      background: #282a2e; /* Mismo fondo que tracker-box */
+      background: #282a2e;
       border-radius: 4px;
       padding: 12px;
       margin-top: 14px;
@@ -249,14 +249,13 @@
 
     <div class="tracker-box">
       <div class="tracker-left">
-        <input type="text" class="tracker-input" value="Tiempo de tarea activo" id="task-title-mock">
+        <input type="text" class="tracker-input" value="Tiempo de tarea activo" id="task-title-mock" readonly>
         <div class="clock" id="clock">--:--:--</div>
       </div>
       <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
     </div>
 
     <div id="details-section" style="display: none;">
-      <!-- Fila de Totales de tiempo -->
       <div style="display: flex; justify-content: space-between; font-size: 12px; color: #8c9199; margin-bottom: 10px;">
         <span>Mi total: <strong id="my-total" style="color:#dee4ea;">--:--:--</strong></span>
         <span>Total tarjeta: <strong id="all-total" style="color:#dee4ea;">--:--:--</strong></span>
@@ -303,6 +302,10 @@
     var state      = null;
     var me         = null;
     var tick       = null;
+
+    // 🔴 LÍMITE MÁXIMO DE SESIÓN (En horas) 🔴
+    var MAX_SESSION_HOURS = 12; 
+    var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
 
     /* ── helpers ─────────────────────────────────────────── */
     function fmt(sec) {
@@ -382,7 +385,10 @@
       var base = (state.entries||[]).filter(function(e){ return e.memberId === me.id; })
                                     .reduce(function(s,e){ return s+(e.duration||0); },0);
       var sess = state.sessions && state.sessions[me.id];
-      if (sess && sess.startTime) base += Math.floor((Date.now()-sess.startTime)/1000);
+      if (sess && sess.startTime) {
+        var elapsed = Math.floor((Date.now()-sess.startTime)/1000);
+        base += Math.min(elapsed, MAX_SECONDS); // Límite de sesión
+      }
       return base;
     }
     function allTotal() {
@@ -391,7 +397,10 @@
       if (state.sessions) {
         Object.keys(state.sessions).forEach(function(id){
           var s = state.sessions[id];
-          if (s && s.startTime) base += Math.floor((Date.now()-s.startTime)/1000);
+          if (s && s.startTime) {
+            var elapsed = Math.floor((Date.now()-s.startTime)/1000);
+            base += Math.min(elapsed, MAX_SECONDS); // Límite de sesión global
+          }
         });
       }
       return base;
@@ -402,7 +411,10 @@
       if (!state || !me) return;
       var sess = state.sessions && state.sessions[me.id];
       if (!sess || !sess.startTime) return;
+      
       var elapsed = Math.floor((Date.now()-sess.startTime)/1000);
+      elapsed = Math.min(elapsed, MAX_SECONDS); // Aplicar límite al reloj visual
+
       document.getElementById('clock').textContent    = fmt(elapsed);
       document.getElementById('my-total').textContent = fmt(myTotal());
       document.getElementById('all-total').textContent= fmt(allTotal());
@@ -506,6 +518,9 @@
           var sess = freshCardState.sessions[me.id];
           var now  = Date.now();
           var dur  = Math.floor((now - sess.startTime) / 1000);
+          
+          dur = Math.min(dur, MAX_SECONDS); // Aplicar límite
+
           if (dur > 0) {
             freshCardState.entries.push({
               memberId:   me.id,
@@ -539,6 +554,9 @@
                 var pSess = prevCardState.sessions[me.id];
                 var now   = Date.now();
                 var dur   = Math.floor((now - pSess.startTime) / 1000);
+                
+                dur = Math.min(dur, MAX_SECONDS); // Aplicar límite tarjeta previa
+
                 if (dur > 0) {
                   if (!prevCardState.entries) prevCardState.entries = [];
                   prevCardState.entries.push({
@@ -617,22 +635,36 @@
       t.sizeTo('#root').catch(function(){});
     });
 
-    // Confirmar Reinicio
+    // Confirmar Reinicio - AHORA CON PREVENCIÓN DE CARRERAS DE DATOS
     document.getElementById('confirm-reset').addEventListener('click', function () {
       if (!state || !me) return;
       resetPanel.style.display = 'none';
+      setSaveStatus('Borrando…');
       
-      if (state.sessions) delete state.sessions[me.id];
-      state.entries = (state.entries||[]).filter(function(e){ return e.memberId!==me.id; });
-      render();
-      
-      t.get('board', 'shared', ACTIVE_KEY).then(function(activeUsers){
-        activeUsers = activeUsers || {};
+      // Obtener datos frescos antes de borrar
+      Promise.all([
+        t.get('card', 'shared', KEY).catch(function(){ return {}; }),
+        t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; })
+      ]).then(function(results) {
+        var freshCardState = results[0] || {};
+        var activeUsers = results[1] || {};
+
+        if (freshCardState.sessions) delete freshCardState.sessions[me.id];
+        // Solo borramos TU ID, el del resto queda a salvo
+        freshCardState.entries = (freshCardState.entries||[]).filter(function(e){ return e.memberId !== me.id; });
         delete activeUsers[me.id];
+
         return Promise.all([
-          t.set('card', 'shared', KEY, state),
+          t.set('card', 'shared', KEY, freshCardState),
           t.set('board', 'shared', ACTIVE_KEY, activeUsers)
-        ]);
+        ]).then(function(){
+          state = freshCardState;
+          render();
+          setSaveStatus('');
+        });
+      }).catch(function(err){
+        setSaveStatus('Error', true);
+        showError('Error al reiniciar tiempo: ' + String(err));
       });
     });
 
@@ -642,7 +674,7 @@
       t.sizeTo('#root').catch(function(){});
     });
 
-    // Guardar Edición
+    // Guardar Edición - AHORA CON PREVENCIÓN DE CARRERAS DE DATOS
     document.getElementById('save-edit').addEventListener('click', function () {
       if (!state || !me) return;
 
@@ -656,36 +688,42 @@
       setSaveStatus('Guardando…');
       editPanel.style.display = 'none';
 
-      // Si había sesión activa para el usuario, se detiene
-      if (state.sessions && state.sessions[me.id]) {
-        delete state.sessions[me.id];
-      }
+      // Obtener datos frescos exactamente un momento antes de guardar
+      Promise.all([
+        t.get('card', 'shared', KEY).catch(function(){ return {}; }),
+        t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; })
+      ]).then(function(results) {
+        var freshCardState = results[0] || {};
+        var activeUsers = results[1] || {};
 
-      // Reemplaza las entradas del usuario por una consolidada
-      state.entries = (state.entries || []).filter(function(e){ return e.memberId !== me.id; });
-
-      if (newSeconds > 0) {
-        var now = Date.now();
-        state.entries.push({
-          memberId:   me.id,
-          memberName: me.fullName,
-          avatarUrl:  me.avatarUrl || '',
-          start:      now - (newSeconds * 1000),
-          end:        now,
-          duration:   newSeconds
-        });
-      }
-
-      t.get('board', 'shared', ACTIVE_KEY).then(function(activeUsers){
-        activeUsers = activeUsers || {};
+        if (freshCardState.sessions && freshCardState.sessions[me.id]) {
+          delete freshCardState.sessions[me.id];
+        }
         delete activeUsers[me.id];
+
+        // Filtramos tus registros sin pisar los de tus compañeros
+        freshCardState.entries = (freshCardState.entries || []).filter(function(e){ return e.memberId !== me.id; });
+
+        if (newSeconds > 0) {
+          var now = Date.now();
+          freshCardState.entries.push({
+            memberId:   me.id,
+            memberName: me.fullName,
+            avatarUrl:  me.avatarUrl || '',
+            start:      now - (newSeconds * 1000),
+            end:        now,
+            duration:   newSeconds
+          });
+        }
+
         return Promise.all([
-          t.set('card', 'shared', KEY, state),
+          t.set('card', 'shared', KEY, freshCardState),
           t.set('board', 'shared', ACTIVE_KEY, activeUsers)
-        ]);
-      }).then(function(){
-        render();
-        setSaveStatus('');
+        ]).then(function(){
+          state = freshCardState;
+          render();
+          setSaveStatus('');
+        });
       }).catch(function(err){
         setSaveStatus('Error', true);
         showError('Error al modificar tiempo: ' + String(err));
