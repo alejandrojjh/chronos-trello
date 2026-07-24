@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Chronos – IT Pal</title>
+  <title>TrackingTime</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
 </head>
 <body>
@@ -44,10 +44,6 @@
     return map;
   }
 
-  /*
-   * updateBoardSummary — actualiza el estado global del reporte.
-   * Rango histórico extendido a 365 días para evitar pérdida de registros pasados.
-   */
   function updateBoardSummary(t, cardId, cardName, chronosData) {
     return Promise.all([
       t.get('board', 'shared', SUM_KEY).catch(function(){ return {}; }),
@@ -59,17 +55,14 @@
       var total   = getTotalAll(chronosData);
       var running = anyRunning(chronosData);
 
-      // 1. Limpiar los registros existentes de esta tarjeta específica para regenerarlos completos
       Object.keys(daily).forEach(function(day){
         daily[day] = daily[day].filter(function(d){ return d.cardId !== cardId; });
         if (daily[day].length === 0) delete daily[day];
       });
 
-      // 2. Si la tarjeta fue reiniciada a cero, se elimina del resumen del tablero
       if (!chronosData || (!total && !running)) {
         delete summary[cardId];
       } else {
-        /* Desglose por tarjeta */
         var mMap  = memberTotals(chronosData);
         var mList = Object.keys(mMap).map(function(id){
           return { id:id, name:mMap[id].name, avatarUrl:mMap[id].avatarUrl, total:mMap[id].total };
@@ -82,7 +75,6 @@
           updatedAt: Date.now()
         };
 
-        /* Desglose por persona y día (retención de hasta 365 días) */
         var cutoff = Date.now() - 365*24*3600*1000;
         ((chronosData&&chronosData.entries)||[]).forEach(function(e){
           if (!e.start || e.start < cutoff) return;
@@ -101,7 +93,6 @@
         });
       }
 
-      /* Eliminar únicamente días con más de 1 año de antigüedad */
       var cutoffGeneral = Date.now() - 365*24*3600*1000;
       Object.keys(daily).forEach(function(day){
         if (new Date(day).getTime() < cutoffGeneral) delete daily[day];
@@ -111,7 +102,7 @@
         t.set('board', 'shared', SUM_KEY,   summary),
         t.set('board', 'shared', DAILY_KEY, daily)
       ]);
-    }).catch(function(err){ console.warn('Chronos summary update failed:', err); });
+    }).catch(function(err){ console.warn('TrackingTime summary update failed:', err); });
   }
 
   var baseUrl = location.href.replace(/\/[^/]*$/, '');
@@ -126,13 +117,13 @@
           icon: 'https://cdn-icons-png.flaticon.com/512/111/111168.png',
           text: running ? '⏹ Detener mi timer' : '▶ Iniciar mi timer',
           callback: function (t) {
-            return t.popup({ title:'Chronos – IT Pal', url: baseUrl+'/timer.html', height:420 });
+            return t.popup({ title:'TrackingTime', url: baseUrl+'/timer.html', height:420 });
           }
         }];
       });
     },
 
-    /* ── card-badges ──────────────────────────────────────── */
+    /* ── card-badges (en la portada de la tarjeta) ─────────── */
     'card-badges': function (t) {
       return [{
         dynamic: function () {
@@ -145,7 +136,6 @@
             var total   = getTotalAll(d);
             var running = anyRunning(d);
 
-            /* Actualizar resumen en segundo plano */
             if (card.id) updateBoardSummary(t, card.id, card.name, d);
 
             if (!total && !running) return [];
@@ -160,7 +150,7 @@
       }];
     },
 
-    /* ── card-detail-badges ───────────────────────────────── */
+    /* ── card-detail-badges (insignia superior dentro de la tarjeta) ── */
     'card-detail-badges': function (t) {
       return [{
         dynamic: function () {
@@ -168,9 +158,23 @@
             var total   = getTotalAll(d);
             var running = anyRunning(d);
             if (!total && !running) return [];
+
+            // Detectar nombre del usuario activo
+            var activeUser = '';
+            if (d && d.sessions) {
+              var activeId = Object.keys(d.sessions)[0];
+              if (activeId && d.sessions[activeId]) {
+                activeUser = d.sessions[activeId].memberName || 'Alguien';
+              }
+            }
+
+            var badgeText = running 
+              ? activeUser + ' working on it...' 
+              : fmt(total);
+
             return {
-              title:   'Tiempo registrado',
-              text:    fmt(total),
+              title:   running ? 'En progreso' : 'Tiempo registrado',
+              text:    badgeText,
               color:   running ? 'green' : null,
               refresh: running ? 10 : 3600
             };
@@ -182,7 +186,7 @@
     /* ── card-back-section ────────────────────────────────── */
     'card-back-section': function (t) {
       return {
-        title: 'Chronos – IT Pal',
+        title: 'TrackingTime',
         icon:  'https://cdn-icons-png.flaticon.com/512/111/111168.png',
         content: { type:'iframe', url: t.signUrl(baseUrl+'/timer.html'), height:230 }
       };
@@ -195,10 +199,10 @@
           dark:  'https://cdn-icons-png.flaticon.com/512/111/111168.png',
           light: 'https://cdn-icons-png.flaticon.com/512/111/111168.png'
         },
-        text: 'Chronos Reports',
+        text: 'TrackingTime Reports',
         callback: function (t) {
           return t.modal({
-            title:      'Chronos Reports',
+            title:      'TrackingTime Reports',
             url:        t.signUrl(baseUrl+'/dashboard.html'),
             fullscreen: false,
             height:     700
@@ -210,7 +214,7 @@
     /* ── show-settings ────────────────────────────────────── */
     'show-settings': function (t) {
       return t.popup({
-        title:  'Chronos – Configuración',
+        title:  'TrackingTime – Configuración',
         url:    t.signUrl(baseUrl+'/settings.html'),
         height: 420
       });
