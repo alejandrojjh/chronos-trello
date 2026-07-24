@@ -68,15 +68,15 @@
       if (!chronosData || (!total && !running)) {
         delete summary[cardId];
       } else {
-        var mMap   = memberTotals(chronosData);
+        var mMap  = memberTotals(chronosData);
         var mList = Object.keys(mMap).map(function(id){
           return { id:id, name:mMap[id].name, avatarUrl:mMap[id].avatarUrl, total:mMap[id].total };
         });
         summary[cardId] = {
           name:      cardName,
-          total:      total,
-          running:    running,
-          members:    mList,
+          total:     total,
+          running:   running,
+          members:   mList,
           updatedAt: Date.now()
         };
 
@@ -150,6 +150,7 @@
               color:   null,
               refresh: 10,
               callback: function (t) {
+                // 🟢 Abre directamente el popup de control del temporizador al hacer clic
                 return t.popup({
                   title:  'TrackingTime',
                   url:    baseUrl + '/timer.html',
@@ -199,7 +200,8 @@
           return t.modal({
             title:      'TrackingTime Reports',
             url:        t.signUrl(baseUrl+'/dashboard.html'),
-            fullscreen: true
+            fullscreen: false,
+            height:     700
           });
         }
       }];
