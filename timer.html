@@ -16,7 +16,7 @@
       padding: 0;
     }
 
-    /* ── Header alineado a la derecha sin texto ─────────────── */
+    /* ── Header alineado a la derecha ─────────────────────── */
     .wl-header {
       display: flex;
       justify-content: flex-end;
@@ -52,14 +52,9 @@
     .tracker-left {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       flex: 1;
       min-width: 0;
-    }
-    .loop-icon {
-      color: #8c9199;
-      font-size: 14px;
-      cursor: pointer;
     }
     .tracker-input {
       background: transparent;
@@ -70,9 +65,6 @@
       flex: 1;
       min-width: 0;
       outline: none;
-    }
-    .tracker-dot {
-      color: #8c9199;
     }
     .clock {
       font-size: 16px;
@@ -238,17 +230,14 @@
   <div id="root">
     <div class="err-banner" id="err-banner"></div>
 
-    <!-- Cabecera limpia solo con el botón alineado a la derecha -->
     <div class="wl-header">
       <button class="wl-toggle-btn" id="toggle-details-btn">Show Details</button>
     </div>
 
-    <!-- Sección esencial (Siempre visible) -->
+    <!-- Sección esencial limpia sin ícono ni punto -->
     <div class="tracker-box">
       <div class="tracker-left">
-        <span class="loop-icon">⟳</span>
         <input type="text" class="tracker-input" value="Tiempo de tarea activo" id="task-title-mock">
-        <span class="tracker-dot">•</span>
         <div class="clock" id="clock">--:--:--</div>
       </div>
       <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
