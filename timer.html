@@ -92,7 +92,9 @@
       transition: background 0.2s;
     }
     .btn-start { background: #0052cc; }
+    .btn-start:hover { background: #0747a6; }
     .btn-stop  { background: #de350b; }
+    .btn-stop:hover  { background: #bf2600; }
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
     .divider {
@@ -186,6 +188,71 @@
     .edit-btn:hover { color: #85b8ff; }
     .reset-btn:disabled, .edit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
+    /* ── Formulario Inline de Edición (Sustituye al prompt) ─ */
+    .edit-panel {
+      display: none;
+      background: #22272b;
+      border: 1px solid #2c333a;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .edit-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #dee4ea;
+      margin-bottom: 4px;
+    }
+    .edit-subtitle {
+      font-size: 11px;
+      color: #8c9199;
+      margin-bottom: 8px;
+    }
+    .edit-input-field {
+      width: 100%;
+      background: #1d2125;
+      border: 1px solid #3c444d;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: monospace;
+      outline: none;
+      margin-bottom: 6px;
+    }
+    .edit-input-field:focus {
+      border-color: #579dff;
+    }
+    .edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .btn-sm {
+      padding: 5px 12px;
+      font-size: 11px;
+      border-radius: 4px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-cancel {
+      background: #2c2e33;
+      color: #9f9f9f;
+    }
+    .btn-cancel:hover { background: #3a3d45; color: #fff; }
+    .btn-save {
+      background: #0052cc;
+      color: #fff;
+    }
+    .btn-save:hover { background: #0747a6; }
+    .edit-msg-error {
+      color: #f87168;
+      font-size: 11px;
+      display: none;
+    }
+
     .save-status { font-size: 11px; color: #8c9199; text-align: right; margin-top: 4px; display: block; }
     .err-banner { display:none; background:#3d1f1f; border:1px solid #7a2d2d; border-radius:4px; padding:6px 10px; font-size:11px; color:#f87168; margin-bottom:6px; }
   </style>
@@ -222,6 +289,19 @@
         <button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button>
         <button class="edit-btn" id="edit-btn" disabled>Modificar datos</button>
       </div>
+
+      <!-- Formulario de Edición Directa (Integrado en el DOM) -->
+      <div class="edit-panel" id="edit-panel">
+        <div class="edit-title">Modificar tiempo acumulado</div>
+        <div class="edit-subtitle">Formatos válidos: <code>02:30:00</code>, <code>1h 30m</code> o minutos.</div>
+        <input type="text" id="edit-input" class="edit-input-field" placeholder="00:00:00">
+        <div class="edit-msg-error" id="edit-msg-error">Formato no válido. Ejemplo: 01:30:00</div>
+        <div class="edit-actions">
+          <button class="btn-sm btn-cancel" id="cancel-edit-btn">Cancelar</button>
+          <button class="btn-sm btn-save" id="save-edit-btn">Guardar tiempo</button>
+        </div>
+      </div>
+
       <span class="save-status" id="save-status"></span>
     </div>
   </div>
@@ -270,6 +350,7 @@
       var el = document.getElementById('err-banner');
       el.textContent = msg;
       el.style.display = msg ? 'block' : 'none';
+      t.sizeTo('#root').catch(function(){});
     }
     function setSaveStatus(msg, isErr) {
       var el = document.getElementById('save-status');
@@ -409,7 +490,7 @@
       t.sizeTo('#root').catch(function(){});
     });
 
-    /* ── toggle start/stop click (CON CONTROL CONCURRENTE Y AUTOPAUSA) ── */
+    /* ── toggle start/stop click ─────────────────────────── */
     document.getElementById('toggle-btn').addEventListener('click', function () {
       if (!state || !me) return;
       var btn = this;
@@ -432,7 +513,6 @@
         var isRunningOnThisCard = !!freshCardState.sessions[me.id];
 
         if (isRunningOnThisCard) {
-          /* ── DETENER EL TIMER ACTUAL ── */
           var sess = freshCardState.sessions[me.id];
           var now  = Date.now();
           var dur  = Math.floor((now - sess.startTime) / 1000);
@@ -459,7 +539,6 @@
           });
 
         } else {
-          /* ── INICIAR TIMER EN ESTA TARJETA ── */
           var prevSession = activeUsers[me.id];
           var closePrevCardPromise = Promise.resolve();
 
@@ -536,34 +615,47 @@
       });
     });
 
-    /* ── edit total button (MODIFICAR DATOS) ────────────────── */
+    /* ── Lógica del Panel Inline (Modificar Datos) ────────── */
+    var editPanel    = document.getElementById('edit-panel');
+    var editInput    = document.getElementById('edit-input');
+    var editMsgError = document.getElementById('edit-msg-error');
+
+    // Abrir panel
     document.getElementById('edit-btn').addEventListener('click', function () {
       if (!state || !me) return;
-
       var currentSec = myTotal();
-      var currentFormatted = fmt(currentSec);
+      editInput.value = fmt(currentSec);
+      editMsgError.style.display = 'none';
+      editPanel.style.display = 'block';
+      t.sizeTo('#root').catch(function(){});
+    });
 
-      var input = prompt(
-        "Ingresa el nuevo total de tiempo para tus registros en esta tarjeta:\n(Ejemplos: '02:30:00', '1h 30m', o '90' para 90 minutos)",
-        currentFormatted
-      );
+    // Cancelar
+    document.getElementById('cancel-edit-btn').addEventListener('click', function () {
+      editPanel.style.display = 'none';
+      t.sizeTo('#root').catch(function(){});
+    });
 
-      if (input === null) return;
+    // Guardar
+    document.getElementById('save-edit-btn').addEventListener('click', function () {
+      if (!state || !me) return;
 
-      var newSeconds = parseTimeToSeconds(input);
+      var newSeconds = parseTimeToSeconds(editInput.value);
       if (newSeconds === null || newSeconds < 0) {
-        alert("Formato no válido. Ingresa el tiempo como 'HH:MM:SS', '1h 30m' o minutos.");
+        editMsgError.style.display = 'block';
+        t.sizeTo('#root').catch(function(){});
         return;
       }
 
       setSaveStatus('Guardando…');
+      editPanel.style.display = 'none';
 
-      // Si había sesión activa para el usuario, se detiene
+      // Detener sesión si estaba activa
       if (state.sessions && state.sessions[me.id]) {
         delete state.sessions[me.id];
       }
 
-      // Reemplaza las entradas del usuario por una entrada consolidada con el nuevo total
+      // Consolidar registros del usuario
       state.entries = (state.entries || []).filter(function(e){ return e.memberId !== me.id; });
 
       if (newSeconds > 0) {
