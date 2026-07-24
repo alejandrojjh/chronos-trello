@@ -160,7 +160,7 @@
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase;
-      margin-right: 12px; overflow: hidden;
+      margin-right: 12px; overflow: hidden; flex-shrink: 0;
     }
     .av img { width: 100%; height: 100%; object-fit: cover; }
     .person-name { flex: 1; font-size: 15px; font-weight: 600; color: #fff; }
@@ -225,7 +225,7 @@
       <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo y Semanas</div>
       <div class="nav-item" onclick="switchTab('tab-export', this)">📥 Exportar Datos</div>
     </nav>
-    <div class="sb-footer" id="last-update">Actualizado ahora</div>
+    <div class="sb-footer" id="last-update">Sincronizando...</div>
   </aside>
 
   <!-- MAIN CONTENT -->
@@ -251,7 +251,7 @@
       </div>
 
       <div id="cards-container">
-        <div class="empty-state"><div class="spinner"></div>Analizando tarjetas activas...</div>
+        <div class="empty-state"><div class="spinner"></div>Analizando tarjetas en tiempo real...</div>
       </div>
     </div>
 
@@ -268,7 +268,7 @@
       <h1 class="page-title">Exportar Registros Consolidados (CSV)</h1>
       <div class="export-card">
         <div class="export-desc">
-          Descarga un reporte consolidado en archivo <strong>.csv</strong> con la suma total global de tiempo por actividad y miembro. Compatible con Microsoft Excel y Google Sheets.
+          Descarga un reporte consolidado en archivo <strong>.csv</strong> con la suma total global de tiempo por actividad y miembro.
         </div>
         
         <div class="form-group">
@@ -300,15 +300,18 @@
 
 <script>
   var t = window.TrelloPowerUp.iframe();
+  var KEY = 'chronos';
   
-  var globalDaily = {};
-  var validCardNames = new Set();
+  var rawCardStore = []; 
   
+  // 🔴 LÍMITE MÁXIMO DE SESIÓN (En horas - Debe coincidir con timer.html) 🔴
+  var MAX_SESSION_HOURS = 12;
+  var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
+
   /* ── UTILIDADES ──────────────────────────────────────────── */
   function fmt(s) {
     s = Math.max(0, Math.floor(s||0));
-    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
-      .map(v => String(v).padStart(2,'0')).join(':');
+    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => String(v).padStart(2,'0')).join(':');
   }
   function fmtH(s) { return (s/3600).toFixed(2) + 'h'; }
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -316,8 +319,7 @@
   
   const COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
   function mColor(n) { 
-    let h=0; 
-    for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; 
+    let h=0; for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; 
     return COLORS[Math.abs(h) % COLORS.length]; 
   }
   
@@ -326,12 +328,12 @@
     return `<div class="av" style="background:${mColor(name)}">${esc(initials(name))}</div>`;
   }
 
-  function getWeekLabel(dateStr) {
-    const d = new Date(dateStr + 'T12:00:00');
+  function getWeekLabel(dateObj) {
+    const d = new Date(dateObj);
     const day = d.getDay() || 7; 
-    d.setHours(-24 * (day - 1)); // Lunes
+    d.setDate(d.getDate() - (day - 1)); // Lunes
     const startStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
-    d.setHours(24 * 6); // Domingo
+    d.setDate(d.getDate() + 6); // Domingo
     const endStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
     return `Semana del ${startStr} al ${endStr}`;
   }
@@ -349,37 +351,123 @@
     document.getElementById('custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
   }
 
-  /* ── RENDER: TARJETAS ────────────────────────────────────── */
-  function renderCards(summary, validCardsList) {
-    const validCardIds = new Set(validCardsList.map(c => c.id));
-    validCardsList.forEach(c => validCardNames.add(c.name));
-    
-    let totalBoardSecs = 0;
-    let activeTimers = 0;
-    let validCardsData = [];
+  /* ── LECTURA DIRECTA Y FILTRADO DE TARJETAS VIVAS ───────── */
+  function fetchLiveBoardData() {
+    // t.cards() solo retorna las tarjetas NO archivadas ni eliminadas del tablero
+    return t.cards('id', 'name').then(cards => {
+      return Promise.all(cards.map(c => {
+        return t.get(c.id, 'shared', KEY).then(cState => {
+          return { card: c, state: cState || {} };
+        }).catch(() => ({ card: c, state: {} }));
+      }));
+    });
+  }
 
-    for (let id in summary) {
-      if (validCardIds.has(id)) {
-        let cardData = Object.assign({id: id}, summary[id]);
-        totalBoardSecs += (cardData.total || 0);
-        if (cardData.running) activeTimers++;
-        validCardsData.push(cardData);
-      }
-    }
+  function renderDashboard() {
+    fetchLiveBoardData().then(cardStore => {
+      rawCardStore = cardStore;
 
-    document.getElementById('s-total').textContent = fmtH(totalBoardSecs);
-    document.getElementById('s-cards').textContent = validCardsData.length;
-    document.getElementById('s-active').textContent = activeTimers;
+      let totalBoardSecs = 0;
+      let activeTimersCount = 0;
+      let workedCardsCount = 0;
 
+      let cardsDataList = [];
+      let teamDataMap = {}; 
+
+      const now = Date.now();
+
+      cardStore.forEach(item => {
+        let card = item.card;
+        let state = item.state;
+
+        let entries = state.entries || [];
+        let sessions = state.sessions || {};
+
+        let cardTotalSecs = 0;
+        let cardMembersMap = {}; 
+        let isRunningOnCard = Object.keys(sessions).length > 0;
+
+        if (isRunningOnCard) activeTimersCount += Object.keys(sessions).length;
+
+        // 1. Procesar registros de tiempo finalizados
+        entries.forEach(e => {
+          let dur = e.duration || 0;
+          cardTotalSecs += dur;
+
+          let pid = e.memberId || 'unknown';
+          let pName = e.memberName || 'Desconocido';
+          let pAv = e.avatarUrl || '';
+
+          if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+          cardMembersMap[pid].total += dur;
+
+          if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, weeks: {} };
+          teamDataMap[pid].total += dur;
+
+          let weekLbl = getWeekLabel(e.start || now);
+          if (!teamDataMap[pid].weeks[weekLbl]) teamDataMap[pid].weeks[weekLbl] = { total: 0, cards: {} };
+          
+          teamDataMap[pid].weeks[weekLbl].total += dur;
+          if (!teamDataMap[pid].weeks[weekLbl].cards[card.name]) teamDataMap[pid].weeks[weekLbl].cards[card.name] = 0;
+          teamDataMap[pid].weeks[weekLbl].cards[card.name] += dur;
+        });
+
+        // 2. Procesar sesiones activas aplicando el tope máximo de horas
+        Object.keys(sessions).forEach(pid => {
+          let sess = sessions[pid];
+          let elapsed = Math.floor((now - sess.startTime) / 1000);
+          
+          // Aplicar tope de seguridad para evitar tiempos infinitos
+          elapsed = Math.min(elapsed, MAX_SECONDS);
+
+          if (elapsed > 0) {
+            cardTotalSecs += elapsed;
+
+            let pName = sess.memberName || 'Desconocido';
+            let pAv = sess.avatarUrl || '';
+
+            if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+            cardMembersMap[pid].total += elapsed;
+
+            if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, weeks: {} };
+            teamDataMap[pid].total += elapsed;
+
+            let weekLbl = getWeekLabel(sess.startTime || now);
+            if (!teamDataMap[pid].weeks[weekLbl]) teamDataMap[pid].weeks[weekLbl] = { total: 0, cards: {} };
+            
+            teamDataMap[pid].weeks[weekLbl].total += elapsed;
+            if (!teamDataMap[pid].weeks[weekLbl].cards[card.name]) teamDataMap[pid].weeks[weekLbl].cards[card.name] = 0;
+            teamDataMap[pid].weeks[weekLbl].cards[card.name] += elapsed;
+          }
+        });
+
+        if (cardTotalSecs > 0 || isRunningOnCard) {
+          workedCardsCount++;
+          totalBoardSecs += cardTotalSecs;
+          cardsDataList.push({ name: card.name, total: cardTotalSecs, running: isRunningOnCard, members: Object.values(cardMembersMap) });
+        }
+      });
+
+      document.getElementById('s-total').textContent = fmtH(totalBoardSecs);
+      document.getElementById('s-cards').textContent = workedCardsCount;
+      document.getElementById('s-active').textContent = activeTimersCount;
+
+      renderCardsTab(cardsDataList);
+      renderTeamTab(teamDataMap);
+      document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    });
+  }
+
+  function renderCardsTab(cardsDataList) {
     const container = document.getElementById('cards-container');
-    if (!validCardsData.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay registros de tiempo en tarjetas activas.</div>`;
+    if (!cardsDataList.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay registros de tiempo en las tarjetas del tablero.</div>`;
       return;
     }
 
-    validCardsData.sort((a,b) => b.total - a.total);
+    cardsDataList.sort((a,b) => b.total - a.total);
 
-    let html = validCardsData.map(card => {
+    let html = cardsDataList.map(card => {
       let membersHtml = '';
       if (card.members && card.members.length) {
         card.members.sort((a,b) => b.total - a.total);
@@ -393,7 +481,6 @@
           </div>
         `).join('');
       }
-
       return `
         <div class="data-block">
           <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
@@ -402,43 +489,15 @@
             ${card.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px;">● Activo</span>' : ''}
             <span class="db-total">${fmt(card.total)}</span>
           </div>
-          <div class="db-body">
-            <div style="padding: 10px 0;">${membersHtml}</div>
-          </div>
+          <div class="db-body"><div style="padding: 10px 0;">${membersHtml}</div></div>
         </div>
       `;
     }).join('');
-
     container.innerHTML = html;
   }
 
-  /* ── RENDER: EQUIPO Y SEMANAS ────────────────────────────── */
-  function renderTeam(daily) {
-    let people = {};
-
-    Object.keys(daily).forEach(dayDate => {
-      (daily[dayDate] || []).forEach(entry => {
-        if (!validCardNames.has(entry.cardName)) return;
-
-        let pid = entry.memberId || 'unknown';
-        if (!people[pid]) {
-          people[pid] = { name: entry.memberName||'Desconocido', avatarUrl: entry.avatarUrl||'', total: 0, weeks: {} };
-        }
-        
-        let weekLbl = getWeekLabel(dayDate);
-        if (!people[pid].weeks[weekLbl]) people[pid].weeks[weekLbl] = { total: 0, cards: {} };
-        
-        people[pid].total += (entry.duration || 0);
-        people[pid].weeks[weekLbl].total += (entry.duration || 0);
-        
-        if (!people[pid].weeks[weekLbl].cards[entry.cardName]) {
-          people[pid].weeks[weekLbl].cards[entry.cardName] = 0;
-        }
-        people[pid].weeks[weekLbl].cards[entry.cardName] += (entry.duration || 0);
-      });
-    });
-
-    const pids = Object.keys(people).sort((a,b) => people[b].total - people[a].total);
+  function renderTeamTab(teamDataMap) {
+    const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
     
     if (!pids.length) {
@@ -447,46 +506,22 @@
     }
 
     let html = pids.map(pid => {
-      let p = people[pid];
-      
+      let p = teamDataMap[pid];
       let weeksHtml = Object.keys(p.weeks).map(wName => {
         let w = p.weeks[wName];
         let cardsHtml = Object.keys(w.cards).sort((a,b) => w.cards[b] - w.cards[a]).map(cName => `
-          <div class="log-row">
-            <div class="log-card">${esc(cName)}</div>
-            <div class="log-dur">${fmt(w.cards[cName])}</div>
-          </div>
+          <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(w.cards[cName])}</div></div>
         `).join('');
-
-        return `
-          <div class="week-group">
-            <div class="week-title"><span>${wName}</span><span>${fmt(w.total)}</span></div>
-            ${cardsHtml}
-          </div>
-        `;
+        return `<div class="week-group"><div class="week-title"><span>${wName}</span><span>${fmt(w.total)}</span></div>${cardsHtml}</div>`;
       }).join('');
-
-      return `
-        <div class="data-block">
-          <div class="person-header">
-            ${avHtml(p.name, p.avatarUrl)}
-            <div class="person-name">${esc(p.name)}</div>
-            <div class="person-total">${fmt(p.total)}</div>
-          </div>
-          ${weeksHtml}
-        </div>
-      `;
+      return `<div class="data-block"><div class="person-header">${avHtml(p.name, p.avatarUrl)}<div class="person-name">${esc(p.name)}</div><div class="person-total">${fmt(p.total)}</div></div>${weeksHtml}</div>`;
     }).join('');
-
     container.innerHTML = html;
   }
 
-  /* ── EXPORTACIÓN CONSOLIDADA A CSV ───────────────────────── */
+  /* ── EXPORTACIÓN CONSOLIDADA A CSV ─────────────────────── */
   window.executeExport = function() {
-    if (!globalDaily || Object.keys(globalDaily).length === 0) {
-      alert("No hay datos para exportar.");
-      return;
-    }
+    if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos para exportar."); return; }
 
     const rangeType = document.getElementById('export-range').value;
     let startD = null, endD = null;
@@ -507,56 +542,39 @@
       endD = new Date(eVal + 'T23:59:59');
     }
 
-    // Agrupación/Consolidación por (Miembro + Tarjeta)
     let aggregated = {};
 
-    Object.keys(globalDaily).forEach(dateStr => {
-      let dObj = new Date(dateStr + 'T12:00:00');
-      if (startD && dObj < startD) return;
-      if (endD && dObj > endD) return;
+    rawCardStore.forEach(item => {
+      let cardName = item.card.name;
+      let entries = item.state.entries || [];
 
-      (globalDaily[dateStr] || []).forEach(e => {
-        if (!validCardNames.has(e.cardName)) return; // Excluir tarjetas eliminadas
-        
+      entries.forEach(e => {
+        let eDate = new Date(e.start || Date.now());
+        if (startD && eDate < startD) return;
+        if (endD && eDate > endD) return;
+
         let member = e.memberName || 'Desconocido';
-        let card   = e.cardName || 'Sin tarjeta';
-        let key    = `${member}___${card}`;
+        let key = `${member}___${cardName}`;
 
-        if (!aggregated[key]) {
-          aggregated[key] = {
-            member: member,
-            card: card,
-            totalDuration: 0
-          };
-        }
+        if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
         aggregated[key].totalDuration += (e.duration || 0);
       });
     });
 
     let aggregatedList = Object.values(aggregated);
+    if (!aggregatedList.length) { alert("No se encontraron registros en el rango seleccionado."); return; }
 
-    if (!aggregatedList.length) {
-      alert("No se encontraron registros en el rango seleccionado.");
-      return;
-    }
-
-    // Ordenar de mayor a menor tiempo
     aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration);
 
-    // Formato CSV UTF-8
-    let csvContent = "\uFEFF"; 
-    csvContent += "Miembro,Actividad / Tarjeta,Tiempo Total (Segundos),Tiempo Total (HH:MM:SS),Horas (Decimal)\n";
-
+    let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (Segundos),Tiempo Total (HH:MM:SS),Horas (Decimal)\n";
     let rows = aggregatedList.map(item => {
       let safeMember   = `"${item.member.replace(/"/g, '""')}"`;
       let safeCard     = `"${item.card.replace(/"/g, '""')}"`;
       let durationSec  = item.totalDuration;
       let durationFmt  = fmt(durationSec);
       let hoursDecimal = (durationSec / 3600).toFixed(2);
-
       return `${safeMember},${safeCard},${durationSec},${durationFmt},${hoursDecimal}`;
     });
-
     csvContent += rows.join("\n");
 
     let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -569,30 +587,20 @@
     document.body.removeChild(link);
   };
 
-  /* ── INICIALIZACIÓN DE DATOS Y NOMBRE DE TABLERO ───────────── */
-  Promise.all([
-    t.board('name'),
-    t.cards('id', 'name'),
-    t.get('board', 'shared', 'chronos-summary').catch(()=>({})),
-    t.get('board', 'shared', 'chronos-daily').catch(()=>({}))
-  ]).then(results => {
-    // 1. Mostrar nombre de tablero debajo del título del sidebar
-    var boardName = (results[0] && results[0].name) || 'Tablero Actual';
-    document.getElementById('board-name').textContent = boardName;
-    
-    let validCardsList = results[1] || [];
-    let summary = results[2] || {};
-    globalDaily = results[3] || {};
+  /* ── INICIALIZACIÓN Y BUCLE DE AUTO-REFRESCO ────────────── */
+  t.board('name').then(board => {
+    document.getElementById('board-name').textContent = board.name || 'Tablero Actual';
+  }).catch(() => {});
 
-    renderCards(summary, validCardsList);
-    renderTeam(globalDaily);
+  // Carga inicial
+  renderDashboard();
 
-    document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  // Polling automático en tiempo real cada 4 segundos
+  setInterval(renderDashboard, 4000);
 
-  }).catch(err => {
-    document.getElementById('cards-container').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div>Error al cargar datos.<br><small>${err}</small></div>`;
-  });
-
+  // Sincronización instantánea cuando el usuario enfoca o abre la pestaña
+  window.addEventListener('focus', renderDashboard);
+  document.addEventListener('visibilitychange', function() { if (!document.hidden) renderDashboard(); });
 </script>
 </body>
 </html>
