@@ -52,12 +52,13 @@
       letter-spacing: -0.3px;
     }
     .sb-board {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--txt-mut);
       margin-top: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-weight: 500;
     }
     .sb-nav {
       padding: 16px 12px;
@@ -264,10 +265,10 @@
 
     <!-- TAB 3: EXPORTAR -->
     <div id="tab-export" class="tab-pane">
-      <h1 class="page-title">Exportar Registros (CSV)</h1>
+      <h1 class="page-title">Exportar Registros Consolidados (CSV)</h1>
       <div class="export-card">
         <div class="export-desc">
-          Descarga un archivo <strong>.csv</strong> con todos los registros de tiempo almacenados en el tablero. Este archivo es compatible con Microsoft Excel, Google Sheets y Numbers.
+          Descarga un reporte consolidado en archivo <strong>.csv</strong> con la suma total global de tiempo por actividad y miembro. Compatible con Microsoft Excel y Google Sheets.
         </div>
         
         <div class="form-group">
@@ -291,7 +292,7 @@
           </div>
         </div>
 
-        <button class="btn-export" onclick="executeExport()">Descargar Reporte</button>
+        <button class="btn-export" onclick="executeExport()">Descargar Reporte Consolidado</button>
       </div>
     </div>
 
@@ -300,7 +301,6 @@
 <script>
   var t = window.TrelloPowerUp.iframe();
   
-  // Variables Globales de Estado
   var globalDaily = {};
   var validCardNames = new Set();
   
@@ -326,7 +326,6 @@
     return `<div class="av" style="background:${mColor(name)}">${esc(initials(name))}</div>`;
   }
 
-  // Obtener etiqueta de semana (Ej: "Lun 14 Ago - Dom 20 Ago")
   function getWeekLabel(dateStr) {
     const d = new Date(dateStr + 'T12:00:00');
     const day = d.getDay() || 7; 
@@ -350,12 +349,11 @@
     document.getElementById('custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
   }
 
-  /* ── RENDER: TARJETAS (FILTRADAS) ────────────────────────── */
+  /* ── RENDER: TARJETAS ────────────────────────────────────── */
   function renderCards(summary, validCardsList) {
     const validCardIds = new Set(validCardsList.map(c => c.id));
-    validCardsList.forEach(c => validCardNames.add(c.name)); // Para filtrar logs diarios
+    validCardsList.forEach(c => validCardNames.add(c.name));
     
-    // Filtrar Summary
     let totalBoardSecs = 0;
     let activeTimers = 0;
     let validCardsData = [];
@@ -414,13 +412,12 @@
     container.innerHTML = html;
   }
 
-  /* ── RENDER: EQUIPO Y SEMANAS (FILTRADO) ─────────────────── */
+  /* ── RENDER: EQUIPO Y SEMANAS ────────────────────────────── */
   function renderTeam(daily) {
     let people = {};
 
     Object.keys(daily).forEach(dayDate => {
       (daily[dayDate] || []).forEach(entry => {
-        // Ignorar logs de tarjetas eliminadas
         if (!validCardNames.has(entry.cardName)) return;
 
         let pid = entry.memberId || 'unknown';
@@ -484,7 +481,7 @@
     container.innerHTML = html;
   }
 
-  /* ── EXPORTACIÓN A CSV ───────────────────────────────────── */
+  /* ── EXPORTACIÓN CONSOLIDADA A CSV ───────────────────────── */
   window.executeExport = function() {
     if (!globalDaily || Object.keys(globalDaily).length === 0) {
       alert("No hay datos para exportar.");
@@ -497,7 +494,7 @@
 
     if (rangeType === 'month') {
       startD = new Date(now.getFullYear(), now.getMonth(), 1);
-      endD = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
     } else if (rangeType === 'week') {
       let day = now.getDay() || 7; 
       startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0);
@@ -510,8 +507,8 @@
       endD = new Date(eVal + 'T23:59:59');
     }
 
-    let csvContent = "Fecha,Miembro,Tarjeta,Duracion (Segundos),Duracion (Formato)\n";
-    let rows = [];
+    // Agrupación/Consolidación por (Miembro + Tarjeta)
+    let aggregated = {};
 
     Object.keys(globalDaily).forEach(dateStr => {
       let dObj = new Date(dateStr + 'T12:00:00');
@@ -519,39 +516,69 @@
       if (endD && dObj > endD) return;
 
       (globalDaily[dateStr] || []).forEach(e => {
-        // Evitar exportar si la tarjeta fue borrada
-        if (!validCardNames.has(e.cardName)) return; 
+        if (!validCardNames.has(e.cardName)) return; // Excluir tarjetas eliminadas
         
-        let safeMember = `"${(e.memberName||'Desconocido').replace(/"/g, '""')}"`;
-        let safeCard   = `"${(e.cardName||'').replace(/"/g, '""')}"`;
-        rows.push(`${dateStr},${safeMember},${safeCard},${e.duration||0},${fmt(e.duration)}`);
+        let member = e.memberName || 'Desconocido';
+        let card   = e.cardName || 'Sin tarjeta';
+        let key    = `${member}___${card}`;
+
+        if (!aggregated[key]) {
+          aggregated[key] = {
+            member: member,
+            card: card,
+            totalDuration: 0
+          };
+        }
+        aggregated[key].totalDuration += (e.duration || 0);
       });
     });
 
-    if (!rows.length) {
+    let aggregatedList = Object.values(aggregated);
+
+    if (!aggregatedList.length) {
       alert("No se encontraron registros en el rango seleccionado.");
       return;
     }
 
+    // Ordenar de mayor a menor tiempo
+    aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration);
+
+    // Formato CSV UTF-8
+    let csvContent = "\uFEFF"; 
+    csvContent += "Miembro,Actividad / Tarjeta,Tiempo Total (Segundos),Tiempo Total (HH:MM:SS),Horas (Decimal)\n";
+
+    let rows = aggregatedList.map(item => {
+      let safeMember   = `"${item.member.replace(/"/g, '""')}"`;
+      let safeCard     = `"${item.card.replace(/"/g, '""')}"`;
+      let durationSec  = item.totalDuration;
+      let durationFmt  = fmt(durationSec);
+      let hoursDecimal = (durationSec / 3600).toFixed(2);
+
+      return `${safeMember},${safeCard},${durationSec},${durationFmt},${hoursDecimal}`;
+    });
+
     csvContent += rows.join("\n");
+
     let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     let url = URL.createObjectURL(blob);
     let link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `TrackingTime_Report_${new Date().getTime()}.csv`);
+    link.setAttribute("download", `TrackingTime_Consolidado_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  /* ── INIT Y LECTURA DE DATOS ─────────────────────────────── */
+  /* ── INICIALIZACIÓN DE DATOS Y NOMBRE DE TABLERO ───────────── */
   Promise.all([
     t.board('name'),
-    t.cards('id', 'name'), // Obtiene SÓLO las tarjetas que existen (no eliminadas ni archivadas si se configura así)
+    t.cards('id', 'name'),
     t.get('board', 'shared', 'chronos-summary').catch(()=>({})),
     t.get('board', 'shared', 'chronos-daily').catch(()=>({}))
   ]).then(results => {
-    document.getElementById('board-name').textContent = (results[0] && results[0].name) || 'Tablero Actual';
+    // 1. Mostrar nombre de tablero debajo del título del sidebar
+    var boardName = (results[0] && results[0].name) || 'Tablero Actual';
+    document.getElementById('board-name').textContent = boardName;
     
     let validCardsList = results[1] || [];
     let summary = results[2] || {};
