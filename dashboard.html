@@ -112,7 +112,7 @@
       display: flex;
       gap: 24px;
       margin-bottom: 24px;
-      flex-wrap: wrap; /* Se adapta a pantallas pequeñas */
+      flex-wrap: wrap;
       align-items: stretch;
     }
 
@@ -145,7 +145,7 @@
       padding: 20px;
       width: 350px;
       min-height: 250px;
-      display: none; /* Se activa por JS si hay datos */
+      display: none; 
       flex-direction: column;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
@@ -281,11 +281,10 @@
   <!-- MAIN CONTENT -->
   <main class="main-content">
     
-    <!-- TAB 1: TARJETAS -->
-    <div id="tab-cards" class="tab-pane active">
-      <h1 class="page-title">Resumen del Tablero</h1>
+    <!-- 🔴 HEADER GLOBAL: Permanece visible en Tarjetas, Equipo y Semanas 🔴 -->
+    <div id="global-stats-header" style="display: block;">
+      <h1 class="page-title" id="dynamic-title">Desglose por Tarjetas</h1>
       
-      <!-- TOP ROW: Stats + Chart en dos columnas -->
       <div class="top-row">
         <!-- Bloque Izquierdo: Stats -->
         <div class="summary-grid">
@@ -305,13 +304,16 @@
 
         <!-- Bloque Derecho: Chart -->
         <div class="chart-box" id="chart-container">
-          <div class="chart-title">Distribución por Equipo (Horas)</div>
+          <div class="chart-title">Distribución Global por Equipo</div>
           <div style="flex: 1; position: relative;">
             <canvas id="teamChart"></canvas>
           </div>
         </div>
       </div>
+    </div>
 
+    <!-- TAB 1: TARJETAS (Ahora solo contiene la lista) -->
+    <div id="tab-cards" class="tab-pane active">
       <div id="cards-container">
         <div class="empty-state"><div class="spinner"></div>Analizando tarjetas en tiempo real...</div>
       </div>
@@ -319,7 +321,6 @@
 
     <!-- TAB 2: EQUIPO -->
     <div id="tab-team" class="tab-pane">
-      <h1 class="page-title">Desglose por Equipo</h1>
       <div id="team-container">
         <div class="empty-state"><div class="spinner"></div>Agrupando trabajo del equipo...</div>
       </div>
@@ -327,7 +328,6 @@
 
     <!-- TAB 3: SEMANAS -->
     <div id="tab-weeks" class="tab-pane">
-      <h1 class="page-title">Desglose por Semanas</h1>
       <div id="weeks-container">
         <div class="empty-state"><div class="spinner"></div>Agrupando histórico semanal...</div>
       </div>
@@ -336,7 +336,7 @@
     <!-- TAB 4: DESGLOSE Y EXPORTACIÓN CUSTOM -->
     <div id="tab-custom-view" class="tab-pane">
       <h1 class="page-title">Desglose Custom (Filtros Avanzados)</h1>
-      <div class="export-card">
+      <div class="export-card" style="margin-bottom: 32px;">
         <div class="export-desc">
           Filtra, visualiza y descarga el tiempo registrado basándote en un <strong>Custom Field</strong> y un <strong>Rango de Fechas</strong> específico.
         </div>
@@ -385,7 +385,7 @@
         </div>
       </div>
 
-      <div id="custom-results-container" style="margin-top: 24px; max-width: 650px;"></div>
+      <div id="custom-results-container" style="max-width: 800px;"></div>
     </div>
 
     <!-- TAB 5: EXPORTAR NORMAL -->
@@ -431,9 +431,12 @@
   var boardCustomFields = [];
   
   var teamChartInstance = null;
+  var customChartInstance = null; // Instancia para el gráfico del Desglose Custom
   
   var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
+  
+  const DYNAMIC_PALETTE = ['#f87168', '#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#00c7e6', '#ff8f73', '#ffc400', '#8777d9'];
 
   /* ── UTILIDADES ──────────────────────────────────────────── */
   function fmt(s) {
@@ -444,7 +447,6 @@
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function initials(n) { return (n||'?').trim().split(/\s+/).slice(0,2).map(w => w[0]||'?').join('').toUpperCase(); }
   
-  // Función general para generar colores base de los Avatares
   const AVATAR_COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
   function mColor(n) { 
     let h=0; for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; 
@@ -466,12 +468,30 @@
     return `Semana del ${startStr} al ${endStr}`;
   }
 
-  /* ── UI NAVEGACIÓN ───────────────────────────────────────── */
+  /* ── UI NAVEGACIÓN (CONTROL DEL HEADER GLOBAL) ───────────── */
   function switchTab(tabId, el) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
+
+    const globalHeader = document.getElementById('global-stats-header');
+    const dynamicTitle = document.getElementById('dynamic-title');
+
+    // Mostramos el Header global solo en las pestañas de análisis general
+    if (tabId === 'tab-cards') {
+      globalHeader.style.display = 'block';
+      dynamicTitle.textContent = 'Desglose por Tarjetas';
+    } else if (tabId === 'tab-team') {
+      globalHeader.style.display = 'block';
+      dynamicTitle.textContent = 'Desglose por Equipo';
+    } else if (tabId === 'tab-weeks') {
+      globalHeader.style.display = 'block';
+      dynamicTitle.textContent = 'Desglose por Semanas';
+    } else {
+      // Lo ocultamos en Custom View y Exportar
+      globalHeader.style.display = 'none';
+    }
   }
 
   function toggleCustomDates() {
@@ -612,7 +632,7 @@
     });
   }
 
-  /* ── GRÁFICO (CHART.JS) CON COLORES ÚNICOS ── */
+  /* ── GRÁFICO GLOBAL (CHART.JS) ── */
   function renderChart(teamDataMap) {
     const pids = Object.keys(teamDataMap);
     const container = document.getElementById('chart-container');
@@ -629,8 +649,6 @@
     const dataValues = [];
     const backgroundColors = [];
 
-    // Paleta extendida para asignar dinámicamente y no repetir
-    const DYNAMIC_PALETTE = ['#f87168', '#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#00c7e6', '#ff8f73', '#ffc400', '#8777d9'];
     let colorMap = {};
     let colorIndex = 0;
 
@@ -638,8 +656,6 @@
       let member = teamDataMap[pid];
       labels.push(member.name);
       dataValues.push((member.total / 3600).toFixed(2)); 
-
-      // Asigna un color único a cada persona en orden (independiente del nombre)
       if (!colorMap[member.name]) {
         colorMap[member.name] = DYNAMIC_PALETTE[colorIndex % DYNAMIC_PALETTE.length];
         colorIndex++;
@@ -657,33 +673,13 @@
         type: 'doughnut',
         data: {
           labels: labels,
-          datasets: [{
-            data: dataValues,
-            backgroundColor: backgroundColors,
-            borderWidth: 0,
-            hoverOffset: 4
-          }]
+          datasets: [{ data: dataValues, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '65%', 
+          responsive: true, maintainAspectRatio: false, cutout: '65%', 
           plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                color: '#c7d1db',
-                font: { family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', size: 12 },
-                padding: 20
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return ` ${context.raw} Horas`;
-                }
-              }
-            }
+            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 12 }, padding: 20 } },
+            tooltip: { callbacks: { label: function(context) { return ` ${context.raw} Horas`; } } }
           }
         }
       });
@@ -778,14 +774,8 @@
     const valId = document.getElementById('cf-value-select').value;
     const rangeType = document.getElementById('custom-range').value;
 
-    if (!cfId || !valId) {
-      alert("Por favor selecciona un Campo Personalizado y una Opción (Filtro).");
-      return null;
-    }
-    if (!rawCardStore || rawCardStore.length === 0) {
-      alert("No hay datos en el tablero.");
-      return null;
-    }
+    if (!cfId || !valId) { alert("Por favor selecciona un Campo Personalizado y una Opción (Filtro)."); return null; }
+    if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos en el tablero."); return null; }
 
     let startD = null, endD = null;
     const now = new Date();
@@ -858,11 +848,7 @@
       }
 
       if (cardTotalSecs > 0) {
-        displayData.push({
-          name: cardName,
-          total: cardTotalSecs,
-          members: Object.values(cardMembersMap)
-        });
+        displayData.push({ name: cardName, total: cardTotalSecs, members: Object.values(cardMembersMap) });
       }
     });
 
@@ -880,8 +866,7 @@
       const cfValue = valSelect.options[valSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
 
       if (Object.keys(result.aggregated).length === 0) {
-        alert("No hay registros de tiempo en las fechas y filtros indicados.");
-        return;
+        alert("No hay registros de tiempo en las fechas y filtros indicados."); return;
       }
       downloadCSV(result.aggregated, `Desglose_${cfName}_${cfValue}.csv`);
 
@@ -889,27 +874,34 @@
       const container = document.getElementById('custom-results-container');
       
       if (result.displayData.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo registrado para esta opción y rango de fechas.</div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo registrado para esta opción.</div>`;
         return;
       }
 
       result.displayData.sort((a,b) => b.total - a.total);
       let grandTotal = 0;
+      let customTeamMap = {}; // Para el gráfico del desglose custom
 
       let html = result.displayData.map(card => {
         grandTotal += card.total;
         let membersHtml = '';
         if (card.members && card.members.length) {
           card.members.sort((a,b) => b.total - a.total);
-          membersHtml = card.members.map(m => `
-            <div class="log-row" style="margin: 0 20px 8px 40px;">
-              <div style="display:flex; align-items:center; gap:10px;">
-                ${avHtml(m.name, m.avatarUrl)}
-                <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
+          membersHtml = card.members.map(m => {
+            // Acumular tiempo por miembro para el gráfico custom
+            if (!customTeamMap[m.name]) customTeamMap[m.name] = 0;
+            customTeamMap[m.name] += m.total;
+
+            return `
+              <div class="log-row" style="margin: 0 20px 8px 40px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  ${avHtml(m.name, m.avatarUrl)}
+                  <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
+                </div>
+                <div class="log-dur">${fmt(m.total)}</div>
               </div>
-              <div class="log-dur">${fmt(m.total)}</div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
         }
         return `
           <div class="data-block">
@@ -923,13 +915,52 @@
         `;
       }).join('');
 
+      // Renderizamos el header con un segundo gráfico exclusivo para este desglose
       let headerHtml = `
-        <div style="background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-          <div style="font-size: 14px; font-weight: bold; color: var(--txt-mut); text-transform: uppercase;">Total del Filtro Seleccionado</div>
-          <div style="font-size: 24px; font-weight: 700; color: var(--accent);">${fmt(grandTotal)} <span style="font-size:14px; color:var(--txt-mut); font-weight:normal;">(${fmtH(grandTotal)})</span></div>
+        <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 8px;">Total del Filtro Seleccionado</div>
+            <div style="font-size: 32px; font-weight: 700; color: var(--accent);">${fmt(grandTotal)}</div>
+            <div style="font-size: 14px; color: var(--txt-mut); margin-top: 4px;">Equivale a ${fmtH(grandTotal)}</div>
+          </div>
+          
+          <div style="width: 320px; min-height: 180px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; text-align: center;">Distribución de este filtro</div>
+            <div style="position: relative; height: 140px;">
+              <canvas id="customChartCanvas"></canvas>
+            </div>
+          </div>
         </div>
       `;
       container.innerHTML = headerHtml + html;
+
+      // Dibujamos el gráfico Custom una vez que el HTML esté inyectado
+      setTimeout(() => {
+         if(customChartInstance) customChartInstance.destroy(); // Limpiar gráfico anterior si existía
+
+         const ctxCustom = document.getElementById('customChartCanvas');
+         const cLabels = [];
+         const cData = [];
+         const cColors = [];
+         
+         Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => {
+             cLabels.push(name);
+             cData.push((customTeamMap[name] / 3600).toFixed(2));
+             cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+         });
+
+         customChartInstance = new Chart(ctxCustom, {
+            type: 'doughnut',
+            data: { labels: cLabels, datasets: [{ data: cData, backgroundColor: cColors, borderWidth: 0, hoverOffset: 4 }] },
+            options: {
+              responsive: true, maintainAspectRatio: false, cutout: '65%',
+              plugins: {
+                legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
+                tooltip: { callbacks: { label: function(context) { return ` ${context.raw} Horas`; } } }
+              }
+            }
+         });
+      }, 50);
     }
   };
 
@@ -1003,16 +1034,10 @@
   }
 
   /* ── INICIALIZACIÓN Y BUCLE DE AUTO-REFRESCO ────────────── */
-  t.board('name').then(board => {
-    document.getElementById('board-name').textContent = board.name || 'Tablero Actual';
-  }).catch(() => {});
-
+  t.board('name').then(board => { document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; }).catch(() => {});
   fetchCustomFieldsList();
   renderDashboard();
-  
-  // 🔥 AQUÍ: Actualización constante cada segundo (1000 ms) en lugar de cada 4 (4000)
   setInterval(renderDashboard, 1000);
-  
   window.addEventListener('focus', renderDashboard);
   document.addEventListener('visibilitychange', function() { if (!document.hidden) renderDashboard(); });
 </script>
