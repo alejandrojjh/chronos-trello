@@ -192,13 +192,14 @@
       padding: 10px 14px; border-radius: 4px; font-size: 13px; outline: none;
     }
     .form-select:focus, .form-input:focus { border-color: var(--accent); }
+    .form-select:disabled { opacity: 0.5; cursor: not-allowed; }
     .date-row { display: flex; gap: 16px; }
     .date-row > div { flex: 1; }
     
     .btn-export {
       background: var(--accent); color: #091e42; border: none; padding: 12px 24px;
       font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
-      display: inline-flex; align-items: center; gap: 8px; margin-top: 10px;
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; width: 100%; justify-content: center;
     }
     .btn-export:hover { background: var(--accent-hvr); }
 
@@ -222,8 +223,12 @@
     </div>
     <nav class="sb-nav">
       <div class="nav-item active" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
-      <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo y Semanas</div>
+      <!-- Pestañas separadas -->
+      <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo</div>
+      <div class="nav-item" onclick="switchTab('tab-weeks', this)">📅 Semanas</div>
+      <!-- Pestañas de Exportación -->
       <div class="nav-item" onclick="switchTab('tab-export', this)">📥 Exportar Datos</div>
+      <div class="nav-item" onclick="switchTab('tab-export-custom', this)">⚙️ Exportar Custom</div>
     </nav>
     <div class="sb-footer" id="last-update">Sincronizando...</div>
   </aside>
@@ -255,15 +260,23 @@
       </div>
     </div>
 
-    <!-- TAB 2: EQUIPO Y SEMANAS -->
+    <!-- TAB 2: EQUIPO (Separado) -->
     <div id="tab-team" class="tab-pane">
       <h1 class="page-title">Desglose por Equipo</h1>
       <div id="team-container">
-        <div class="empty-state"><div class="spinner"></div>Agrupando trabajo semanal...</div>
+        <div class="empty-state"><div class="spinner"></div>Agrupando trabajo del equipo...</div>
       </div>
     </div>
 
-    <!-- TAB 3: EXPORTAR -->
+    <!-- TAB 3: SEMANAS (Separado) -->
+    <div id="tab-weeks" class="tab-pane">
+      <h1 class="page-title">Desglose por Semanas</h1>
+      <div id="weeks-container">
+        <div class="empty-state"><div class="spinner"></div>Agrupando histórico semanal...</div>
+      </div>
+    </div>
+
+    <!-- TAB 4: EXPORTAR NORMAL -->
     <div id="tab-export" class="tab-pane">
       <h1 class="page-title">Exportar Registros Consolidados (CSV)</h1>
       <div class="export-card">
@@ -296,6 +309,38 @@
       </div>
     </div>
 
+    <!-- TAB 5: EXPORTAR DATOS CUSTOM FIELDS -->
+    <div id="tab-export-custom" class="tab-pane">
+      <h1 class="page-title">Exportar Datos Custom (Filtros)</h1>
+      <div class="export-card">
+        <div class="export-desc">
+          Filtra y descarga el tiempo registrado basándote exclusivamente en los campos personalizados <strong>(Custom Fields)</strong> que hayas configurado en tu tablero.
+        </div>
+        
+        <div class="date-row" style="margin-bottom: 20px;">
+          <!-- Filtro 1 -->
+          <div class="form-group">
+            <label class="form-label">1. Selecciona el Campo Personalizado</label>
+            <select class="form-select" id="cf-select" onchange="updateCustomValues()">
+              <option value="">Cargando campos...</option>
+            </select>
+          </div>
+
+          <!-- Filtro 2 -->
+          <div class="form-group">
+            <label class="form-label">2. Selecciona la Opción a Filtrar</label>
+            <select class="form-select" id="cf-value-select" disabled>
+              <option value="">Selecciona un campo primero...</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-export" style="background: #4bce97; color: #161a1d;" onclick="executeCustomExport()">
+          Descargar Reporte Filtrado
+        </button>
+      </div>
+    </div>
+
   </main>
 
 <script>
@@ -303,6 +348,7 @@
   var KEY = 'chronos';
   
   var rawCardStore = []; 
+  var boardCustomFields = []; // Almacenará los custom fields del tablero
   
   // 🔴 LÍMITE MÁXIMO DE SESIÓN (En horas - Debe coincidir con timer.html) 🔴
   var MAX_SESSION_HOURS = 12;
@@ -351,10 +397,54 @@
     document.getElementById('custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
   }
 
+  /* ── INICIALIZACIÓN DE CUSTOM FIELDS ─────────────────────── */
+  function fetchCustomFieldsList() {
+    t.board('customFields').then(board => {
+      if (board && board.customFields) {
+        // Filtramos solo los campos de tipo lista (desplegables)
+        boardCustomFields = board.customFields.filter(cf => cf.type === 'list');
+        
+        const cfSelect = document.getElementById('cf-select');
+        cfSelect.innerHTML = '<option value="">-- Elige un campo --</option>';
+        
+        boardCustomFields.forEach(cf => {
+          let option = document.createElement('option');
+          option.value = cf.id;
+          option.textContent = cf.name;
+          cfSelect.appendChild(option);
+        });
+      }
+    }).catch(err => console.log('Error cargando custom fields', err));
+  }
+
+  window.updateCustomValues = function() {
+    const selectedFieldId = document.getElementById('cf-select').value;
+    const valueSelect = document.getElementById('cf-value-select');
+    
+    if (!selectedFieldId) {
+      valueSelect.innerHTML = '<option value="">Selecciona un campo primero...</option>';
+      valueSelect.disabled = true;
+      return;
+    }
+
+    const selectedField = boardCustomFields.find(cf => cf.id === selectedFieldId);
+    
+    valueSelect.innerHTML = '<option value="">-- Todos los valores (Selecciona uno) --</option>';
+    if (selectedField && selectedField.options) {
+      selectedField.options.forEach(opt => {
+        let optionHTML = document.createElement('option');
+        optionHTML.value = opt.id;
+        optionHTML.textContent = opt.value.text;
+        valueSelect.appendChild(optionHTML);
+      });
+      valueSelect.disabled = false;
+    }
+  };
+
   /* ── LECTURA DIRECTA Y FILTRADO DE TARJETAS VIVAS ───────── */
   function fetchLiveBoardData() {
-    // t.cards() solo retorna las tarjetas NO archivadas ni eliminadas del tablero
-    return t.cards('id', 'name').then(cards => {
+    // IMPORTANTE: Agregamos 'customFieldItems' para que Trello nos traiga la data de los selectores
+    return t.cards('id', 'name', 'customFieldItems').then(cards => {
       return Promise.all(cards.map(c => {
         return t.get(c.id, 'shared', KEY).then(cState => {
           return { card: c, state: cState || {} };
@@ -372,7 +462,8 @@
       let workedCardsCount = 0;
 
       let cardsDataList = [];
-      let teamDataMap = {}; 
+      let teamDataMap = {}; // Agrupación por Equipo
+      let weeksDataMap = {}; // Agrupación por Semanas
 
       const now = Date.now();
 
@@ -389,27 +480,35 @@
 
         if (isRunningOnCard) activeTimersCount += Object.keys(sessions).length;
 
-        // 1. Procesar registros de tiempo finalizados
-        entries.forEach(e => {
-          let dur = e.duration || 0;
+        // Función auxiliar para sumar tiempos a los mapas
+        const applyTimeToMaps = (dur, pid, pName, pAv, timestamp) => {
           cardTotalSecs += dur;
 
-          let pid = e.memberId || 'unknown';
-          let pName = e.memberName || 'Desconocido';
-          let pAv = e.avatarUrl || '';
-
+          // Mapa de Tarjetas (Miembros dentro de la tarjeta)
           if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
           cardMembersMap[pid].total += dur;
 
-          if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, weeks: {} };
+          // Mapa de Equipo (Tarjetas dentro del miembro)
+          if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
           teamDataMap[pid].total += dur;
+          if (!teamDataMap[pid].cards[card.name]) teamDataMap[pid].cards[card.name] = 0;
+          teamDataMap[pid].cards[card.name] += dur;
 
-          let weekLbl = getWeekLabel(e.start || now);
-          if (!teamDataMap[pid].weeks[weekLbl]) teamDataMap[pid].weeks[weekLbl] = { total: 0, cards: {} };
-          
-          teamDataMap[pid].weeks[weekLbl].total += dur;
-          if (!teamDataMap[pid].weeks[weekLbl].cards[card.name]) teamDataMap[pid].weeks[weekLbl].cards[card.name] = 0;
-          teamDataMap[pid].weeks[weekLbl].cards[card.name] += dur;
+          // Mapa de Semanas (Tarjetas dentro de la semana)
+          let weekLbl = getWeekLabel(timestamp);
+          if (!weeksDataMap[weekLbl]) weeksDataMap[weekLbl] = { total: 0, cards: {} };
+          weeksDataMap[weekLbl].total += dur;
+          if (!weeksDataMap[weekLbl].cards[card.name]) weeksDataMap[weekLbl].cards[card.name] = 0;
+          weeksDataMap[weekLbl].cards[card.name] += dur;
+        };
+
+        // 1. Procesar registros de tiempo finalizados
+        entries.forEach(e => {
+          let dur = e.duration || 0;
+          let pid = e.memberId || 'unknown';
+          let pName = e.memberName || 'Desconocido';
+          let pAv = e.avatarUrl || '';
+          applyTimeToMaps(dur, pid, pName, pAv, e.start || now);
         });
 
         // 2. Procesar sesiones activas aplicando el tope máximo de horas
@@ -417,27 +516,12 @@
           let sess = sessions[pid];
           let elapsed = Math.floor((now - sess.startTime) / 1000);
           
-          // Aplicar tope de seguridad para evitar tiempos infinitos
           elapsed = Math.min(elapsed, MAX_SECONDS);
 
           if (elapsed > 0) {
-            cardTotalSecs += elapsed;
-
             let pName = sess.memberName || 'Desconocido';
             let pAv = sess.avatarUrl || '';
-
-            if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
-            cardMembersMap[pid].total += elapsed;
-
-            if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, weeks: {} };
-            teamDataMap[pid].total += elapsed;
-
-            let weekLbl = getWeekLabel(sess.startTime || now);
-            if (!teamDataMap[pid].weeks[weekLbl]) teamDataMap[pid].weeks[weekLbl] = { total: 0, cards: {} };
-            
-            teamDataMap[pid].weeks[weekLbl].total += elapsed;
-            if (!teamDataMap[pid].weeks[weekLbl].cards[card.name]) teamDataMap[pid].weeks[weekLbl].cards[card.name] = 0;
-            teamDataMap[pid].weeks[weekLbl].cards[card.name] += elapsed;
+            applyTimeToMaps(elapsed, pid, pName, pAv, sess.startTime || now);
           }
         });
 
@@ -454,6 +538,7 @@
 
       renderCardsTab(cardsDataList);
       renderTeamTab(teamDataMap);
+      renderWeeksTab(weeksDataMap);
       document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     });
   }
@@ -461,7 +546,7 @@
   function renderCardsTab(cardsDataList) {
     const container = document.getElementById('cards-container');
     if (!cardsDataList.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay registros de tiempo en las tarjetas del tablero.</div>`;
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay registros de tiempo en las tarjetas.</div>`;
       return;
     }
 
@@ -496,6 +581,7 @@
     container.innerHTML = html;
   }
 
+  /* PESTAÑA: SÓLO EQUIPO */
   function renderTeamTab(teamDataMap) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
@@ -507,19 +593,49 @@
 
     let html = pids.map(pid => {
       let p = teamDataMap[pid];
-      let weeksHtml = Object.keys(p.weeks).map(wName => {
-        let w = p.weeks[wName];
-        let cardsHtml = Object.keys(w.cards).sort((a,b) => w.cards[b] - w.cards[a]).map(cName => `
-          <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(w.cards[cName])}</div></div>
-        `).join('');
-        return `<div class="week-group"><div class="week-title"><span>${wName}</span><span>${fmt(w.total)}</span></div>${cardsHtml}</div>`;
-      }).join('');
-      return `<div class="data-block"><div class="person-header">${avHtml(p.name, p.avatarUrl)}<div class="person-name">${esc(p.name)}</div><div class="person-total">${fmt(p.total)}</div></div>${weeksHtml}</div>`;
+      let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
+        <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(p.cards[cName])}</div></div>
+      `).join('');
+      
+      return `
+        <div class="data-block">
+          <div class="person-header">${avHtml(p.name, p.avatarUrl)}<div class="person-name">${esc(p.name)}</div><div class="person-total">${fmt(p.total)}</div></div>
+          <div class="db-body open"><div style="padding: 10px 20px;">${cardsHtml}</div></div>
+        </div>`;
     }).join('');
     container.innerHTML = html;
   }
 
-  /* ── EXPORTACIÓN CONSOLIDADA A CSV ─────────────────────── */
+  /* PESTAÑA: SÓLO SEMANAS */
+  function renderWeeksTab(weeksDataMap) {
+    const weeks = Object.keys(weeksDataMap);
+    const container = document.getElementById('weeks-container');
+
+    if (!weeks.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div>No hay datos para mostrar por semanas.</div>`;
+      return;
+    }
+
+    let html = weeks.map(wName => {
+      let w = weeksDataMap[wName];
+      let cardsHtml = Object.keys(w.cards).sort((a,b) => w.cards[b] - w.cards[a]).map(cName => `
+        <div class="log-row" style="margin: 0 20px 4px 20px;"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(w.cards[cName])}</div></div>
+      `).join('');
+      
+      return `
+        <div class="data-block">
+          <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+            <span class="db-caret">▶</span>
+            <span class="db-title">${esc(wName)}</span>
+            <span class="db-total">${fmt(w.total)}</span>
+          </div>
+          <div class="db-body"><div style="padding: 10px 0;">${cardsHtml}</div></div>
+        </div>`;
+    }).join('');
+    container.innerHTML = html;
+  }
+
+  /* ── EXPORTACIÓN CONSOLIDADA A CSV (NORMAL) ───────────────── */
   window.executeExport = function() {
     if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos para exportar."); return; }
 
@@ -561,8 +677,57 @@
       });
     });
 
-    let aggregatedList = Object.values(aggregated);
-    if (!aggregatedList.length) { alert("No se encontraron registros en el rango seleccionado."); return; }
+    downloadCSV(aggregated, `TrackingTime_Consolidado_${new Date().toISOString().slice(0,10)}.csv`);
+  };
+
+  /* ── EXPORTACIÓN CUSTOM (FILTRO POR CUSTOM FIELDS) ─────────── */
+  window.executeCustomExport = function() {
+    const selectedFieldId = document.getElementById('cf-select').value;
+    const selectedValueId = document.getElementById('cf-value-select').value;
+
+    if (!selectedFieldId || !selectedValueId) {
+      alert("Por favor selecciona un Campo Personalizado y una Opción para poder exportar.");
+      return;
+    }
+
+    if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos en el tablero."); return; }
+
+    let aggregated = {};
+
+    // Filtramos las tarjetas que tengan ESE custom field con ESE valor
+    rawCardStore.forEach(item => {
+      const cfItems = item.card.customFieldItems;
+      
+      // Si la tarjeta no tiene el custom field asignado que coincida con el filtro, la saltamos
+      if (!cfItems || !cfItems.some(cf => cf.idCustomField === selectedFieldId && cf.idValue === selectedValueId)) {
+        return; 
+      }
+
+      let cardName = item.card.name;
+      let entries = item.state.entries || [];
+
+      // Consolidar entradas de esta tarjeta
+      entries.forEach(e => {
+        let member = e.memberName || 'Desconocido';
+        let key = `${member}___${cardName}`;
+
+        if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
+        aggregated[key].totalDuration += (e.duration || 0);
+      });
+    });
+
+    const cfSelect = document.getElementById('cf-select');
+    const valSelect = document.getElementById('cf-value-select');
+    const cfName = cfSelect.options[cfSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
+    const cfValue = valSelect.options[valSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
+
+    downloadCSV(aggregated, `Reporte_Filtrado_${cfName}_${cfValue}.csv`);
+  };
+
+  /* ── FUNCIÓN DE DESCARGA CSV (Reutilizable) ────────────────── */
+  function downloadCSV(aggregatedData, filename) {
+    let aggregatedList = Object.values(aggregatedData);
+    if (!aggregatedList.length) { alert("No se encontraron registros de tiempo que coincidan con los filtros."); return; }
 
     aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration);
 
@@ -581,24 +746,27 @@
     let url = URL.createObjectURL(blob);
     let link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `TrackingTime_Consolidado_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }
 
   /* ── INICIALIZACIÓN Y BUCLE DE AUTO-REFRESCO ────────────── */
   t.board('name').then(board => {
     document.getElementById('board-name').textContent = board.name || 'Tablero Actual';
   }).catch(() => {});
 
-  // Carga inicial
+  // 1. Cargar Custom Fields para el desplegable
+  fetchCustomFieldsList();
+
+  // 2. Carga inicial de datos de las tarjetas
   renderDashboard();
 
-  // Polling automático en tiempo real cada 4 segundos
+  // 3. Polling automático en tiempo real cada 4 segundos
   setInterval(renderDashboard, 4000);
 
-  // Sincronización instantánea cuando el usuario enfoca o abre la pestaña
+  // 4. Sincronización instantánea cuando el usuario enfoca la pestaña
   window.addEventListener('focus', renderDashboard);
   document.addEventListener('visibilitychange', function() { if (!document.hidden) renderDashboard(); });
 </script>
