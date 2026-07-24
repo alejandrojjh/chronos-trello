@@ -19,7 +19,7 @@
     /* ── Header ───────────────────────────────────────────── */
     .wl-header {
       display: flex;
-      justify-content: space-between; /* Alinea el título a la izq y el botón a la der */
+      justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
     }
@@ -100,20 +100,24 @@
     .btn-stop  { background: #de350b; }
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-    .divider {
-      height: 1px;
-      background: #2c2e33;
-      margin: 14px 0;
-    }
-
     /* ── Entries List ─────────────────────────────────────── */
+    .entries-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
     .entries-lbl {
       font-size: 11px;
       font-weight: 700;
       color: #8c9199;
       text-transform: uppercase;
       letter-spacing: .5px;
-      margin-bottom: 8px;
+    }
+    .total-lbl {
+      font-size: 12px;
+      color: #8c9199;
     }
     .entries {
       list-style: none;
@@ -122,7 +126,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 8px 0;
+      padding: 8px 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+      margin-bottom: 2px;
+    }
+    .entry:hover {
+      background: rgba(255,255,255,0.03);
     }
     .av {
       width: 24px;
@@ -154,22 +164,46 @@
       color: #8c9199;
       margin-top: 1px;
     }
+
+    /* Contenedor de duración y acciones (Lápiz) */
+    .entry-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .entry-dur {
       font-size: 13px;
       font-weight: 600;
       color: #dee4ea;
       font-variant-numeric: tabular-nums;
     }
+    .entry-edit-btn {
+      background: transparent;
+      border: none;
+      color: #8c9199;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .entry:hover .entry-edit-btn {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    .entry-edit-btn:hover {
+      filter: brightness(1.5);
+    }
 
     .empty-msg { font-style: italic; color: #8c9199; padding: 8px 0; }
 
-    /* ── Footer / Acciones en el mismo eje ────────────────── */
+    /* ── Footer ───────────────────────────────────────────── */
     .footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-top: 14px;
-      padding-top: 4px;
+      padding-top: 10px;
+      border-top: 1px solid #2c2e33;
     }
     .reset-btn {
       background: none;
@@ -178,18 +212,10 @@
       font-size: 11px;
       cursor: pointer;
       text-decoration: underline;
+      padding: 0;
     }
     .reset-btn:hover { color: #f87168; }
-    .edit-btn {
-      background: none;
-      border: none;
-      color: #579dff;
-      font-size: 11px;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-    .edit-btn:hover { color: #85b8ff; }
-    .reset-btn:disabled, .edit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .reset-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
     /* ── Paneles Inline (Reinicio y Edición) ──────────────── */
     .inline-panel {
@@ -262,34 +288,32 @@
     </div>
 
     <div id="details-section" style="display: none;">
-      <div style="display: flex; justify-content: flex-end; font-size: 12px; color: #8c9199; margin-bottom: 10px;">
-        <span>Total tarjeta: <strong id="all-total" style="color:#dee4ea;">--:--:--</strong></span>
+      
+      <div class="entries-header">
+        <div class="entries-lbl">Logs de trabajo</div>
+        <div class="total-lbl">Tiempo total: <strong id="all-total" style="color:#dee4ea;">--:--:--</strong></div>
       </div>
 
-      <div class="divider"></div>
-
-      <div class="entries-lbl">Logs de trabajo</div>
       <ul class="entries" id="entries"></ul>
 
       <div class="footer">
         <button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button>
-        <button class="edit-btn" id="edit-btn" disabled>Modificar datos</button>
       </div>
       <span class="save-status" id="save-status"></span>
 
       <!-- Panel Confirmar Reinicio -->
       <div class="inline-panel" id="reset-panel">
-        <div class="inline-title" style="color: #f87168;">¿Eliminar tus registros?</div>
+        <div class="inline-title" style="color: #f87168;">¿Eliminar todos tus registros?</div>
         <div class="inline-actions">
           <button class="btn-sm btn-cancel" id="cancel-reset">Cancelar</button>
           <button class="btn-sm btn-confirm" id="confirm-reset">Sí, eliminar</button>
         </div>
       </div>
 
-      <!-- Panel Modificar Tiempo -->
+      <!-- Panel Modificar Tiempo Granular -->
       <div class="inline-panel" id="edit-panel">
-        <div class="inline-title">Nuevo tiempo (Ej: 01:30:00, 1h 30m o 90)</div>
-        <input type="text" class="inline-input" id="edit-input" placeholder="00:00:00">
+        <div class="inline-title">Modificar registro (Pon '0' para borrarlo)</div>
+        <input type="text" class="inline-input" id="edit-input" placeholder="Ej: 01:30:00, 1h 30m o 90">
         <div class="inline-actions">
           <button class="btn-sm btn-cancel" id="cancel-edit">Cancelar</button>
           <button class="btn-sm btn-save" id="save-edit">Guardar</button>
@@ -307,6 +331,7 @@
     var state      = null;
     var me         = null;
     var tick       = null;
+    var currentEditStart = null; // Variable para identificar el registro exacto a editar
 
     // 🔴 LÍMITE MÁXIMO DE SESIÓN (En horas) 🔴
     var MAX_SESSION_HOURS = 12; 
@@ -355,10 +380,12 @@
       el.className = 'save-status' + (isErr ? ' err' : '');
     }
 
-    // Convertir texto de tiempo a segundos
+    // Convertir texto de tiempo a segundos (con soporte para '0')
     function parseTimeToSeconds(str) {
       if (!str) return null;
       str = str.trim().toLowerCase();
+      
+      if (str === '0' || str === '00:00:00') return 0;
 
       var hMatch = str.match(/(\d+)\s*h/);
       var mMatch = str.match(/(\d+)\s*m/);
@@ -424,10 +451,8 @@
 
       var btn      = document.getElementById('toggle-btn');
       var resetBtn = document.getElementById('reset-btn');
-      var editBtn  = document.getElementById('edit-btn');
       btn.disabled      = false;
       resetBtn.disabled = false;
-      editBtn.disabled  = false;
 
       var mySess  = state.sessions && state.sessions[me.id];
       var running = !!mySess;
@@ -448,7 +473,7 @@
       }
 
       /* Entradas recientes (Logs) */
-      var entries = (state.entries||[]).slice().reverse().slice(0,7);
+      var entries = (state.entries||[]).slice().reverse().slice(0,10);
       var el = document.getElementById('entries');
       
       if (!entries.length) {
@@ -457,20 +482,42 @@
         el.innerHTML = entries.map(function(e){
           var isMe = e.memberId===me.id;
           var name = isMe ? 'Tú' : (e.memberName||'Desconocido');
+          
+          // Renderizar botón de editar solo si es tu propio registro
+          var editHtml = isMe ? '<button class="entry-edit-btn" data-start="'+e.start+'" data-dur="'+e.duration+'" title="Modificar este registro">✏️</button>' : '';
 
           return '<li class="entry">' +
             avatarHtml(e.memberId, e.memberName, e.avatarUrl) +
             '<div class="entry-info">' +
               '<div class="entry-name">'+esc(name)+'</div>' +
-              '<div class="entry-time">'+fmtTime(e.start)+' – '+fmtTime(e.end||Date.now())+' | tracker</div>' +
+              '<div class="entry-time">'+fmtTime(e.start)+' – tracker</div>' +
             '</div>' +
-            '<div class="entry-dur">'+fmt(e.duration)+'</div>' +
+            '<div class="entry-actions">' +
+              '<div class="entry-dur">'+fmt(e.duration)+'</div>' +
+              editHtml +
+            '</div>' +
           '</li>';
         }).join('');
       }
 
       t.sizeTo('#root').catch(function(){});
     }
+
+    /* ── Evento de Delegación para el Lápiz de Editar Fila ── */
+    document.getElementById('entries').addEventListener('click', function(e) {
+      var btn = e.target.closest('.entry-edit-btn');
+      if (!btn) return;
+      if (!state || !me) return;
+      
+      // Guardar la marca de tiempo original para identificar esta entrada exacta
+      currentEditStart = parseInt(btn.getAttribute('data-start'), 10);
+      var currentDur = parseInt(btn.getAttribute('data-dur'), 10);
+      
+      document.getElementById('reset-panel').style.display = 'none';
+      document.getElementById('edit-input').value = fmt(currentDur);
+      document.getElementById('edit-panel').style.display = 'block';
+      t.sizeTo('#root').catch(function(){});
+    });
 
     /* ── toggle details event ────────────────────────────── */
     document.getElementById('toggle-details-btn').addEventListener('click', function () {
@@ -604,7 +651,7 @@
       });
     });
 
-    /* ── PANELS INLINE (REINICIAR / MODIFICAR) ────────────────── */
+    /* ── PANELS INLINE CONTROLS ───────────────────────────────────── */
     var resetPanel = document.getElementById('reset-panel');
     var editPanel  = document.getElementById('edit-panel');
     var editInput  = document.getElementById('edit-input');
@@ -617,18 +664,16 @@
       t.sizeTo('#root').catch(function(){});
     });
 
-    // Botón "Modificar datos"
-    document.getElementById('edit-btn').addEventListener('click', function () {
-      if (!state || !me) return;
-      resetPanel.style.display = 'none';
-      editInput.value = fmt(myTotal()); // Cargar tiempo actual
-      editPanel.style.display = 'block';
-      t.sizeTo('#root').catch(function(){});
-    });
-
     // Cancelar Reinicio
     document.getElementById('cancel-reset').addEventListener('click', function () {
       resetPanel.style.display = 'none';
+      t.sizeTo('#root').catch(function(){});
+    });
+
+    // Cancelar Edición Granular
+    document.getElementById('cancel-edit').addEventListener('click', function () {
+      editPanel.style.display = 'none';
+      currentEditStart = null;
       t.sizeTo('#root').catch(function(){});
     });
 
@@ -665,19 +710,13 @@
       });
     });
 
-    // Cancelar Edición
-    document.getElementById('cancel-edit').addEventListener('click', function () {
-      editPanel.style.display = 'none';
-      t.sizeTo('#root').catch(function(){});
-    });
-
-    // Guardar Edición - AHORA CON PREVENCIÓN DE CARRERAS DE DATOS
+    // Guardar Edición Granular - CON PREVENCIÓN DE CARRERAS DE DATOS
     document.getElementById('save-edit').addEventListener('click', function () {
-      if (!state || !me) return;
+      if (!state || !me || currentEditStart === null) return;
 
       var newSeconds = parseTimeToSeconds(editInput.value);
       if (newSeconds === null || newSeconds < 0) {
-        showError("Formato no válido. Usa '01:30:00', '1h 30m' o minutos.");
+        showError("Formato no válido. Usa '01:30:00', '1h 30m' o pon '0' para borrar.");
         return;
       }
 
@@ -693,24 +732,22 @@
         var freshCardState = results[0] || {};
         var activeUsers = results[1] || {};
 
-        if (freshCardState.sessions && freshCardState.sessions[me.id]) {
-          delete freshCardState.sessions[me.id];
-        }
-        delete activeUsers[me.id];
+        if (!freshCardState.entries) freshCardState.entries = [];
 
-        // Filtramos tus registros sin pisar los de tus compañeros
-        freshCardState.entries = (freshCardState.entries || []).filter(function(e){ return e.memberId !== me.id; });
+        // Buscar el índice exacto del registro usando el Start Time original
+        var entryIndex = freshCardState.entries.findIndex(function(e) {
+          return e.memberId === me.id && e.start === currentEditStart;
+        });
 
-        if (newSeconds > 0) {
-          var now = Date.now();
-          freshCardState.entries.push({
-            memberId:   me.id,
-            memberName: me.fullName,
-            avatarUrl:  me.avatarUrl || '',
-            start:      now - (newSeconds * 1000),
-            end:        now,
-            duration:   newSeconds
-          });
+        if (entryIndex > -1) {
+          if (newSeconds === 0) {
+            // Eliminar la entrada si el usuario escribió 0
+            freshCardState.entries.splice(entryIndex, 1);
+          } else {
+            // Actualizar la duración del registro específico
+            freshCardState.entries[entryIndex].duration = newSeconds;
+            freshCardState.entries[entryIndex].end = freshCardState.entries[entryIndex].start + (newSeconds * 1000);
+          }
         }
 
         return Promise.all([
@@ -718,6 +755,7 @@
           t.set('board', 'shared', ACTIVE_KEY, activeUsers)
         ]).then(function(){
           state = freshCardState;
+          currentEditStart = null;
           render();
           setSaveStatus('');
         });
