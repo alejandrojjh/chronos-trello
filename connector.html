@@ -134,7 +134,7 @@
         dynamic: function () {
           return Promise.all([
             t.get('card', 'shared', KEY),
-            t.card('id', 'name', 'url').catch(function(){ return { id:'', name:'', url:'' }; })
+            t.card('id', 'name').catch(function(){ return { id:'', name:'' }; })
           ]).then(function(r){
             var d       = r[0];
             var card    = r[1];
@@ -147,29 +147,31 @@
 
             return {
               text:    getActiveUsersText(d),
-              color:   null, // Sin borde destacado ni color de fondo
+              color:   null,
               refresh: 10,
-              url:     card.url || (card.id ? 'https://trello.com/c/' + card.id : null) // 🟢 Abre la tarjeta al hacer clic
+              callback: function (t) {
+                // 🟢 Fuerza a Trello a abrir la tarjeta al hacer clic en el texto
+                return t.showCard(card.id);
+              }
             };
           });
         }
       }];
     },
 
-    /* ── card-detail-badges (insignia en la parte superior interna de la tarjeta) ── */
+    /* ── card-detail-badges (insignia en la parte superior interna) ── */
     'card-detail-badges': function (t) {
       return [{
         dynamic: function () {
           return t.get('card', 'shared', KEY).then(function(d){
             var running = anyRunning(d);
 
-            // Si nadie está trabajando, NO se muestra nada arriba
             if (!running) return [];
 
             return {
               title:   '',
               text:    getActiveUsersText(d),
-              color:   null, // Texto plano sin contenedores de color
+              color:   null,
               refresh: 10
             };
           });
