@@ -134,7 +134,7 @@
         dynamic: function () {
           return Promise.all([
             t.get('card', 'shared', KEY),
-            t.card('id', 'name').catch(function(){ return { id:'', name:'' }; })
+            t.card('id', 'name', 'url').catch(function(){ return { id:'', name:'', url:'' }; })
           ]).then(function(r){
             var d       = r[0];
             var card    = r[1];
@@ -148,7 +148,8 @@
             return {
               text:    getActiveUsersText(d),
               color:   null, // Sin borde destacado ni color de fondo
-              refresh: 10
+              refresh: 10,
+              url:     card.url || (card.id ? 'https://trello.com/c/' + card.id : null) // 🟢 Abre la tarjeta al hacer clic
             };
           });
         }
