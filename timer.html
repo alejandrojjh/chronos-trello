@@ -95,54 +95,6 @@
     .btn-stop  { background: #de350b; }
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-    /* ── Estimation & Progress Bar ────────────────────────── */
-    .estimate-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
-      color: #9fa6b2;
-      margin-bottom: 6px;
-    }
-    .estimate-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .avatars-preview {
-      display: flex;
-      align-items: center;
-    }
-    .avatars-preview .av {
-      margin-left: -6px;
-      border: 2px solid #1e1f22;
-    }
-    .avatars-preview .av:first-child {
-      margin-left: 0;
-    }
-    .progress-container {
-      margin-bottom: 16px;
-    }
-    .progress-bar-bg {
-      height: 4px;
-      background: #3a3d45;
-      border-radius: 2px;
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 4px;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: #de350b;
-      width: 100%;
-    }
-    .progress-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      color: #8c9199;
-    }
-
     .divider {
       height: 1px;
       background: #2c2e33;
@@ -206,12 +158,13 @@
 
     .empty-msg { font-style: italic; color: #8c9199; padding: 8px 0; }
 
-    /* ── Footer ───────────────────────────────────────────── */
+    /* ── Footer / Acciones en el mismo eje ────────────────── */
     .footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 12px;
+      margin-top: 14px;
+      padding-top: 4px;
     }
     .reset-btn {
       background: none;
@@ -222,7 +175,18 @@
       text-decoration: underline;
     }
     .reset-btn:hover { color: #f87168; }
-    .save-status { font-size: 11px; color: #8c9199; }
+    .edit-btn {
+      background: none;
+      border: none;
+      color: #579dff;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .edit-btn:hover { color: #85b8ff; }
+    .reset-btn:disabled, .edit-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .save-status { font-size: 11px; color: #8c9199; text-align: right; margin-top: 4px; display: block; }
     .err-banner { display:none; background:#3d1f1f; border:1px solid #7a2d2d; border-radius:4px; padding:6px 10px; font-size:11px; color:#f87168; margin-bottom:6px; }
   </style>
 </head>
@@ -243,24 +207,8 @@
     </div>
 
     <div id="details-section" style="display: none;">
-      <div class="estimate-row">
-        <div class="estimate-left">
-          <span>Estimate time <strong>29h 30m</strong></span>
-          <div class="avatars-preview" id="avatars-container-mock"></div>
-        </div>
-        <span class="wl-toggle-btn" style="background:transparent; padding:0;">+</span>
-      </div>
-      <div class="progress-container">
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill"></div>
-        </div>
-        <div class="progress-labels">
-          <span>635h 7m</span>
-          <span style="color:#f87168;">615h 37m over estimate</span>
-        </div>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; font-size: 11px; color: #8c9199; margin-bottom: 10px;">
+      <!-- Fila de Totales de tiempo -->
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #8c9199; margin-bottom: 10px;">
         <span>Mi total: <strong id="my-total" style="color:#dee4ea;">--:--:--</strong></span>
         <span>Total tarjeta: <strong id="all-total" style="color:#dee4ea;">--:--:--</strong></span>
       </div>
@@ -272,8 +220,9 @@
 
       <div class="footer">
         <button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button>
-        <span class="save-status" id="save-status"></span>
+        <button class="edit-btn" id="edit-btn" disabled>Modificar datos</button>
       </div>
+      <span class="save-status" id="save-status"></span>
     </div>
   </div>
 
@@ -328,6 +277,35 @@
       el.className = 'save-status' + (isErr ? ' err' : '');
     }
 
+    // Convertir texto de tiempo a segundos
+    function parseTimeToSeconds(str) {
+      if (!str) return null;
+      str = str.trim().toLowerCase();
+
+      var hMatch = str.match(/(\d+)\s*h/);
+      var mMatch = str.match(/(\d+)\s*m/);
+      var sMatch = str.match(/(\d+)\s*s/);
+
+      if (hMatch || mMatch || sMatch) {
+        var h = hMatch ? parseInt(hMatch[1], 10) : 0;
+        var m = mMatch ? parseInt(mMatch[1], 10) : 0;
+        var s = sMatch ? parseInt(sMatch[1], 10) : 0;
+        return (h * 3600) + (m * 60) + s;
+      }
+
+      var parts = str.split(':');
+      if (parts.length === 3) {
+        return (parseInt(parts[0], 10) * 3600) + (parseInt(parts[1], 10) * 60) + parseInt(parts[2], 10);
+      } else if (parts.length === 2) {
+        return (parseInt(parts[0], 10) * 3600) + (parseInt(parts[1], 10) * 60);
+      }
+
+      var num = parseFloat(str);
+      if (!isNaN(num)) return Math.floor(num * 60);
+
+      return null;
+    }
+
     /* ── time calculations ───────────────────────────────── */
     function myTotal() {
       if (!state || !me) return 0;
@@ -366,8 +344,10 @@
 
       var btn      = document.getElementById('toggle-btn');
       var resetBtn = document.getElementById('reset-btn');
+      var editBtn  = document.getElementById('edit-btn');
       btn.disabled      = false;
       resetBtn.disabled = false;
+      editBtn.disabled  = false;
 
       var mySess  = state.sessions && state.sessions[me.id];
       var running = !!mySess;
@@ -391,30 +371,23 @@
       /* Entradas recientes (Logs) */
       var entries = (state.entries||[]).slice().reverse().slice(0,7);
       var el = document.getElementById('entries');
-      var avContainerMock = document.getElementById('avatars-container-mock');
       
       if (!entries.length) {
         el.innerHTML = '<li class="empty-msg">Sin registros en esta tarjeta</li>';
-        avContainerMock.innerHTML = avatarHtml(me.id, me.fullName, me.avatarUrl);
       } else {
-        var uniqueAvatars = {};
         el.innerHTML = entries.map(function(e){
           var isMe = e.memberId===me.id;
           var name = isMe ? 'Tú' : (e.memberName||'Desconocido');
-          
-          uniqueAvatars[e.memberId] = avatarHtml(e.memberId, e.memberName, e.avatarUrl);
 
           return '<li class="entry">' +
             avatarHtml(e.memberId, e.memberName, e.avatarUrl) +
             '<div class="entry-info">' +
               '<div class="entry-name">'+esc(name)+'</div>' +
-              '<div class="entry-time">'+fmtTime(e.start)+' – '+fmtTime(e.end)+' | tracker</div>' +
+              '<div class="entry-time">'+fmtTime(e.start)+' – '+fmtTime(e.end||Date.now())+' | tracker</div>' +
             '</div>' +
             '<div class="entry-dur">'+fmt(e.duration)+'</div>' +
           '</li>';
         }).join('');
-
-        avContainerMock.innerHTML = Object.keys(uniqueAvatars).map(function(k){ return uniqueAvatars[k]; }).join('');
       }
 
       t.sizeTo('#root').catch(function(){});
@@ -440,7 +413,7 @@
     document.getElementById('toggle-btn').addEventListener('click', function () {
       if (!state || !me) return;
       var btn = this;
-      btn.disabled = true; // Previene doble clic o congelamiento de la interfaz
+      btn.disabled = true;
       showError('');
       setSaveStatus('Guardando…');
 
@@ -459,7 +432,7 @@
         var isRunningOnThisCard = !!freshCardState.sessions[me.id];
 
         if (isRunningOnThisCard) {
-          /* ── OPCIÓN A: DETENER EL TIMER ACTUAL ── */
+          /* ── DETENER EL TIMER ACTUAL ── */
           var sess = freshCardState.sessions[me.id];
           var now  = Date.now();
           var dur  = Math.floor((now - sess.startTime) / 1000);
@@ -486,8 +459,7 @@
           });
 
         } else {
-          /* ── OPCIÓN B: INICIAR TIMER EN ESTA TARJETA ── */
-          // 1. Revisar si el usuario tenía un timer corriendo en OTRA tarjeta y pausarlo automáticamente
+          /* ── INICIAR TIMER EN ESTA TARJETA ── */
           var prevSession = activeUsers[me.id];
           var closePrevCardPromise = Promise.resolve();
 
@@ -561,6 +533,64 @@
           t.set('card', 'shared', KEY, state),
           t.set('board', 'shared', ACTIVE_KEY, activeUsers)
         ]);
+      });
+    });
+
+    /* ── edit total button (MODIFICAR DATOS) ────────────────── */
+    document.getElementById('edit-btn').addEventListener('click', function () {
+      if (!state || !me) return;
+
+      var currentSec = myTotal();
+      var currentFormatted = fmt(currentSec);
+
+      var input = prompt(
+        "Ingresa el nuevo total de tiempo para tus registros en esta tarjeta:\n(Ejemplos: '02:30:00', '1h 30m', o '90' para 90 minutos)",
+        currentFormatted
+      );
+
+      if (input === null) return;
+
+      var newSeconds = parseTimeToSeconds(input);
+      if (newSeconds === null || newSeconds < 0) {
+        alert("Formato no válido. Ingresa el tiempo como 'HH:MM:SS', '1h 30m' o minutos.");
+        return;
+      }
+
+      setSaveStatus('Guardando…');
+
+      // Si había sesión activa para el usuario, se detiene
+      if (state.sessions && state.sessions[me.id]) {
+        delete state.sessions[me.id];
+      }
+
+      // Reemplaza las entradas del usuario por una entrada consolidada con el nuevo total
+      state.entries = (state.entries || []).filter(function(e){ return e.memberId !== me.id; });
+
+      if (newSeconds > 0) {
+        var now = Date.now();
+        state.entries.push({
+          memberId:   me.id,
+          memberName: me.fullName,
+          avatarUrl:  me.avatarUrl || '',
+          start:      now - (newSeconds * 1000),
+          end:        now,
+          duration:   newSeconds
+        });
+      }
+
+      t.get('board', 'shared', ACTIVE_KEY).then(function(activeUsers){
+        activeUsers = activeUsers || {};
+        delete activeUsers[me.id];
+        return Promise.all([
+          t.set('card', 'shared', KEY, state),
+          t.set('board', 'shared', ACTIVE_KEY, activeUsers)
+        ]);
+      }).then(function(){
+        render();
+        setSaveStatus('');
+      }).catch(function(err){
+        setSaveStatus('Error', true);
+        showError('Error al modificar tiempo: ' + String(err));
       });
     });
 
