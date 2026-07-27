@@ -184,10 +184,11 @@
       <div class="filter-bar">
         <div class="filter-group">
           <label class="form-label">Rango de Tiempo</label>
-          <select id="team-time-filter" class="form-select" onchange="forceRender()">
+          <select id="team-time-filter" class="form-select" onchange="toggleTeamDates(); forceRender()">
             <option value="all">Todo el historial</option>
             <option value="month">Este mes</option>
             <option value="week">Esta semana (Lun-Dom)</option>
+            <option value="custom">Personalizado (Elegir fechas)</option>
           </select>
         </div>
         <div class="filter-group">
@@ -197,6 +198,18 @@
           </select>
         </div>
       </div>
+      <!-- Nuevo Contenedor para Fechas Custom del Equipo -->
+      <div class="filter-bar" id="team-custom-dates" style="display: none; padding-top: 0; border: none; background: transparent; margin-top: -16px;">
+        <div class="filter-group">
+          <label class="form-label">Fecha de Inicio</label>
+          <input type="date" id="team-start" class="form-input" onchange="forceRender()">
+        </div>
+        <div class="filter-group">
+          <label class="form-label">Fecha de Fin</label>
+          <input type="date" id="team-end" class="form-input" onchange="forceRender()">
+        </div>
+      </div>
+
       <div id="team-container">
         <div class="empty-state"><div class="spinner"></div>Agrupando trabajo...</div>
       </div>
@@ -265,19 +278,17 @@
   var globalChartInstance = null;
   var customChartInstance = null;
   
-  // Estados de Gráficos Individuales (Mapas: id -> boolean/chart)
   var userChartsState = {}; 
   var userChartsInstances = {}; 
   var cardChartsState = {};
   var cardChartsInstances = {};
 
-  // Hashes para saber si debemos re-renderizar el DOM o solo actualizar números
   var lastCardsHash = '';
   var lastTeamHash = '';
   var lastPersonsDropdownHash = '';
   
-  var openAccordions = new Set(); // Guarda los acordeones abiertos
-  var knownTeamMembers = {}; // Para llenar el filtro dinámico
+  var openAccordions = new Set(); 
+  var knownTeamMembers = {}; 
   
   var MAX_SECONDS = 9 * 3600;
   const DYNAMIC_PALETTE = ['#f87168', '#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#00c7e6', '#ff8f73', '#ffc400', '#8777d9'];
@@ -298,6 +309,7 @@
 
   function toggleCustomDates() { document.getElementById('custom-dates').style.display = (document.getElementById('export-range').value === 'custom') ? 'flex' : 'none'; }
   function toggleCustomDates2() { document.getElementById('custom-dates2').style.display = (document.getElementById('custom-range').value === 'custom') ? 'flex' : 'none'; }
+  function toggleTeamDates() { document.getElementById('team-custom-dates').style.display = (document.getElementById('team-time-filter').value === 'custom') ? 'flex' : 'none'; }
 
   window.toggleAcc = function(id) {
     if (openAccordions.has(id)) openAccordions.delete(id); else openAccordions.add(id);
@@ -312,12 +324,11 @@
   };
 
   window.forceRender = function() {
-    lastCardsHash = ''; lastTeamHash = ''; // Vaciamos los hashes para forzar re-render de HTML
+    lastCardsHash = ''; lastTeamHash = ''; 
     processAndRender();
   };
 
   /* ── VIRTUAL DOM / VAULT ── */
-  // Movemos los canvas a la bóveda SOLO cuando vamos a reescribir el innerHTML
   function safeMoveCanvases(type, instancesMap) {
     let vault = document.getElementById('canvas-vault');
     Object.keys(instancesMap).forEach(id => {
@@ -333,14 +344,20 @@
     });
   }
 
-  /* ── EXTRACCIÓN DE DATOS ── */
+  /* ── EXTRACCIÓN Y PROCESAMIENTO DE DATOS ── */
   function fetchLiveBoardData() {
     return t.cards('id', 'name', 'customFieldItems').then(cards => Promise.all(cards.map(c => t.get(c.id, 'shared', KEY).then(state => ({ card: c, state: state || {} })).catch(() => ({ card: c, state: {} })))));
   }
 
   function processAndRender() {
-    if (!rawCardStore || !rawCardStore.length) return;
     const now = new Date();
+    document.getElementById('last-update').textContent = 'Actualizado: ' + now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    if (!rawCardStore || !rawCardStore.length) {
+      document.getElementById('cards-container').innerHTML = `<div class="empty-state">No hay tarjetas registradas en el tablero.</div>`;
+      document.getElementById('team-container').innerHTML = `<div class="empty-state">No hay historial de tiempo registrado.</div>`;
+      return;
+    }
     
     // --- 1. PROCESAR GENERAL ---
     let totalSecs = 0, totalCards = 0, activeTimers = 0, globalTeamMap = {};
@@ -363,7 +380,6 @@
       if (cardTotal > 0 || isRunning) { totalCards++; totalSecs += cardTotal; }
     });
     
-    // Actualizar Textos General (Directo, sin parpadeo)
     document.getElementById('s-total').textContent = fmtH(totalSecs);
     document.getElementById('s-cards').textContent = totalCards;
     document.getElementById('s-active').textContent = activeTimers;
@@ -371,7 +387,7 @@
 
     // --- 2. PROCESAR PESTAÑA TARJETAS ---
     let searchVal = document.getElementById('card-search').value.toLowerCase().trim();
-    let limitDateCards = searchVal ? null : new Date(now.getTime() - (7 * 24 * 3600 * 1000)); // Si no hay búsqueda, últimos 7 días
+    let limitDateCards = searchVal ? null : new Date(now.getTime() - (7 * 24 * 3600 * 1000)); 
     
     let displayCards = [];
     rawCardStore.forEach(item => {
@@ -398,17 +414,34 @@
     // --- 3. PROCESAR PESTAÑA EQUIPO ---
     let timeFilter = document.getElementById('team-time-filter').value;
     let personFilter = document.getElementById('team-person-filter').value;
-    let limitDateTeam = null;
-    if (timeFilter === 'month') limitDateTeam = new Date(now.getFullYear(), now.getMonth(), 1);
-    if (timeFilter === 'week') { let day = now.getDay() || 7; limitDateTeam = new Date(now); limitDateTeam.setDate(now.getDate() - day + 1); limitDateTeam.setHours(0,0,0,0); }
+    let teamStartD = null, teamEndD = null;
+
+    if (timeFilter === 'month') {
+      teamStartD = new Date(now.getFullYear(), now.getMonth(), 1);
+      teamEndD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    } else if (timeFilter === 'week') {
+      let day = now.getDay() || 7; 
+      teamStartD = new Date(now); teamStartD.setDate(now.getDate() - day + 1); teamStartD.setHours(0,0,0,0);
+      teamEndD = new Date(teamStartD); teamEndD.setDate(teamStartD.getDate() + 6); teamEndD.setHours(23,59,59,999);
+    } else if (timeFilter === 'custom') {
+      let sVal = document.getElementById('team-start').value;
+      let eVal = document.getElementById('team-end').value;
+      if (sVal && eVal) {
+        teamStartD = new Date(sVal + 'T00:00:00');
+        teamEndD = new Date(eVal + 'T23:59:59');
+      }
+    }
 
     let displayTeam = {};
     rawCardStore.forEach(item => {
       let entries = item.state.entries || [], sessions = item.state.sessions || {};
       
       const addTimeTeam = (dur, pid, pName, pAv, dateStr) => {
-        if (limitDateTeam && new Date(dateStr) < limitDateTeam) return;
-        knownTeamMembers[pid] = pName; // Para el dropdown
+        let eDate = new Date(dateStr);
+        if (teamStartD && eDate < teamStartD) return;
+        if (teamEndD && eDate > teamEndD) return;
+
+        knownTeamMembers[pid] = pName; 
         if (personFilter !== 'all' && personFilter !== pid) return;
         
         if (!displayTeam[pid]) displayTeam[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
@@ -418,14 +451,14 @@
       
       entries.forEach(e => addTimeTeam(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido', e.avatarUrl || '', e.start || now));
       Object.keys(sessions).forEach(pid => {
-        let el = Math.min(Math.floor((now.getTime() - sessions[pid].startTime) / 1000), MAX_SECONDS);
-        if (el > 0) addTimeTeam(el, pid, sessions[pid].memberName || 'Desconocido', sessions[pid].avatarUrl || '', sessions[pid].startTime || now);
+        let sessTime = sessions[pid].startTime || now;
+        let el = Math.min(Math.floor((now.getTime() - sessTime) / 1000), MAX_SECONDS);
+        if (el > 0) addTimeTeam(el, pid, sessions[pid].memberName || 'Desconocido', sessions[pid].avatarUrl || '', sessTime);
       });
     });
+    
     updatePersonsDropdown();
     renderTabTeam(displayTeam);
-
-    document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   }
 
   /* ── RENDERIZADORES DE PESTAÑAS Y DOM ── */
@@ -444,13 +477,13 @@
 
   function renderTabCards(cards) {
     const container = document.getElementById('cards-container');
-    if (!cards.length) { container.innerHTML = `<div class="empty-state">No hay tarjetas que coincidan con el filtro.</div>`; lastCardsHash = ''; return; }
+    if (!cards.length) { container.innerHTML = `<div class="empty-state">No hay tarjetas que coincidan con los filtros y fechas actuales.</div>`; lastCardsHash = ''; return; }
     
     cards.sort((a,b) => b.total - a.total);
     let currentHash = cards.map(c => c.id + (c.running?'1':'0') + c.members.length + (cardChartsState[c.id]?'1':'0') + (openAccordions.has(c.id)?'1':'0')).join('||');
     
     if (currentHash !== lastCardsHash) {
-      safeMoveCanvases('card', cardChartsInstances); // Proteger gráficos antes de reescribir HTML
+      safeMoveCanvases('card', cardChartsInstances); 
       
       let html = cards.map(c => {
         let isOpen = openAccordions.has(c.id);
@@ -482,17 +515,15 @@
       }).join('');
       
       container.innerHTML = html;
-      safeRestoreCanvases('card', cardChartsInstances); // Devolver gráficos
+      safeRestoreCanvases('card', cardChartsInstances); 
       lastCardsHash = currentHash;
     } else {
-      // Actualización directa sin parpadeo
       cards.forEach(c => {
         let tEl = document.getElementById(`c-tot-${c.id}`); if(tEl) tEl.textContent = fmt(c.total);
         c.members.forEach(m => { let mEl = document.getElementById(`c-m-${c.id}-${m.name.replace(/[^a-zA-Z0-9]/g,'')}`); if(mEl) mEl.textContent = fmt(m.total); });
       });
     }
 
-    // Actualizar Chart.js Data
     Object.keys(cardChartsState).forEach(cId => {
       let card = cards.find(x => x.id === cId);
       if (cardChartsState[cId] && card) {
@@ -507,19 +538,18 @@
         }
       }
     });
-    // Limpiar charts sin uso
     Object.keys(cardChartsInstances).forEach(cId => { if (!cardChartsState[cId]) { cardChartsInstances[cId].destroy(); delete cardChartsInstances[cId]; } });
   }
 
   function renderTabTeam(teamMap) {
     const pids = Object.keys(teamMap).sort((a,b) => teamMap[b].total - teamMap[a].total);
     const container = document.getElementById('team-container');
-    if (!pids.length) { container.innerHTML = `<div class="empty-state">No hay historial para los filtros actuales.</div>`; lastTeamHash = ''; return; }
+    if (!pids.length) { container.innerHTML = `<div class="empty-state">No hay historial para los filtros y fechas seleccionadas.</div>`; lastTeamHash = ''; return; }
     
     let currentHash = pids.map(pid => pid + Object.keys(teamMap[pid].cards).length + (userChartsState[pid]?'1':'0')).join('||');
     
     if (currentHash !== lastTeamHash) {
-      safeMoveCanvases('user', userChartsInstances); // Proteger
+      safeMoveCanvases('user', userChartsInstances); 
       
       let html = pids.map(pid => {
         let p = teamMap[pid];
@@ -545,7 +575,7 @@
       }).join('');
       
       container.innerHTML = html;
-      safeRestoreCanvases('user', userChartsInstances); // Restaurar
+      safeRestoreCanvases('user', userChartsInstances); 
       lastTeamHash = currentHash;
     } else {
       pids.forEach(pid => {
@@ -554,7 +584,6 @@
       });
     }
 
-    // Actualizar Chart.js Data
     Object.keys(userChartsState).forEach(pid => {
       if (userChartsState[pid] && teamMap[pid]) {
         let ctx = document.getElementById('canvas-user-' + pid);
@@ -589,7 +618,7 @@
     }
   }
 
-  /* ── LÓGICA DE CUSTOM FIELD Y EXPORTACIÓN (Intacta) ── */
+  /* ── LÓGICA DE CUSTOM FIELD Y EXPORTACIÓN ── */
   function getFilteredCustomData() {
     const cfId = document.getElementById('cf-select').value, valId = document.getElementById('cf-value-select').value, rangeType = document.getElementById('custom-range').value;
     if (!cfId || !valId) { alert("Selecciona Campo y Filtro."); return null; } if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos en el tablero."); return null; }
@@ -634,13 +663,25 @@
     let aggregatedList = Object.values(aggregatedData); if (!aggregatedList.length) { alert("No hay registros en esos filtros."); return; } aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration); let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (HH:MM:SS),Horas\n"; let rows = aggregatedList.map(item => `"${item.member.replace(/"/g, '""')}","${item.card.replace(/"/g, '""')}",${fmt(item.totalDuration)},${(item.totalDuration / 3600).toFixed(2)}`); csvContent += rows.join("\n"); let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", filename); document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }
 
+  // Inicialización Inmediata para evitar el "Sincronizando..."
+  function initApp() {
+    fetchLiveBoardData().then(store => { 
+        rawCardStore = store; 
+        processAndRender(); 
+    }).catch(err => {
+        console.error("Error cargando tarjetas", err);
+        document.getElementById('last-update').textContent = 'Error de conexión. Reintentando...';
+    });
+  }
+
   t.board('name').then(board => { document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; }).catch(() => {});
   fetchCustomFieldsList();
   
-  // Refresco Inicial y Loop
-  setInterval(() => {
-    fetchLiveBoardData().then(store => { rawCardStore = store; processAndRender(); });
-  }, 1000);
+  // Llamar directamente al abrir
+  initApp();
+  
+  // Y luego arrancar el ciclo infinito cada 1 segundo
+  setInterval(initApp, 1000);
   
 </script>
 </body>
