@@ -7,6 +7,8 @@
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <!-- LIBRERÍA CHART.JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- LIBRERÍA MORPHDOM (EVITA EL PARPADEO Y RECONSTRUCCIÓN DEL DOM) -->
+  <script src="https://cdn.jsdelivr.net/npm/morphdom@2.7.4/dist/morphdom-umd.min.js"></script>
   
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -506,6 +508,26 @@
   
   const DYNAMIC_PALETTE = ['#f87168', '#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#00c7e6', '#ff8f73', '#ffc400', '#8777d9'];
 
+  /* ── FUNCIÓN DE RENDERIZADO CON MORPHDOM (CERO PARPADEO) ──── */
+  function renderDOM(containerId, newHtml) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const tempDiv = container.cloneNode(false);
+    tempDiv.innerHTML = newHtml;
+
+    morphdom(container, tempDiv, {
+      childrenOnly: true,
+      onBeforeElUpdated: function(fromEl, toEl) {
+        // Evitamos que Morphdom modifique directamente los elementos Canvas donde hay gráficas activas
+        if (fromEl.tagName === 'CANVAS') {
+          return false;
+        }
+        return true;
+      }
+    });
+  }
+
   /* ── UTILIDADES ──────────────────────────────────────────── */
   function fmt(s) {
     s = Math.max(0, Math.floor(s || 0));
@@ -556,7 +578,7 @@
     return { startD, endD };
   }
 
-  /* ── ACORDEONES CORREGIDOS ───────────────────────────────── */
+  /* ── ACORDEONES ─────────────────────────────────────────── */
   window.toggleAccordion = function(headerEl, id) {
     const blockEl = headerEl.closest('.data-block');
     const bodyEl = blockEl ? blockEl.querySelector('.db-body') : null;
@@ -671,7 +693,8 @@
     Object.keys(membersMap).sort((a,b) => membersMap[a].localeCompare(membersMap[b])).forEach(pid => {
       html += `<option value="${pid}" ${currentSelected === pid ? 'selected' : ''}>${esc(membersMap[pid])}</option>`;
     });
-    memberSelect.innerHTML = html;
+
+    renderDOM('team-member-select', html);
   }
 
   /* ── PROCESAMIENTO Y RENDERIZADO UI ──────────────────────── */
@@ -836,13 +859,11 @@
 
   /* ── RENDERIZADO TAB TARJETAS ────────────────────────────── */
   function renderCardsTab() {
-    const container = document.getElementById('cards-container');
     const searchQuery = (document.getElementById('card-search-input').value || '').toLowerCase().trim();
-
     let filteredCards = processedCardsList.filter(c => c.name.toLowerCase().includes(searchQuery));
 
     if (!filteredCards.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontraron tarjetas que coincidan.</div>`;
+      renderDOM('cards-container', `<div class="empty-state"><div class="empty-icon">📭</div>No se encontraron tarjetas que coincidan.</div>`);
       return;
     }
     filteredCards.sort((a,b) => b.total - a.total);
@@ -877,7 +898,8 @@
         </div>
       `;
     }).join('');
-    container.innerHTML = html;
+
+    renderDOM('cards-container', html);
   }
 
   function toggleCardChart(cardId) {
@@ -919,10 +941,9 @@
   /* ── RENDERIZADO TAB EQUIPO ─────────────────────────────── */
   function renderTeamTab(teamDataMap, selectedMemberId) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
-    const container = document.getElementById('team-container');
     
     if (!pids.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado para estos filtros.</div>`;
+      renderDOM('team-container', `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado para estos filtros.</div>`);
       return;
     }
 
@@ -950,7 +971,8 @@
           <div class="db-body open"><div style="padding: 10px 20px;">${cardsHtml}</div></div>
         </div>`;
     }).join('');
-    container.innerHTML = html;
+
+    renderDOM('team-container', html);
   }
 
   function toggleMemberChart(pid) {
@@ -1093,7 +1115,7 @@
     } else if (actionType === 'view') {
       const container = document.getElementById('custom-results-container');
       if (result.displayData.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo para esta combinación.</div>`;
+        renderDOM('custom-results-container', `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo para esta combinación.</div>`);
         return;
       }
 
@@ -1147,7 +1169,7 @@
       
       if (customChartInstance) { customChartInstance.destroy(); customChartInstance = null; }
       
-      container.innerHTML = headerHtml + html;
+      renderDOM('custom-results-container', headerHtml + html);
 
       const ctxCustom = document.getElementById('customChartCanvas');
       const cLabels = [];
@@ -1226,20 +1248,23 @@
     document.body.removeChild(link);
   }
 
-  /* ── INICIALIZACIÓN Y CICLO DE VIDA (CADA 4 MINUTOS) ───────── */
+  /* ── INICIALIZACIÓN Y CICLO DE VIDA DE PRODUCCIÓN ──────────── */
   t.board('name').then(board => { 
     document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; 
   }).catch(() => {});
 
   fetchCustomFieldsList();
   
-  // Carga inicial al abrir la pantalla
+  // 1. Carga inicial
   loadAndRenderData();
 
-  // Petición y refresco completo cada 4 MINUTOS (240000ms) - Sin parpadeos intermedios
-  setInterval(loadAndRenderData, 4 * 60 * 1000);
+  // 2. Refresco del contador local (cada 1s) - Gracias a Morphdom, AHORA NO PARPADEA
+  setInterval(processAndRenderUI, 1000);
 
-  // Sincronización cuando se cambia o regresa a la pestaña
+  // 3. Sincronización en segundo plano con Trello (cada 30s para datos frescos)
+  setInterval(loadAndRenderData, 30000);
+
+  // 4. Sincronización proactiva cuando la pestaña entra en foco
   window.addEventListener('focus', loadAndRenderData);
   document.addEventListener('visibilitychange', function() { 
     if (!document.hidden) loadAndRenderData(); 
