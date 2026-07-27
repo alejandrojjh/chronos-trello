@@ -7,8 +7,6 @@
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <!-- LIBRERÍA CHART.JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- LIBRERÍA MORPHDOM (EVITA EL PARPADEO Y RECONSTRUCCIÓN DEL DOM) -->
-  <script src="https://cdn.jsdelivr.net/npm/morphdom@2.7.4/dist/morphdom-umd.min.js"></script>
   
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -103,9 +101,9 @@
       padding: 32px 40px;
       position: relative;
     }
-    .tab-pane { display: none; animation: fadeIn 0.3s ease; }
+    .tab-pane { display: none; animation: fadeIn 0.2s ease; }
     .tab-pane.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 
     .page-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 24px; }
 
@@ -145,7 +143,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 20px;
-      width: 380px;
+      width: 400px;
       min-height: 250px;
       display: none; 
       flex-direction: column;
@@ -177,6 +175,15 @@
     
     .db-body { display: none; border-top: 1px solid var(--border); background: var(--bg-app); }
     .db-body.open { display: block; }
+
+    /* Caja para gráficos dentro del acordeón */
+    .accordion-chart-wrap {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-sidebar);
+      height: 190px;
+      position: relative;
+    }
     
     /* ── Team & Member UI ─────────────────────────────────── */
     .person-header {
@@ -184,8 +191,11 @@
       align-items: center;
       padding: 16px 20px;
       background: var(--surf);
-      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
     }
+    .person-header:hover { background: var(--surf-hover); }
     .av {
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
@@ -226,34 +236,6 @@
     .form-select:disabled { opacity: 0.5; cursor: not-allowed; }
     .date-row { display: flex; gap: 16px; width: 100%; }
 
-    /* Botón Ver Gráfico */
-    .btn-sm-chart {
-      background: rgba(87, 157, 255, 0.12);
-      color: var(--accent);
-      border: 1px solid rgba(87, 157, 255, 0.3);
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-left: 12px;
-      transition: all 0.2s;
-    }
-    .btn-sm-chart:hover {
-      background: var(--accent);
-      color: #161a1d;
-    }
-
-    /* Caja contenedora para gráficos desplegables */
-    .inline-chart-box {
-      display: none;
-      padding: 16px;
-      background: var(--bg-app);
-      border-bottom: 1px solid var(--border);
-      height: 180px;
-      position: relative;
-    }
-
     .btn-export {
       background: var(--accent); color: #091e42; border: none; padding: 12px 24px;
       font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
@@ -284,7 +266,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     
-    /* Scrollbar Estilizado */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg-app); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -334,7 +315,7 @@
 
         <!-- Bloque Derecho: Chart Global -->
         <div class="chart-box" id="chart-container">
-          <div class="chart-title">Distribución Global por Equipo</div>
+          <div class="chart-title">Distribución Global (%)</div>
           <div style="flex: 1; position: relative;">
             <canvas id="teamChart"></canvas>
           </div>
@@ -399,7 +380,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: DESGLOSE Y EXPORTACIÓN CUSTOM -->
+    <!-- TAB 4: DESGLOSE CUSTOM -->
     <div id="tab-custom-view" class="tab-pane">
       <h1 class="page-title">Desglose Custom (Filtros Avanzados)</h1>
       <div class="export-card" style="margin-bottom: 32px;">
@@ -508,26 +489,6 @@
   
   const DYNAMIC_PALETTE = ['#f87168', '#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#00c7e6', '#ff8f73', '#ffc400', '#8777d9'];
 
-  /* ── FUNCIÓN DE RENDERIZADO CON MORPHDOM (CERO PARPADEO) ──── */
-  function renderDOM(containerId, newHtml) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    const tempDiv = container.cloneNode(false);
-    tempDiv.innerHTML = newHtml;
-
-    morphdom(container, tempDiv, {
-      childrenOnly: true,
-      onBeforeElUpdated: function(fromEl, toEl) {
-        // Evitamos que Morphdom modifique directamente los elementos Canvas donde hay gráficas activas
-        if (fromEl.tagName === 'CANVAS') {
-          return false;
-        }
-        return true;
-      }
-    });
-  }
-
   /* ── UTILIDADES ──────────────────────────────────────────── */
   function fmt(s) {
     s = Math.max(0, Math.floor(s || 0));
@@ -578,8 +539,8 @@
     return { startD, endD };
   }
 
-  /* ── ACORDEONES ─────────────────────────────────────────── */
-  window.toggleAccordion = function(headerEl, id) {
+  /* ── MANEJO UNIFICADO DE ACORDEONES Y DIBUJO DE GRÁFICOS ─── */
+  window.toggleAccordion = function(headerEl, id, type) {
     const blockEl = headerEl.closest('.data-block');
     const bodyEl = blockEl ? blockEl.querySelector('.db-body') : null;
     const caretEl = headerEl.querySelector('.db-caret');
@@ -591,6 +552,11 @@
 
     if (bodyEl.classList.contains('open')) {
       openAccordions.add(id);
+      if (type === 'card') {
+        setTimeout(() => renderCardChart(id), 30);
+      } else if (type === 'member') {
+        setTimeout(() => renderMemberChart(id), 30);
+      }
     } else {
       openAccordions.delete(id);
     }
@@ -693,8 +659,7 @@
     Object.keys(membersMap).sort((a,b) => membersMap[a].localeCompare(membersMap[b])).forEach(pid => {
       html += `<option value="${pid}" ${currentSelected === pid ? 'selected' : ''}>${esc(membersMap[pid])}</option>`;
     });
-
-    renderDOM('team-member-select', html);
+    memberSelect.innerHTML = html;
   }
 
   /* ── PROCESAMIENTO Y RENDERIZADO UI ──────────────────────── */
@@ -817,7 +782,7 @@
     document.getElementById('last-update').textContent = 'Sincronizado: ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 
-  /* ── RENDERIZADO TAB GLOBAL ─────────────────────────────── */
+  /* ── RENDERIZADO TAB GLOBAL (%) ─────────────────────────── */
   function renderChart(teamDataMap) {
     const pids = Object.keys(teamDataMap);
     const container = document.getElementById('chart-container');
@@ -826,14 +791,17 @@
     if (pids.length === 0) { container.style.display = 'none'; return; }
     container.style.display = 'flex'; 
     
+    let totalSecs = pids.reduce((acc, pid) => acc + teamDataMap[pid].total, 0);
+
     const labels = [];
     const dataValues = [];
     const backgroundColors = [];
 
     pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach((pid, idx) => {
       let member = teamDataMap[pid];
-      labels.push(member.name);
-      dataValues.push((member.total / 3600).toFixed(2)); 
+      let pct = totalSecs > 0 ? ((member.total / totalSecs) * 100).toFixed(1) : 0;
+      labels.push(`${member.name} (${pct}%)`);
+      dataValues.push(pct); 
       backgroundColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
     });
 
@@ -849,8 +817,8 @@
         options: {
           responsive: true, maintainAspectRatio: false, cutout: '65%', 
           plugins: {
-            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 12 }, padding: 15 } },
-            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Horas` } }
+            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 }, padding: 12 } },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}% del total` } }
           }
         }
       });
@@ -859,11 +827,13 @@
 
   /* ── RENDERIZADO TAB TARJETAS ────────────────────────────── */
   function renderCardsTab() {
+    const container = document.getElementById('cards-container');
     const searchQuery = (document.getElementById('card-search-input').value || '').toLowerCase().trim();
+
     let filteredCards = processedCardsList.filter(c => c.name.toLowerCase().includes(searchQuery));
 
     if (!filteredCards.length) {
-      renderDOM('cards-container', `<div class="empty-state"><div class="empty-icon">📭</div>No se encontraron tarjetas que coincidan.</div>`);
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontraron tarjetas que coincidan.</div>`;
       return;
     }
     filteredCards.sort((a,b) => b.total - a.total);
@@ -882,147 +852,156 @@
 
       return `
         <div class="data-block">
-          <div class="db-header" onclick="toggleAccordion(this, '${card.id}')">
+          <div class="db-header" onclick="toggleAccordion(this, '${card.id}', 'card')">
             <span class="db-caret ${isOpen ? 'open' : ''}">▶</span>
             <span class="db-title">${esc(card.name)}</span>
             ${card.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px;">● Activo</span>' : ''}
-            <button class="btn-sm-chart" onclick="event.stopPropagation(); toggleCardChart('${card.id}')">📊 Ver gráfico</button>
             <span class="db-total">${fmt(card.total)}</span>
           </div>
           
-          <div class="inline-chart-box" id="card-chart-wrap-${card.id}">
-            <canvas id="card-canvas-${card.id}"></canvas>
+          <div class="db-body ${isOpen ? 'open' : ''}">
+            <div class="accordion-chart-wrap">
+              <canvas id="card-canvas-${card.id}"></canvas>
+            </div>
+            <div style="padding: 10px 0;">${membersHtml}</div>
           </div>
-
-          <div class="db-body ${isOpen ? 'open' : ''}"><div style="padding: 10px 0;">${membersHtml}</div></div>
         </div>
       `;
     }).join('');
+    container.innerHTML = html;
 
-    renderDOM('cards-container', html);
+    // Renderizamos gráficos de los acordeones que quedaron abiertos
+    openAccordions.forEach(id => {
+      setTimeout(() => renderCardChart(id), 30);
+    });
   }
 
-  function toggleCardChart(cardId) {
-    const chartWrap = document.getElementById(`card-chart-wrap-${cardId}`);
-    if (!chartWrap) return;
+  function renderCardChart(cardId) {
+    const cardData = processedCardsList.find(c => c.id === cardId);
+    if (!cardData || !cardData.total) return;
 
-    if (chartWrap.style.display === 'block') {
-      chartWrap.style.display = 'none';
-      if (cardChartInstances[cardId]) {
-        cardChartInstances[cardId].destroy();
-        delete cardChartInstances[cardId];
-      }
-    } else {
-      chartWrap.style.display = 'block';
-      const cardData = processedCardsList.find(c => c.id === cardId);
-      if (!cardData) return;
+    const ctx = document.getElementById(`card-canvas-${cardId}`);
+    if (!ctx) return;
 
-      const ctx = document.getElementById(`card-canvas-${cardId}`);
-      const labels = cardData.members.map(m => m.name);
-      const dataValues = cardData.members.map(m => (m.total / 3600).toFixed(2));
-      const colors = cardData.members.map((_, idx) => DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+    const labels = [];
+    const dataValues = [];
+    const colors = [];
 
-      if (cardChartInstances[cardId]) cardChartInstances[cardId].destroy();
+    cardData.members.sort((a,b) => b.total - a.total).forEach((m, idx) => {
+      let pct = ((m.total / cardData.total) * 100).toFixed(1);
+      labels.push(`${m.name} (${pct}%)`);
+      dataValues.push(pct);
+      colors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+    });
 
-      cardChartInstances[cardId] = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0 }] },
-        options: {
-          responsive: true, maintainAspectRatio: false, cutout: '60%',
-          plugins: {
-            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
-            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Horas` } }
-          }
+    if (cardChartInstances[cardId]) cardChartInstances[cardId].destroy();
+
+    cardChartInstances[cardId] = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
+          tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } }
         }
-      });
-    }
+      }
+    });
   }
 
   /* ── RENDERIZADO TAB EQUIPO ─────────────────────────────── */
   function renderTeamTab(teamDataMap, selectedMemberId) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
+    const container = document.getElementById('team-container');
     
     if (!pids.length) {
-      renderDOM('team-container', `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado para estos filtros.</div>`);
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado para estos filtros.</div>`;
       return;
     }
 
-    let showGraphOption = (selectedMemberId === 'all');
-
     let html = pids.map(pid => {
       let p = teamDataMap[pid];
+      let isOpen = openAccordions.has(`team_${pid}`);
       let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
         <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(p.cards[cName])}</div></div>
       `).join('');
 
       return `
         <div class="data-block">
-          <div class="person-header">
+          <div class="person-header" onclick="toggleAccordion(this, 'team_${pid}', 'member')">
+            <span class="db-caret ${isOpen ? 'open' : ''}">▶</span>
             ${avHtml(p.name, p.avatarUrl)}
             <div class="person-name">${esc(p.name)}</div>
-            ${showGraphOption ? `<button class="btn-sm-chart" onclick="toggleMemberChart('${pid}')">📊 Ver gráfico</button>` : ''}
-            <div class="person-total" style="margin-left: 16px;">${fmt(p.total)}</div>
+            <div class="person-total">${fmt(p.total)}</div>
           </div>
 
-          <div class="inline-chart-box" id="member-chart-wrap-${pid}">
-            <canvas id="member-canvas-${pid}"></canvas>
+          <div class="db-body ${isOpen ? 'open' : ''}">
+            <div class="accordion-chart-wrap">
+              <canvas id="member-canvas-${pid}"></canvas>
+            </div>
+            <div style="padding: 10px 20px;">${cardsHtml}</div>
           </div>
-
-          <div class="db-body open"><div style="padding: 10px 20px;">${cardsHtml}</div></div>
         </div>`;
     }).join('');
+    container.innerHTML = html;
 
-    renderDOM('team-container', html);
+    pids.forEach(pid => {
+      if (openAccordions.has(`team_${pid}`)) {
+        setTimeout(() => renderMemberChart(pid), 30);
+      }
+    });
   }
 
-  function toggleMemberChart(pid) {
-    const chartWrap = document.getElementById(`member-chart-wrap-${pid}`);
-    if (!chartWrap) return;
+  function renderMemberChart(pid) {
+    const ctx = document.getElementById(`member-canvas-${pid}`);
+    if (!ctx) return;
+    
+    const teamRangeType = document.getElementById('team-range').value;
+    const { startD, endD } = getDateLimits(teamRangeType, 'team-start', 'team-end');
+    const now = Date.now();
 
-    if (chartWrap.style.display === 'block') {
-      chartWrap.style.display = 'none';
-      if (memberChartInstances[pid]) {
-        memberChartInstances[pid].destroy();
-        delete memberChartInstances[pid];
-      }
-    } else {
-      chartWrap.style.display = 'block';
-      const ctx = document.getElementById(`member-canvas-${pid}`);
-      
-      const teamRangeType = document.getElementById('team-range').value;
-      const { startD, endD } = getDateLimits(teamRangeType, 'team-start', 'team-end');
-      const now = Date.now();
+    let memberCardsMap = {};
+    let memberTotalSecs = 0;
 
-      let memberCardsMap = {};
-      rawCardStore.forEach(item => {
-        (item.state.entries || []).forEach(e => {
-          if (e.memberId === pid) {
-            let eDate = new Date(e.start || now);
-            if (startD && eDate < startD) return;
-            if (endD && eDate > endD) return;
-            memberCardsMap[item.card.name] = (memberCardsMap[item.card.name] || 0) + (e.duration || 0);
-          }
-        });
-      });
-
-      const labels = Object.keys(memberCardsMap);
-      const dataValues = labels.map(k => (memberCardsMap[k] / 3600).toFixed(2));
-      const colors = labels.map((_, idx) => DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
-
-      if (memberChartInstances[pid]) memberChartInstances[pid].destroy();
-
-      memberChartInstances[pid] = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0 }] },
-        options: {
-          responsive: true, maintainAspectRatio: false, cutout: '60%',
-          plugins: {
-            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
-            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Horas` } }
-          }
+    rawCardStore.forEach(item => {
+      (item.state.entries || []).forEach(e => {
+        if (e.memberId === pid) {
+          let eDate = new Date(e.start || now);
+          if (startD && eDate < startD) return;
+          if (endD && eDate > endD) return;
+          let dur = e.duration || 0;
+          memberCardsMap[item.card.name] = (memberCardsMap[item.card.name] || 0) + dur;
+          memberTotalSecs += dur;
         }
       });
-    }
+    });
+
+    if (!memberTotalSecs) return;
+
+    const labels = [];
+    const dataValues = [];
+    const colors = [];
+
+    Object.keys(memberCardsMap).sort((a,b) => memberCardsMap[b] - memberCardsMap[a]).forEach((cName, idx) => {
+      let pct = ((memberCardsMap[cName] / memberTotalSecs) * 100).toFixed(1);
+      labels.push(`${cName} (${pct}%)`);
+      dataValues.push(pct);
+      colors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+    });
+
+    if (memberChartInstances[pid]) memberChartInstances[pid].destroy();
+
+    memberChartInstances[pid] = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: {
+          legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
+          tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } }
+        }
+      }
+    });
   }
 
   /* ── FILTROS CUSTOM & EXPORTACIONES ──────────────────────── */
@@ -1115,7 +1094,7 @@
     } else if (actionType === 'view') {
       const container = document.getElementById('custom-results-container');
       if (result.displayData.length === 0) {
-        renderDOM('custom-results-container', `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo para esta combinación.</div>`);
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo para esta combinación.</div>`;
         return;
       }
 
@@ -1158,8 +1137,8 @@
             <div style="font-size: 14px; color: var(--txt-mut); margin-top: 4px;">Equivale a ${fmtH(grandTotal)}</div>
           </div>
           
-          <div style="width: 320px; min-height: 180px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; text-align: center;">Distribución</div>
+          <div style="width: 340px; min-height: 180px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; text-align: center;">Distribución (%)</div>
             <div style="position: relative; height: 140px;">
               <canvas id="customChartCanvas"></canvas>
             </div>
@@ -1169,7 +1148,7 @@
       
       if (customChartInstance) { customChartInstance.destroy(); customChartInstance = null; }
       
-      renderDOM('custom-results-container', headerHtml + html);
+      container.innerHTML = headerHtml + html;
 
       const ctxCustom = document.getElementById('customChartCanvas');
       const cLabels = [];
@@ -1177,8 +1156,9 @@
       const cColors = [];
       
       Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => {
-        cLabels.push(name);
-        cData.push((customTeamMap[name] / 3600).toFixed(2));
+        let pct = grandTotal > 0 ? ((customTeamMap[name] / grandTotal) * 100).toFixed(1) : 0;
+        cLabels.push(`${name} (${pct}%)`);
+        cData.push(pct);
         cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
       });
 
@@ -1189,7 +1169,7 @@
           responsive: true, maintainAspectRatio: false, cutout: '65%',
           plugins: {
             legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
-            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Horas` } }
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } }
           }
         }
       });
@@ -1248,23 +1228,20 @@
     document.body.removeChild(link);
   }
 
-  /* ── INICIALIZACIÓN Y CICLO DE VIDA DE PRODUCCIÓN ──────────── */
+  /* ── INICIALIZACIÓN Y CICLO DE VIDA (CERO PARPADEO) ────────── */
   t.board('name').then(board => { 
     document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; 
   }).catch(() => {});
 
   fetchCustomFieldsList();
   
-  // 1. Carga inicial
+  // Carga inicial al entrar al dashboard
   loadAndRenderData();
 
-  // 2. Refresco del contador local (cada 1s) - Gracias a Morphdom, AHORA NO PARPADEA
-  setInterval(processAndRenderUI, 1000);
+  // Refresco discreto de datos cada 3 minutos (sin ciclo de 1s que cause parpadeos)
+  setInterval(loadAndRenderData, 3 * 60 * 1000);
 
-  // 3. Sincronización en segundo plano con Trello (cada 30s para datos frescos)
-  setInterval(loadAndRenderData, 30000);
-
-  // 4. Sincronización proactiva cuando la pestaña entra en foco
+  // Sincronización proactiva solo cuando la pestaña pasa de segundo plano a activo
   window.addEventListener('focus', loadAndRenderData);
   document.addEventListener('visibilitychange', function() { 
     if (!document.hidden) loadAndRenderData(); 
