@@ -492,14 +492,14 @@
   var KEY = 'chronos';
   
   var rawCardStore = []; 
-  var processedCardsList = []; // Datos procesados de tarjetas para el tab de tarjetas
+  var processedCardsList = []; 
   var boardCustomFields = [];
-  var openAccordions = new Set(); // Preserva los acordeones desplegados
+  var openAccordions = new Set(); 
   
   var teamChartInstance = null;
   var customChartInstance = null;
-  var cardChartInstances = {};   // Gráficos dinámicos por tarjeta
-  var memberChartInstances = {}; // Gráficos dinámicos por miembro
+  var cardChartInstances = {};   
+  var memberChartInstances = {}; 
   
   var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
@@ -646,7 +646,7 @@
     fetchLiveBoardData().then(cardStore => {
       rawCardStore = cardStore;
       updateMemberListDropdown();
-      processAndRenderUI();
+      processAndRenderUI(true); // Indica que hubo recarga estructural
     }).catch(err => console.error("Error al obtener datos:", err));
   }
 
@@ -671,8 +671,8 @@
     memberSelect.innerHTML = html;
   }
 
-  /* ── PROCESAMIENTO Y RENDERIZADO UI ──────────────────────── */
-  function processAndRenderUI() {
+  /* ── PROCESAMIENTO Y RENDERIZADO UI (SIN PARPADEO) ───────── */
+  function processAndRenderUI(isStructuralReload = false) {
     if (!rawCardStore) return;
 
     let totalBoardSecs = 0;
@@ -702,7 +702,6 @@
 
       if (activeSessionsCount > 0) activeTimersCount += activeSessionsCount;
 
-      // 1. Cálculo Global & Desglose por Tarjetas
       entries.forEach(e => {
         let dur = e.duration || 0;
         let pid = e.memberId || 'unknown';
@@ -710,7 +709,7 @@
         let pAv = e.avatarUrl || '';
 
         cardTotalSecs += dur;
-        if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+        if (!cardMembersMap[pid]) cardMembersMap[pid] = { id: pid, name: pName, avatarUrl: pAv, total: 0 };
         cardMembersMap[pid].total += dur;
 
         if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
@@ -727,7 +726,7 @@
           let pAv = sess.avatarUrl || '';
 
           cardTotalSecs += elapsed;
-          if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+          if (!cardMembersMap[pid]) cardMembersMap[pid] = { id: pid, name: pName, avatarUrl: pAv, total: 0 };
           cardMembersMap[pid].total += elapsed;
 
           if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
@@ -747,7 +746,7 @@
         });
       }
 
-      // 2. Cálculo Filtrado para el Tab de Equipo
+      // Cálculo Filtrado para Tab de Equipo
       const applyTeamTimeToMap = (dur, pid, pName, pAv) => {
         if (selectedTeamMember !== 'all' && pid !== selectedTeamMember) return;
         if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
@@ -783,14 +782,39 @@
     document.getElementById('s-active').textContent = activeTimersCount;
     renderChart(globalTeamMap);
 
-    // Actualizamos Tab de Tarjetas
+    // Actualizamos Tab de Tarjetas de forma inteligente (Sin romper el DOM si no cambió la estructura)
     processedCardsList = cardsDataList;
-    renderCardsTab();
+    if (isStructuralReload || !document.querySelector('#cards-container .data-block')) {
+      renderCardsTab();
+    } else {
+      updateLiveDOM(cardsDataList, teamDataMap);
+    }
 
     // Actualizamos Tab de Equipo
     renderTeamTab(teamDataMap, selectedTeamMember);
 
     document.getElementById('last-update').textContent = 'Sincronizado: ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  /* ── ACTUALIZACIÓN SELECTIVA DEL DOM (Cero Parpadeos) ─────── */
+  function updateLiveDOM(cardsDataList, teamDataMap) {
+    cardsDataList.forEach(card => {
+      // Actualizar total de la tarjeta
+      let cardTotalEl = document.querySelector(`[data-card-total="${card.id}"]`);
+      if (cardTotalEl) cardTotalEl.textContent = fmt(card.total);
+
+      // Actualizar duraciones de cada miembro dentro de la tarjeta
+      card.members.forEach(m => {
+        let memberDurEl = document.querySelector(`[data-member-dur="${card.id}-${m.id}"]`);
+        if (memberDurEl) memberDurEl.textContent = fmt(m.total);
+      });
+    });
+
+    // Actualizar totales en la pestaña de Equipo
+    Object.keys(teamDataMap).forEach(pid => {
+      let personTotalEl = document.querySelector(`[data-person-total="${pid}"]`);
+      if (personTotalEl) personTotalEl.textContent = fmt(teamDataMap[pid].total);
+    });
   }
 
   /* ── RENDERIZADO TAB GLOBAL ─────────────────────────────── */
@@ -833,7 +857,7 @@
     }
   }
 
-  /* ── RENDERIZADO TAB TARJETAS (CON BÚSQUEDA Y VER GRÁFICO) ─ */
+  /* ── RENDERIZADO TAB TARJETAS (GRÁFICO DE DONA Y ATRIBUTOS DATA) ─ */
   function renderCardsTab() {
     const container = document.getElementById('cards-container');
     const searchQuery = (document.getElementById('card-search-input').value || '').toLowerCase().trim();
@@ -854,7 +878,7 @@
             ${avHtml(m.name, m.avatarUrl)}
             <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
           </div>
-          <div class="log-dur">${fmt(m.total)}</div>
+          <div class="log-dur" data-member-dur="${card.id}-${m.id}">${fmt(m.total)}</div>
         </div>
       `).join('');
 
@@ -865,7 +889,7 @@
             <span class="db-title">${esc(card.name)}</span>
             ${card.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px;">● Activo</span>' : ''}
             <button class="btn-sm-chart" onclick="event.stopPropagation(); toggleCardChart('${card.id}')">📊 Ver gráfico</button>
-            <span class="db-total">${fmt(card.total)}</span>
+            <span class="db-total" data-card-total="${card.id}">${fmt(card.total)}</span>
           </div>
           
           <div class="inline-chart-box" id="card-chart-wrap-${card.id}">
@@ -879,6 +903,7 @@
     container.innerHTML = html;
   }
 
+  /* Cambiado a Gráfico de Dona para las Tarjetas */
   function toggleCardChart(cardId) {
     const chartWrap = document.getElementById(`card-chart-wrap-${cardId}`);
     if (!chartWrap) return;
@@ -902,21 +927,23 @@
       if (cardChartInstances[cardId]) cardChartInstances[cardId].destroy();
 
       cardChartInstances[cardId] = new Chart(ctx, {
-        type: 'bar',
-        data: { labels: labels, datasets: [{ label: 'Horas', data: dataValues, backgroundColor: colors, borderRadius: 4 }] },
+        type: 'doughnut',
+        data: { 
+          labels: labels, 
+          datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] 
+        },
         options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: '#8c9bab' }, grid: { display: false } },
-            y: { ticks: { color: '#8c9bab' }, grid: { color: '#333a41' } }
+          responsive: true, maintainAspectRatio: false, cutout: '65%',
+          plugins: {
+            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Horas` } }
           }
         }
       });
     }
   }
 
-  /* ── RENDERIZADO TAB EQUIPO (CON FILTROS Y VER GRÁFICO) ──── */
+  /* ── RENDERIZADO TAB EQUIPO ─────────────────────────────── */
   function renderTeamTab(teamDataMap, selectedMemberId) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
@@ -940,7 +967,7 @@
             ${avHtml(p.name, p.avatarUrl)}
             <div class="person-name">${esc(p.name)}</div>
             ${showGraphOption ? `<button class="btn-sm-chart" onclick="toggleMemberChart('${pid}')">📊 Ver gráfico</button>` : ''}
-            <div class="person-total" style="margin-left: 16px;">${fmt(p.total)}</div>
+            <div class="person-total" data-person-total="${pid}" style="margin-left: 16px;">${fmt(p.total)}</div>
           </div>
 
           <div class="inline-chart-box" id="member-chart-wrap-${pid}">
@@ -967,7 +994,6 @@
       chartWrap.style.display = 'block';
       const ctx = document.getElementById(`member-canvas-${pid}`);
       
-      // Obtener datos actuales filtrados del miembro desde el DOM/UI
       const teamRangeType = document.getElementById('team-range').value;
       const { startD, endD } = getDateLimits(teamRangeType, 'team-start', 'team-end');
       const now = Date.now();
@@ -1234,13 +1260,13 @@
   fetchCustomFieldsList();
   loadAndRenderData();
 
-  // Refresco del reloj visual local (1 segundo)
-  setInterval(processAndRenderUI, 1000);
+  // Refresco continuo de dígitos visuales (1 segundo, sin parpadeos)
+  setInterval(() => processAndRenderUI(false), 1000);
 
-  // Petición a Trello en segundo plano (20 segundos)
+  // Petición de actualización profunda a Trello (cada 20 segundos)
   setInterval(loadAndRenderData, 20000);
 
-  // Sincronización proactiva cuando la pestaña vuelve a enfocarse
+  // Sincronización cuando la pestaña vuelve a enfocarse
   window.addEventListener('focus', loadAndRenderData);
   document.addEventListener('visibilitychange', function() { 
     if (!document.hidden) loadAndRenderData(); 
