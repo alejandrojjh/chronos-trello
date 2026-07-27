@@ -149,6 +149,10 @@
       flex-direction: column;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
+    .chart-box-large { 
+      width: 100%; max-width: 800px; margin: 24px 0; display: none; background: var(--surf); 
+      border: 1px solid var(--border); border-radius: 8px; padding: 20px;
+    }
     .chart-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 12px; }
 
     /* ── Cards UI ─────────────────────────────────────────── */
@@ -208,49 +212,29 @@
     .log-card { font-size: 13px; color: var(--txt-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .log-dur { font-size: 13px; font-weight: 600; color: var(--txt-main); font-variant-numeric: tabular-nums; margin-left: 16px; }
 
-    /* ── Export UI ────────────────────────────────────────── */
-    .export-card {
-      background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 650px;
-    }
+    /* ── Export UI & Utilities ────────────────────────────── */
+    .export-card { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 650px; }
     .export-desc { color: var(--txt-mut); margin-bottom: 20px; line-height: 1.5; }
     .form-group { margin-bottom: 16px; flex: 1; }
     .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 6px; }
-    .form-select, .form-input {
-      width: 100%; background: var(--bg-app); border: 1px solid var(--border); color: #fff;
-      padding: 10px 14px; border-radius: 4px; font-size: 13px; outline: none;
-    }
+    .form-select, .form-input { width: 100%; background: var(--bg-app); border: 1px solid var(--border); color: #fff; padding: 10px 14px; border-radius: 4px; font-size: 13px; outline: none; }
     .form-select:focus, .form-input:focus { border-color: var(--accent); }
     .form-select:disabled { opacity: 0.5; cursor: not-allowed; }
     .date-row { display: flex; gap: 16px; }
     
-    .btn-export {
-      background: var(--accent); color: #091e42; border: none; padding: 12px 24px;
-      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
-      display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; width: 100%; justify-content: center;
-    }
+    .btn-toggle { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-right: 16px; transition: .2s; }
+    .btn-toggle:hover { background: var(--accent); color: #000; }
+    
+    .btn-export { background: var(--accent); color: #091e42; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; width: 100%; justify-content: center; }
     .btn-export:hover { background: var(--accent-hvr); }
-
-    .btn-secondary {
-      background: var(--bg-app); color: var(--txt-main); border: 1px solid var(--border); padding: 12px 24px;
-      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
-      display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
-    }
+    .btn-secondary { background: var(--bg-app); color: var(--txt-main); border: 1px solid var(--border); padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
     .btn-secondary:hover { background: var(--surf-hover); }
-
-    .btn-primary-green {
-      background: var(--green); color: #161a1d; border: none; padding: 12px 24px;
-      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: filter 0.2s;
-      display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
-    }
+    .btn-primary-green { background: var(--green); color: #161a1d; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: filter 0.2s; display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
     .btn-primary-green:hover { filter: brightness(1.1); }
 
-    /* ── Utilities ────────────────────────────────────────── */
     .empty-state { text-align: center; padding: 60px 20px; color: var(--txt-mut); }
     .empty-icon { font-size: 40px; opacity: 0.5; margin-bottom: 16px; }
-    .spinner {
-      width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent);
-      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;
-    }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
     /* Scrollbar Estilizado */
@@ -328,8 +312,24 @@
 
     <!-- TAB 3: SEMANAS -->
     <div id="tab-weeks" class="tab-pane">
+      <!-- Selector de Semanas -->
+      <div style="max-width: 300px; margin-bottom: 24px; background: var(--surf); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+        <label class="form-label">Filtrar por Semana</label>
+        <select id="week-selector" class="form-select" onchange="updateWeekFilter()">
+          <option value="all">Todas las semanas (Histórico)</option>
+        </select>
+      </div>
+
       <div id="weeks-container">
         <div class="empty-state"><div class="spinner"></div>Agrupando histórico semanal...</div>
+      </div>
+      
+      <!-- Gráfico Inferior de la semana seleccionada -->
+      <div class="chart-box-large" id="week-chart-container">
+        <div class="chart-title" id="week-chart-title" style="text-align: center;">Distribución de Proyectos en esta Semana</div>
+        <div style="flex: 1; position: relative; height: 280px;" id="week-chart-container-inner">
+          <canvas id="weekChart"></canvas>
+        </div>
       </div>
     </div>
 
@@ -423,6 +423,9 @@
 
   </main>
 
+  <!-- CONTENEDOR OCULTO PARA PRESERVAR CANVAS (Evita parpadeos al refrescar) -->
+  <div id="canvas-vault" style="display: none;"></div>
+
 <script>
   var t = window.TrelloPowerUp.iframe();
   var KEY = 'chronos';
@@ -431,7 +434,13 @@
   var boardCustomFields = [];
   
   var teamChartInstance = null;
-  var customChartInstance = null; // Instancia para el gráfico del Desglose Custom
+  var customChartInstance = null;
+  
+  // Variables de Estado para los nuevos gráficos (Equipo y Semanas)
+  var userChartsState = {}; 
+  var userChartsInstances = {}; 
+  var currentWeekFilter = 'all';
+  var weekChartInstance = null;
   
   var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
@@ -447,10 +456,9 @@
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function initials(n) { return (n||'?').trim().split(/\s+/).slice(0,2).map(w => w[0]||'?').join('').toUpperCase(); }
   
-  const AVATAR_COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
   function mColor(n) { 
     let h=0; for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; 
-    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]; 
+    return DYNAMIC_PALETTE[Math.abs(h) % DYNAMIC_PALETTE.length]; 
   }
   
   function avHtml(name, url) {
@@ -468,7 +476,7 @@
     return `Semana del ${startStr} al ${endStr}`;
   }
 
-  /* ── UI NAVEGACIÓN (CONTROL DEL HEADER GLOBAL) ───────────── */
+  /* ── UI NAVEGACIÓN Y EVENTOS ─────────────────────────────── */
   function switchTab(tabId, el) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
@@ -478,18 +486,13 @@
     const globalHeader = document.getElementById('global-stats-header');
     const dynamicTitle = document.getElementById('dynamic-title');
 
-    // Mostramos el Header global solo en las pestañas de análisis general
     if (tabId === 'tab-cards') {
-      globalHeader.style.display = 'block';
-      dynamicTitle.textContent = 'Desglose por Tarjetas';
+      globalHeader.style.display = 'block'; dynamicTitle.textContent = 'Desglose por Tarjetas';
     } else if (tabId === 'tab-team') {
-      globalHeader.style.display = 'block';
-      dynamicTitle.textContent = 'Desglose por Equipo';
+      globalHeader.style.display = 'block'; dynamicTitle.textContent = 'Desglose por Equipo';
     } else if (tabId === 'tab-weeks') {
-      globalHeader.style.display = 'block';
-      dynamicTitle.textContent = 'Desglose por Semanas';
+      globalHeader.style.display = 'block'; dynamicTitle.textContent = 'Desglose por Semanas';
     } else {
-      // Lo ocultamos en Custom View y Exportar
       globalHeader.style.display = 'none';
     }
   }
@@ -502,6 +505,39 @@
   function toggleCustomDates2() {
     const val = document.getElementById('custom-range').value;
     document.getElementById('custom-dates2').style.display = (val === 'custom') ? 'flex' : 'none';
+  }
+
+  // Interacción de Gráficos (Equipo y Semanas)
+  window.toggleUserChart = function(pid) {
+    userChartsState[pid] = !userChartsState[pid];
+    renderDashboard();
+  };
+
+  window.updateWeekFilter = function() {
+    currentWeekFilter = document.getElementById('week-selector').value;
+    renderDashboard();
+  };
+
+  /* ── PRESERVACIÓN VIRTUAL-DOM PARA CANVAS (Antiparpadeo) ─── */
+  function preserveCanvases() {
+    const vault = document.getElementById('canvas-vault');
+    Object.keys(userChartsInstances).forEach(pid => {
+      let canvas = document.getElementById('canvas-user-' + pid);
+      if (canvas) vault.appendChild(canvas);
+    });
+    let wCanvas = document.getElementById('weekChart');
+    if (wCanvas) vault.appendChild(wCanvas);
+  }
+
+  function restoreCanvases() {
+    Object.keys(userChartsInstances).forEach(pid => {
+      let placeholder = document.getElementById('placeholder-user-' + pid);
+      let canvas = document.getElementById('canvas-user-' + pid);
+      if (placeholder && canvas) placeholder.appendChild(canvas);
+    });
+    let wPlaceholder = document.getElementById('week-chart-container-inner');
+    let wCanvas = document.getElementById('weekChart');
+    if (wPlaceholder && wCanvas) wPlaceholder.appendChild(wCanvas);
   }
 
   /* ── INICIALIZACIÓN DE CUSTOM FIELDS ─────────────────────── */
@@ -623,16 +659,21 @@
       document.getElementById('s-cards').textContent = workedCardsCount;
       document.getElementById('s-active').textContent = activeTimersCount;
 
-      renderChart(teamDataMap);
+      preserveCanvases(); // Mover canvas a la bóveda antes de machacar el HTML
+
+      renderChart(teamDataMap); // El general
       renderCardsTab(cardsDataList);
       renderTeamTab(teamDataMap);
       renderWeeksTab(weeksDataMap);
+
+      restoreCanvases(); // Devolver canvas a sus contenedores
+      updateCharts(teamDataMap, weeksDataMap); // Actualizar los datos visuales de Chart.js
 
       document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
     });
   }
 
-  /* ── GRÁFICO GLOBAL (CHART.JS) ── */
+  /* ── GRÁFICOS (CHART.JS) ── */
   function renderChart(teamDataMap) {
     const pids = Object.keys(teamDataMap);
     const container = document.getElementById('chart-container');
@@ -644,13 +685,8 @@
     }
 
     container.style.display = 'flex'; 
-    
-    const labels = [];
-    const dataValues = [];
-    const backgroundColors = [];
-
-    let colorMap = {};
-    let colorIndex = 0;
+    const labels = [], dataValues = [], backgroundColors = [];
+    let colorMap = {}, colorIndex = 0;
 
     pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach(pid => {
       let member = teamDataMap[pid];
@@ -667,20 +703,105 @@
       teamChartInstance.data.labels = labels;
       teamChartInstance.data.datasets[0].data = dataValues;
       teamChartInstance.data.datasets[0].backgroundColor = backgroundColors;
-      teamChartInstance.update();
+      teamChartInstance.update('none'); // Update sin animación para no saturar
     } else {
       teamChartInstance = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{ data: dataValues, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }]
-        },
+        data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }] },
         options: {
           responsive: true, maintainAspectRatio: false, cutout: '65%', 
           plugins: {
             legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 12 }, padding: 20 } },
             tooltip: { callbacks: { label: function(context) { return ` ${context.raw} Horas`; } } }
           }
+        }
+      });
+    }
+  }
+
+  // Actualiza los gráficos Individuales de Equipo y el de Semanas
+  function updateCharts(teamDataMap, weeksDataMap) {
+    // 1. Gráficos de Usuarios
+    Object.keys(userChartsState).forEach(pid => {
+      if (userChartsState[pid] && teamDataMap[pid]) {
+        let canvasId = 'canvas-user-' + pid;
+        let ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+        
+        let labels = [], data = [], colors = [];
+        let cards = teamDataMap[pid].cards;
+        
+        Object.keys(cards).sort((a,b) => cards[b] - cards[a]).forEach((cName) => {
+          labels.push(cName); 
+          data.push((cards[cName] / 3600).toFixed(2)); 
+          colors.push(mColor(cName));
+        });
+
+        if (userChartsInstances[pid]) {
+          userChartsInstances[pid].data.labels = labels; 
+          userChartsInstances[pid].data.datasets[0].data = data; 
+          userChartsInstances[pid].data.datasets[0].backgroundColor = colors;
+          userChartsInstances[pid].update('none'); 
+        } else {
+          userChartsInstances[pid] = new Chart(ctx, {
+            type: 'doughnut', 
+            data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
+            options: { 
+              responsive: true, maintainAspectRatio: false, cutout: '50%', 
+              plugins: { 
+                legend: { position: 'right', labels: { color: '#c7d1db' } }, 
+                tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } 
+              } 
+            }
+          });
+        }
+      }
+    });
+
+    // Limpiar gráficos cerrados para no ocupar memoria
+    Object.keys(userChartsInstances).forEach(pid => {
+      if (!userChartsState[pid]) { 
+        userChartsInstances[pid].destroy(); 
+        delete userChartsInstances[pid]; 
+      }
+    });
+
+    // 2. Gráfico de Semanas
+    let wCtx = document.getElementById('weekChart');
+    if (!wCtx) return;
+    
+    let wLabels = [], wData = [], wColors = [];
+    let targetCards = {};
+    let targetWeeks = currentWeekFilter === 'all' ? Object.keys(weeksDataMap) : [currentWeekFilter];
+    
+    targetWeeks.forEach(w => {
+      if (!weeksDataMap[w]) return;
+      Object.keys(weeksDataMap[w].cards).forEach(cName => { 
+        targetCards[cName] = (targetCards[cName] || 0) + weeksDataMap[w].cards[cName]; 
+      });
+    });
+
+    Object.keys(targetCards).sort((a,b) => targetCards[b] - targetCards[a]).forEach(cName => {
+      wLabels.push(cName); 
+      wData.push((targetCards[cName] / 3600).toFixed(2)); 
+      wColors.push(mColor(cName));
+    });
+
+    if (weekChartInstance) {
+      weekChartInstance.data.labels = wLabels; 
+      weekChartInstance.data.datasets[0].data = wData; 
+      weekChartInstance.data.datasets[0].backgroundColor = wColors;
+      weekChartInstance.update('none');
+    } else {
+      weekChartInstance = new Chart(wCtx, {
+        type: 'doughnut', 
+        data: { labels: wLabels, datasets: [{ data: wData, backgroundColor: wColors, borderWidth: 0 }] },
+        options: { 
+          responsive: true, maintainAspectRatio: false, cutout: '65%', 
+          plugins: { 
+            legend: { position: 'right', labels: { color: '#c7d1db' } }, 
+            tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } 
+          } 
         }
       });
     }
@@ -734,23 +855,63 @@
       let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
         <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(p.cards[cName])}</div></div>
       `).join('');
+      
+      let btnText = userChartsState[pid] ? "Ocultar Gráfico" : "Ver Gráfico 📊";
+      let chartAreaId = 'placeholder-user-' + pid;
+      let canvasId = 'canvas-user-' + pid;
+      
+      let chartHtml = userChartsState[pid] ? `
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center;">
+           <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); margin-bottom:12px; text-transform:uppercase;">Distribución de ${esc(p.name)}</div>
+           <div id="${chartAreaId}" style="height: 180px; width: 100%; position: relative;">
+             ${!userChartsInstances[pid] ? `<canvas id="${canvasId}"></canvas>` : ''}
+           </div>
+        </div>` : '';
+
       return `
         <div class="data-block">
-          <div class="person-header">${avHtml(p.name, p.avatarUrl)}<div class="person-name">${esc(p.name)}</div><div class="person-total">${fmt(p.total)}</div></div>
-          <div class="db-body open"><div style="padding: 10px 20px;">${cardsHtml}</div></div>
+          <div class="person-header">
+            ${avHtml(p.name, p.avatarUrl)}
+            <div class="person-name">${esc(p.name)}</div>
+            <button class="btn-toggle" onclick="toggleUserChart('${esc(pid)}')">${btnText}</button>
+            <div class="person-total">${fmt(p.total)}</div>
+          </div>
+          <div class="db-body open">
+            <div style="padding: 10px 20px;">${cardsHtml}</div>
+            ${chartHtml}
+          </div>
         </div>`;
     }).join('');
     container.innerHTML = html;
   }
 
   function renderWeeksTab(weeksDataMap) {
-    const weeks = Object.keys(weeksDataMap);
+    // Ordenar las semanas cronológicamente
+    const weeks = Object.keys(weeksDataMap).sort((a,b) => {
+      let aD = new Date(a.split(' ')[2]); 
+      let bD = new Date(b.split(' ')[2]);
+      return bD - aD;
+    });
+
+    const select = document.getElementById('week-selector');
     const container = document.getElementById('weeks-container');
-    if (!weeks.length) {
+    const chartCont = document.getElementById('week-chart-container');
+    const chartTitle = document.getElementById('week-chart-title');
+    
+    // Poblar el dropdown
+    if (select.options.length === 1 && weeks.length > 0) {
+      weeks.forEach(w => select.appendChild(new Option(w, w)));
+    }
+
+    let targetWeeks = currentWeekFilter === 'all' ? weeks : [currentWeekFilter];
+    
+    if (targetWeeks.length === 0 || !weeksDataMap[targetWeeks[0]]) {
       container.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div>No hay datos para mostrar por semanas.</div>`;
+      chartCont.style.display = 'none';
       return;
     }
-    let html = weeks.map(wName => {
+
+    let html = targetWeeks.map(wName => {
       let w = weeksDataMap[wName];
       let cardsHtml = Object.keys(w.cards).sort((a,b) => w.cards[b] - w.cards[a]).map(cName => `
         <div class="log-row" style="margin: 0 20px 4px 20px;"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(w.cards[cName])}</div></div>
@@ -758,14 +919,21 @@
       return `
         <div class="data-block">
           <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
-            <span class="db-caret">▶</span>
+            <span class="db-caret open">▶</span>
             <span class="db-title">${esc(wName)}</span>
             <span class="db-total">${fmt(w.total)}</span>
           </div>
-          <div class="db-body"><div style="padding: 10px 0;">${cardsHtml}</div></div>
+          <div class="db-body open"><div style="padding: 10px 0;">${cardsHtml}</div></div>
         </div>`;
     }).join('');
+    
     container.innerHTML = html;
+    
+    // Controlar el contenedor del gráfico de la semana
+    chartCont.style.display = 'flex';
+    chartTitle.textContent = currentWeekFilter === 'all' ? 'Distribución Histórica Global' : 'Distribución: ' + currentWeekFilter;
+    let wArea = document.getElementById('week-chart-container-inner');
+    if(!document.getElementById('weekChart')) { wArea.innerHTML = '<canvas id="weekChart"></canvas>'; }
   }
 
   /* ── LÓGICA: DESGLOSE Y EXPORTACIÓN CUSTOM ───────────────── */
@@ -880,7 +1048,7 @@
 
       result.displayData.sort((a,b) => b.total - a.total);
       let grandTotal = 0;
-      let customTeamMap = {}; // Para el gráfico del desglose custom
+      let customTeamMap = {}; 
 
       let html = result.displayData.map(card => {
         grandTotal += card.total;
@@ -888,10 +1056,8 @@
         if (card.members && card.members.length) {
           card.members.sort((a,b) => b.total - a.total);
           membersHtml = card.members.map(m => {
-            // Acumular tiempo por miembro para el gráfico custom
             if (!customTeamMap[m.name]) customTeamMap[m.name] = 0;
             customTeamMap[m.name] += m.total;
-
             return `
               <div class="log-row" style="margin: 0 20px 8px 40px;">
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -915,7 +1081,6 @@
         `;
       }).join('');
 
-      // Renderizamos el header con un segundo gráfico exclusivo para este desglose
       let headerHtml = `
         <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -934,10 +1099,8 @@
       `;
       container.innerHTML = headerHtml + html;
 
-      // Dibujamos el gráfico Custom una vez que el HTML esté inyectado
       setTimeout(() => {
-         if(customChartInstance) customChartInstance.destroy(); // Limpiar gráfico anterior si existía
-
+         if(customChartInstance) customChartInstance.destroy(); 
          const ctxCustom = document.getElementById('customChartCanvas');
          const cLabels = [];
          const cData = [];
