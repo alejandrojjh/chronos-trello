@@ -143,7 +143,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 20px;
-      width: 350px;
+      width: 380px;
       min-height: 250px;
       display: none; 
       flex-direction: column;
@@ -176,7 +176,7 @@
     .db-body { display: none; border-top: 1px solid var(--border); background: var(--bg-app); }
     .db-body.open { display: block; }
     
-    /* ── Team & Weeks UI ──────────────────────────────────── */
+    /* ── Team & Member UI ─────────────────────────────────── */
     .person-header {
       display: flex;
       align-items: center;
@@ -194,12 +194,6 @@
     .person-name { flex: 1; font-size: 15px; font-weight: 600; color: #fff; }
     .person-total { font-size: 15px; font-weight: 700; color: var(--green); }
 
-    .week-group { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .week-group:last-child { border-bottom: none; }
-    .week-title {
-      font-size: 11px; font-weight: 700; color: var(--txt-mut); text-transform: uppercase;
-      margin-bottom: 10px; display: flex; justify-content: space-between;
-    }
     .log-row {
       display: flex; justify-content: space-between; align-items: center;
       padding: 6px 12px; border-radius: 4px; background: rgba(255,255,255,0.02); margin-bottom: 4px;
@@ -208,12 +202,19 @@
     .log-card { font-size: 13px; color: var(--txt-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .log-dur { font-size: 13px; font-weight: 600; color: var(--txt-main); font-variant-numeric: tabular-nums; margin-left: 16px; }
 
-    /* ── Export UI ────────────────────────────────────────── */
+    /* ── Forms, Buttons & Filters ─────────────────────────── */
+    .filter-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
     .export-card {
       background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 650px;
     }
     .export-desc { color: var(--txt-mut); margin-bottom: 20px; line-height: 1.5; }
-    .form-group { margin-bottom: 16px; flex: 1; }
+    .form-group { margin-bottom: 16px; flex: 1; min-width: 200px; }
     .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 6px; }
     .form-select, .form-input {
       width: 100%; background: var(--bg-app); border: 1px solid var(--border); color: #fff;
@@ -221,8 +222,36 @@
     }
     .form-select:focus, .form-input:focus { border-color: var(--accent); }
     .form-select:disabled { opacity: 0.5; cursor: not-allowed; }
-    .date-row { display: flex; gap: 16px; }
-    
+    .date-row { display: flex; gap: 16px; width: 100%; }
+
+    /* Botón Ver Gráfico */
+    .btn-sm-chart {
+      background: rgba(87, 157, 255, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(87, 157, 255, 0.3);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 12px;
+      transition: all 0.2s;
+    }
+    .btn-sm-chart:hover {
+      background: var(--accent);
+      color: #161a1d;
+    }
+
+    /* Caja contenedora para gráficos desplegables */
+    .inline-chart-box {
+      display: none;
+      padding: 16px;
+      background: var(--bg-app);
+      border-bottom: 1px solid var(--border);
+      height: 180px;
+      position: relative;
+    }
+
     .btn-export {
       background: var(--accent); color: #091e42; border: none; padding: 12px 24px;
       font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
@@ -269,9 +298,9 @@
       <div class="sb-board" id="board-name">Cargando tablero...</div>
     </div>
     <nav class="sb-nav">
-      <div class="nav-item active" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
+      <div class="nav-item active" onclick="switchTab('tab-global', this)">📊 Global</div>
+      <div class="nav-item" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
       <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo</div>
-      <div class="nav-item" onclick="switchTab('tab-weeks', this)">📅 Semanas</div>
       <div class="nav-item" onclick="switchTab('tab-custom-view', this)">🔍 Desglose Custom</div>
       <div class="nav-item" onclick="switchTab('tab-export', this)">📥 Exportar Datos</div>
     </nav>
@@ -281,12 +310,11 @@
   <!-- MAIN CONTENT -->
   <main class="main-content">
     
-    <!-- 🔴 HEADER GLOBAL: Permanece visible en Tarjetas, Equipo y Semanas 🔴 -->
-    <div id="global-stats-header" style="display: block;">
-      <h1 class="page-title" id="dynamic-title">Desglose por Tarjetas</h1>
-      
+    <!-- TAB 1: GLOBAL -->
+    <div id="tab-global" class="tab-pane active">
+      <h1 class="page-title">Resumen Global del Tablero</h1>
       <div class="top-row">
-        <!-- Bloque Izquierdo: Stats -->
+        <!-- Bloque Izquierdo: Stats Globales -->
         <div class="summary-grid">
           <div class="stat-card">
             <div class="stat-lbl">Tiempo Total Invertido</div>
@@ -302,7 +330,7 @@
           </div>
         </div>
 
-        <!-- Bloque Derecho: Chart -->
+        <!-- Bloque Derecho: Chart Global -->
         <div class="chart-box" id="chart-container">
           <div class="chart-title">Distribución Global por Equipo</div>
           <div style="flex: 1; position: relative;">
@@ -312,24 +340,60 @@
       </div>
     </div>
 
-    <!-- TAB 1: TARJETAS (Ahora solo contiene la lista) -->
-    <div id="tab-cards" class="tab-pane active">
+    <!-- TAB 2: TARJETAS -->
+    <div id="tab-cards" class="tab-pane">
+      <h1 class="page-title">Desglose por Tarjetas</h1>
+      
+      <!-- Filtro de Búsqueda de Tarjetas -->
+      <div class="filter-row">
+        <div class="form-group" style="max-width: 400px; margin-bottom: 0;">
+          <label class="form-label">Buscar Tarjeta</label>
+          <input type="text" class="form-input" id="card-search-input" placeholder="🔍 Escribe el nombre de la tarjeta..." oninput="renderCardsTab()">
+        </div>
+      </div>
+
       <div id="cards-container">
         <div class="empty-state"><div class="spinner"></div>Analizando tarjetas en tiempo real...</div>
       </div>
     </div>
 
-    <!-- TAB 2: EQUIPO -->
+    <!-- TAB 3: EQUIPO -->
     <div id="tab-team" class="tab-pane">
+      <h1 class="page-title">Desglose por Equipo</h1>
+      
+      <!-- Filtros de Equipo: Tiempo y Persona -->
+      <div class="filter-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Rango de tiempo</label>
+          <select class="form-select" id="team-range" onchange="toggleTeamCustomDates()">
+            <option value="all">Todo el historial</option>
+            <option value="month">Este mes</option>
+            <option value="week">Esta semana</option>
+            <option value="custom">Personalizado (Elegir fechas)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Miembro del Equipo</label>
+          <select class="form-select" id="team-member-select" onchange="processAndRenderUI()">
+            <option value="all">Todos los miembros</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="date-row" id="team-custom-dates" style="display: none; margin-bottom: 20px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Fecha Inicio</label>
+          <input type="date" class="form-input" id="team-start" onchange="processAndRenderUI()">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Fecha Fin</label>
+          <input type="date" class="form-input" id="team-end" onchange="processAndRenderUI()">
+        </div>
+      </div>
+
       <div id="team-container">
         <div class="empty-state"><div class="spinner"></div>Agrupando trabajo del equipo...</div>
-      </div>
-    </div>
-
-    <!-- TAB 3: SEMANAS -->
-    <div id="tab-weeks" class="tab-pane">
-      <div id="weeks-container">
-        <div class="empty-state"><div class="spinner"></div>Agrupando histórico semanal...</div>
       </div>
     </div>
 
@@ -428,10 +492,14 @@
   var KEY = 'chronos';
   
   var rawCardStore = []; 
+  var processedCardsList = []; // Datos procesados de tarjetas para el tab de tarjetas
   var boardCustomFields = [];
+  var openAccordions = new Set(); // Preserva los acordeones desplegados
   
   var teamChartInstance = null;
-  var customChartInstance = null; // Instancia para el gráfico del Desglose Custom
+  var customChartInstance = null;
+  var cardChartInstances = {};   // Gráficos dinámicos por tarjeta
+  var memberChartInstances = {}; // Gráficos dinámicos por miembro
   
   var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
@@ -440,58 +508,81 @@
 
   /* ── UTILIDADES ──────────────────────────────────────────── */
   function fmt(s) {
-    s = Math.max(0, Math.floor(s||0));
-    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => String(v).padStart(2,'0')).join(':');
+    s = Math.max(0, Math.floor(s || 0));
+    return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map(v => String(v).padStart(2, '0')).join(':');
   }
-  function fmtH(s) { return (s/3600).toFixed(2) + 'h'; }
-  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function initials(n) { return (n||'?').trim().split(/\s+/).slice(0,2).map(w => w[0]||'?').join('').toUpperCase(); }
+  function fmtH(s) { return ((s || 0) / 3600).toFixed(2) + 'h'; }
   
-  const AVATAR_COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
+  function esc(s) { 
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;'); 
+  }
+  
+  function initials(n) { return (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '?').join('').toUpperCase(); }
+  
+  const AVATAR_COLORS = ['#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#f87168'];
   function mColor(n) { 
-    let h=0; for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; 
+    let h = 0; for (let i = 0; i < (n || '').length; i++) h = (h * 31 + n.charCodeAt(i)) | 0; 
     return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]; 
   }
   
   function avHtml(name, url) {
-    if(url) return `<div class="av"><img src="${esc(url)}" onerror="this.style.display='none'"></div>`;
+    if (url) return `<div class="av"><img src="${esc(url)}" onerror="this.parentElement.style.background='${mColor(name)}'; this.remove();"></div>`;
     return `<div class="av" style="background:${mColor(name)}">${esc(initials(name))}</div>`;
   }
 
-  function getWeekLabel(dateObj) {
-    const d = new Date(dateObj);
-    const day = d.getDay() || 7; 
-    d.setDate(d.getDate() - (day - 1)); 
-    const startStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
-    d.setDate(d.getDate() + 6); 
-    const endStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
-    return `Semana del ${startStr} al ${endStr}`;
+  function getDateLimits(rangeType, startId, endId) {
+    let startD = null, endD = null;
+    const now = new Date();
+    if (rangeType === 'month') {
+      startD = new Date(now.getFullYear(), now.getMonth(), 1);
+      endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    } else if (rangeType === 'week') {
+      let day = now.getDay() || 7;
+      startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0);
+      endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999);
+    } else if (rangeType === 'custom') {
+      const sVal = document.getElementById(startId).value;
+      const eVal = document.getElementById(endId).value;
+      if (sVal && eVal) {
+        startD = new Date(sVal + 'T00:00:00');
+        endD = new Date(eVal + 'T23:59:59');
+      }
+    }
+    return { startD, endD };
   }
 
-  /* ── UI NAVEGACIÓN (CONTROL DEL HEADER GLOBAL) ───────────── */
+  /* ── ACORDEONES SIN PERDER ESTADO ───────────────────────── */
+  window.toggleAccordion = function(headerEl, id) {
+    const bodyEl = headerEl.nextElementSibling;
+    const caretEl = headerEl.querySelector('.db-caret');
+    
+    caretEl.classList.toggle('open');
+    bodyEl.classList.toggle('open');
+
+    if (bodyEl.classList.contains('open')) {
+      openAccordions.add(id);
+    } else {
+      openAccordions.delete(id);
+    }
+  };
+
+  /* ── UI NAVEGACIÓN ───────────────────────────────────────── */
   function switchTab(tabId, el) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
+  }
 
-    const globalHeader = document.getElementById('global-stats-header');
-    const dynamicTitle = document.getElementById('dynamic-title');
-
-    // Mostramos el Header global solo en las pestañas de análisis general
-    if (tabId === 'tab-cards') {
-      globalHeader.style.display = 'block';
-      dynamicTitle.textContent = 'Desglose por Tarjetas';
-    } else if (tabId === 'tab-team') {
-      globalHeader.style.display = 'block';
-      dynamicTitle.textContent = 'Desglose por Equipo';
-    } else if (tabId === 'tab-weeks') {
-      globalHeader.style.display = 'block';
-      dynamicTitle.textContent = 'Desglose por Semanas';
-    } else {
-      // Lo ocultamos en Custom View y Exportar
-      globalHeader.style.display = 'none';
-    }
+  function toggleTeamCustomDates() {
+    const val = document.getElementById('team-range').value;
+    document.getElementById('team-custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
+    processAndRenderUI();
   }
 
   function toggleCustomDates() {
@@ -504,7 +595,7 @@
     document.getElementById('custom-dates2').style.display = (val === 'custom') ? 'flex' : 'none';
   }
 
-  /* ── INICIALIZACIÓN DE CUSTOM FIELDS ─────────────────────── */
+  /* ── CARGA DE DATOS DESDE TRELLO ──────────────────────────── */
   function fetchCustomFieldsList() {
     t.board('customFields').then(board => {
       if (board && board.customFields) {
@@ -518,7 +609,7 @@
           cfSelect.appendChild(option);
         });
       }
-    }).catch(err => console.log('Error cargando custom fields', err));
+    }).catch(err => console.error('Error cargando custom fields:', err));
   }
 
   window.updateCustomValues = function() {
@@ -542,125 +633,184 @@
     }
   };
 
-  /* ── LECTURA DIRECTA Y FILTRADO ───────── */
   function fetchLiveBoardData() {
     return t.cards('id', 'name', 'customFieldItems').then(cards => {
       return Promise.all(cards.map(c => {
-        return t.get(c.id, 'shared', KEY).then(cState => {
-          return { card: c, state: cState || {} };
-        }).catch(() => ({ card: c, state: {} }));
+        return t.get(c.id, 'shared', KEY).then(cState => ({ card: c, state: cState || {} }))
+               .catch(() => ({ card: c, state: {} }));
       }));
     });
   }
 
-  function renderDashboard() {
+  function loadAndRenderData() {
     fetchLiveBoardData().then(cardStore => {
       rawCardStore = cardStore;
+      updateMemberListDropdown();
+      processAndRenderUI();
+    }).catch(err => console.error("Error al obtener datos:", err));
+  }
 
-      let totalBoardSecs = 0;
-      let activeTimersCount = 0;
-      let workedCardsCount = 0;
+  function updateMemberListDropdown() {
+    const memberSelect = document.getElementById('team-member-select');
+    const currentSelected = memberSelect.value;
+    let membersMap = {};
 
-      let cardsDataList = [];
-      let teamDataMap = {}; 
-      let weeksDataMap = {}; 
+    rawCardStore.forEach(item => {
+      (item.state.entries || []).forEach(e => {
+        if (e.memberId) membersMap[e.memberId] = e.memberName || 'Desconocido';
+      });
+      Object.keys(item.state.sessions || {}).forEach(pid => {
+        membersMap[pid] = item.state.sessions[pid].memberName || 'Desconocido';
+      });
+    });
 
-      const now = Date.now();
+    let html = '<option value="all">Todos los miembros</option>';
+    Object.keys(membersMap).sort((a,b) => membersMap[a].localeCompare(membersMap[b])).forEach(pid => {
+      html += `<option value="${pid}" ${currentSelected === pid ? 'selected' : ''}>${esc(membersMap[pid])}</option>`;
+    });
+    memberSelect.innerHTML = html;
+  }
 
-      cardStore.forEach(item => {
-        let card = item.card;
-        let state = item.state;
-        let entries = state.entries || [];
-        let sessions = state.sessions || {};
-        let cardTotalSecs = 0;
-        let cardMembersMap = {}; 
-        let isRunningOnCard = Object.keys(sessions).length > 0;
+  /* ── PROCESAMIENTO Y RENDERIZADO UI ──────────────────────── */
+  function processAndRenderUI() {
+    if (!rawCardStore) return;
 
-        if (isRunningOnCard) activeTimersCount += Object.keys(sessions).length;
+    let totalBoardSecs = 0;
+    let activeTimersCount = 0;
+    let workedCardsCount = 0;
 
-        const applyTimeToMaps = (dur, pid, pName, pAv, timestamp) => {
-          cardTotalSecs += dur;
+    let globalTeamMap = {}; 
+    let cardsDataList = [];
+    
+    // Filtros del Tab de Equipo
+    const teamRangeType = document.getElementById('team-range').value;
+    const { startD: teamStartD, endD: teamEndD } = getDateLimits(teamRangeType, 'team-start', 'team-end');
+    const selectedTeamMember = document.getElementById('team-member-select').value;
+    let teamDataMap = {}; 
+
+    const now = Date.now();
+
+    rawCardStore.forEach(item => {
+      let card = item.card;
+      let state = item.state;
+      let entries = state.entries || [];
+      let sessions = state.sessions || {};
+      
+      let cardTotalSecs = 0;
+      let cardMembersMap = {}; 
+      let activeSessionsCount = Object.keys(sessions).length;
+
+      if (activeSessionsCount > 0) activeTimersCount += activeSessionsCount;
+
+      // 1. Cálculo Global & Desglose por Tarjetas
+      entries.forEach(e => {
+        let dur = e.duration || 0;
+        let pid = e.memberId || 'unknown';
+        let pName = e.memberName || 'Desconocido';
+        let pAv = e.avatarUrl || '';
+
+        cardTotalSecs += dur;
+        if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+        cardMembersMap[pid].total += dur;
+
+        if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+        globalTeamMap[pid].total += dur;
+      });
+
+      Object.keys(sessions).forEach(pid => {
+        let sess = sessions[pid];
+        let elapsed = Math.floor((now - sess.startTime) / 1000);
+        elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
+
+        if (elapsed > 0) {
+          let pName = sess.memberName || 'Desconocido';
+          let pAv = sess.avatarUrl || '';
+
+          cardTotalSecs += elapsed;
           if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
-          cardMembersMap[pid].total += dur;
-          if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
-          teamDataMap[pid].total += dur;
-          if (!teamDataMap[pid].cards[card.name]) teamDataMap[pid].cards[card.name] = 0;
-          teamDataMap[pid].cards[card.name] += dur;
-          let weekLbl = getWeekLabel(timestamp);
-          if (!weeksDataMap[weekLbl]) weeksDataMap[weekLbl] = { total: 0, cards: {} };
-          weeksDataMap[weekLbl].total += dur;
-          if (!weeksDataMap[weekLbl].cards[card.name]) weeksDataMap[weekLbl].cards[card.name] = 0;
-          weeksDataMap[weekLbl].cards[card.name] += dur;
-        };
+          cardMembersMap[pid].total += elapsed;
 
-        entries.forEach(e => {
-          let dur = e.duration || 0;
-          let pid = e.memberId || 'unknown';
-          let pName = e.memberName || 'Desconocido';
-          let pAv = e.avatarUrl || '';
-          applyTimeToMaps(dur, pid, pName, pAv, e.start || now);
-        });
-
-        Object.keys(sessions).forEach(pid => {
-          let sess = sessions[pid];
-          let elapsed = Math.floor((now - sess.startTime) / 1000);
-          elapsed = Math.min(elapsed, MAX_SECONDS);
-          if (elapsed > 0) {
-            let pName = sess.memberName || 'Desconocido';
-            let pAv = sess.avatarUrl || '';
-            applyTimeToMaps(elapsed, pid, pName, pAv, sess.startTime || now);
-          }
-        });
-
-        if (cardTotalSecs > 0 || isRunningOnCard) {
-          workedCardsCount++;
-          totalBoardSecs += cardTotalSecs;
-          cardsDataList.push({ name: card.name, total: cardTotalSecs, running: isRunningOnCard, members: Object.values(cardMembersMap) });
+          if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+          globalTeamMap[pid].total += elapsed;
         }
       });
 
-      document.getElementById('s-total').textContent = fmtH(totalBoardSecs);
-      document.getElementById('s-cards').textContent = workedCardsCount;
-      document.getElementById('s-active').textContent = activeTimersCount;
+      if (cardTotalSecs > 0 || activeSessionsCount > 0) {
+        workedCardsCount++;
+        totalBoardSecs += cardTotalSecs;
+        cardsDataList.push({ 
+          id: card.id,
+          name: card.name, 
+          total: cardTotalSecs, 
+          running: activeSessionsCount > 0, 
+          members: Object.values(cardMembersMap) 
+        });
+      }
 
-      renderChart(teamDataMap);
-      renderCardsTab(cardsDataList);
-      renderTeamTab(teamDataMap);
-      renderWeeksTab(weeksDataMap);
+      // 2. Cálculo Filtrado para el Tab de Equipo
+      const applyTeamTimeToMap = (dur, pid, pName, pAv) => {
+        if (selectedTeamMember !== 'all' && pid !== selectedTeamMember) return;
+        if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
+        teamDataMap[pid].total += dur;
+        teamDataMap[pid].cards[card.name] = (teamDataMap[pid].cards[card.name] || 0) + dur;
+      };
 
-      document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      entries.forEach(e => {
+        let eDate = new Date(e.start || now);
+        if (teamStartD && eDate < teamStartD) return;
+        if (teamEndD && eDate > teamEndD) return;
+        applyTeamTimeToMap(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido', e.avatarUrl || '');
+      });
+
+      if (!teamEndD || now.getTime() <= teamEndD.getTime()) {
+        if (!teamStartD || now.getTime() >= teamStartD.getTime()) {
+          Object.keys(sessions).forEach(pid => {
+            let sess = sessions[pid];
+            let elapsed = Math.floor((now - sess.startTime) / 1000);
+            elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
+            if (elapsed > 0) {
+              applyTeamTimeToMap(elapsed, pid, sess.memberName || 'Desconocido', sess.avatarUrl || '');
+            }
+          });
+        }
+      }
+
     });
+
+    // Actualizamos Tab Global
+    document.getElementById('s-total').textContent = fmtH(totalBoardSecs);
+    document.getElementById('s-cards').textContent = workedCardsCount;
+    document.getElementById('s-active').textContent = activeTimersCount;
+    renderChart(globalTeamMap);
+
+    // Actualizamos Tab de Tarjetas
+    processedCardsList = cardsDataList;
+    renderCardsTab();
+
+    // Actualizamos Tab de Equipo
+    renderTeamTab(teamDataMap, selectedTeamMember);
+
+    document.getElementById('last-update').textContent = 'Sincronizado: ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
 
-  /* ── GRÁFICO GLOBAL (CHART.JS) ── */
+  /* ── RENDERIZADO TAB GLOBAL ─────────────────────────────── */
   function renderChart(teamDataMap) {
     const pids = Object.keys(teamDataMap);
     const container = document.getElementById('chart-container');
     const ctx = document.getElementById('teamChart');
 
-    if (pids.length === 0) {
-      container.style.display = 'none'; 
-      return;
-    }
-
+    if (pids.length === 0) { container.style.display = 'none'; return; }
     container.style.display = 'flex'; 
     
     const labels = [];
     const dataValues = [];
     const backgroundColors = [];
 
-    let colorMap = {};
-    let colorIndex = 0;
-
-    pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach(pid => {
+    pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach((pid, idx) => {
       let member = teamDataMap[pid];
       labels.push(member.name);
       dataValues.push((member.total / 3600).toFixed(2)); 
-      if (!colorMap[member.name]) {
-        colorMap[member.name] = DYNAMIC_PALETTE[colorIndex % DYNAMIC_PALETTE.length];
-        colorIndex++;
-      }
-      backgroundColors.push(colorMap[member.name]);
+      backgroundColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
     });
 
     if (teamChartInstance) {
@@ -671,129 +821,199 @@
     } else {
       teamChartInstance = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{ data: dataValues, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }]
-        },
+        data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }] },
         options: {
           responsive: true, maintainAspectRatio: false, cutout: '65%', 
           plugins: {
-            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 12 }, padding: 20 } },
-            tooltip: { callbacks: { label: function(context) { return ` ${context.raw} Horas`; } } }
+            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 12 }, padding: 15 } },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Horas` } }
           }
         }
       });
     }
   }
 
-  function renderCardsTab(cardsDataList) {
+  /* ── RENDERIZADO TAB TARJETAS (CON BÚSQUEDA Y VER GRÁFICO) ─ */
+  function renderCardsTab() {
     const container = document.getElementById('cards-container');
-    if (!cardsDataList.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay registros de tiempo en las tarjetas.</div>`;
+    const searchQuery = (document.getElementById('card-search-input').value || '').toLowerCase().trim();
+
+    let filteredCards = processedCardsList.filter(c => c.name.toLowerCase().includes(searchQuery));
+
+    if (!filteredCards.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontraron tarjetas que coincidan.</div>`;
       return;
     }
-    cardsDataList.sort((a,b) => b.total - a.total);
-    let html = cardsDataList.map(card => {
-      let membersHtml = '';
-      if (card.members && card.members.length) {
-        card.members.sort((a,b) => b.total - a.total);
-        membersHtml = card.members.map(m => `
-          <div class="log-row" style="margin: 0 20px 8px 40px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              ${avHtml(m.name, m.avatarUrl)}
-              <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
-            </div>
-            <div class="log-dur">${fmt(m.total)}</div>
+    filteredCards.sort((a,b) => b.total - a.total);
+    
+    let html = filteredCards.map(card => {
+      let isOpen = openAccordions.has(card.id);
+      let membersHtml = card.members.sort((a,b) => b.total - a.total).map(m => `
+        <div class="log-row" style="margin: 0 20px 8px 40px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            ${avHtml(m.name, m.avatarUrl)}
+            <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
           </div>
-        `).join('');
-      }
+          <div class="log-dur">${fmt(m.total)}</div>
+        </div>
+      `).join('');
+
       return `
         <div class="data-block">
-          <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
-            <span class="db-caret">▶</span>
+          <div class="db-header" onclick="toggleAccordion(this, '${card.id}')">
+            <span class="db-caret ${isOpen ? 'open' : ''}">▶</span>
             <span class="db-title">${esc(card.name)}</span>
             ${card.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px;">● Activo</span>' : ''}
+            <button class="btn-sm-chart" onclick="event.stopPropagation(); toggleCardChart('${card.id}')">📊 Ver gráfico</button>
             <span class="db-total">${fmt(card.total)}</span>
           </div>
-          <div class="db-body"><div style="padding: 10px 0;">${membersHtml}</div></div>
+          
+          <div class="inline-chart-box" id="card-chart-wrap-${card.id}">
+            <canvas id="card-canvas-${card.id}"></canvas>
+          </div>
+
+          <div class="db-body ${isOpen ? 'open' : ''}"><div style="padding: 10px 0;">${membersHtml}</div></div>
         </div>
       `;
     }).join('');
     container.innerHTML = html;
   }
 
-  function renderTeamTab(teamDataMap) {
+  function toggleCardChart(cardId) {
+    const chartWrap = document.getElementById(`card-chart-wrap-${cardId}`);
+    if (!chartWrap) return;
+
+    if (chartWrap.style.display === 'block') {
+      chartWrap.style.display = 'none';
+      if (cardChartInstances[cardId]) {
+        cardChartInstances[cardId].destroy();
+        delete cardChartInstances[cardId];
+      }
+    } else {
+      chartWrap.style.display = 'block';
+      const cardData = processedCardsList.find(c => c.id === cardId);
+      if (!cardData) return;
+
+      const ctx = document.getElementById(`card-canvas-${cardId}`);
+      const labels = cardData.members.map(m => m.name);
+      const dataValues = cardData.members.map(m => (m.total / 3600).toFixed(2));
+      const colors = cardData.members.map((_, idx) => DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+
+      if (cardChartInstances[cardId]) cardChartInstances[cardId].destroy();
+
+      cardChartInstances[cardId] = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels, datasets: [{ label: 'Horas', data: dataValues, backgroundColor: colors, borderRadius: 4 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#8c9bab' }, grid: { display: false } },
+            y: { ticks: { color: '#8c9bab' }, grid: { color: '#333a41' } }
+          }
+        }
+      });
+    }
+  }
+
+  /* ── RENDERIZADO TAB EQUIPO (CON FILTROS Y VER GRÁFICO) ──── */
+  function renderTeamTab(teamDataMap, selectedMemberId) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
+    
     if (!pids.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado.</div>`;
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado para estos filtros.</div>`;
       return;
     }
+
+    let showGraphOption = (selectedMemberId === 'all');
+
     let html = pids.map(pid => {
       let p = teamDataMap[pid];
       let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
         <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(p.cards[cName])}</div></div>
       `).join('');
+
       return `
         <div class="data-block">
-          <div class="person-header">${avHtml(p.name, p.avatarUrl)}<div class="person-name">${esc(p.name)}</div><div class="person-total">${fmt(p.total)}</div></div>
+          <div class="person-header">
+            ${avHtml(p.name, p.avatarUrl)}
+            <div class="person-name">${esc(p.name)}</div>
+            ${showGraphOption ? `<button class="btn-sm-chart" onclick="toggleMemberChart('${pid}')">📊 Ver gráfico</button>` : ''}
+            <div class="person-total" style="margin-left: 16px;">${fmt(p.total)}</div>
+          </div>
+
+          <div class="inline-chart-box" id="member-chart-wrap-${pid}">
+            <canvas id="member-canvas-${pid}"></canvas>
+          </div>
+
           <div class="db-body open"><div style="padding: 10px 20px;">${cardsHtml}</div></div>
         </div>`;
     }).join('');
     container.innerHTML = html;
   }
 
-  function renderWeeksTab(weeksDataMap) {
-    const weeks = Object.keys(weeksDataMap);
-    const container = document.getElementById('weeks-container');
-    if (!weeks.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div>No hay datos para mostrar por semanas.</div>`;
-      return;
+  function toggleMemberChart(pid) {
+    const chartWrap = document.getElementById(`member-chart-wrap-${pid}`);
+    if (!chartWrap) return;
+
+    if (chartWrap.style.display === 'block') {
+      chartWrap.style.display = 'none';
+      if (memberChartInstances[pid]) {
+        memberChartInstances[pid].destroy();
+        delete memberChartInstances[pid];
+      }
+    } else {
+      chartWrap.style.display = 'block';
+      const ctx = document.getElementById(`member-canvas-${pid}`);
+      
+      // Obtener datos actuales filtrados del miembro desde el DOM/UI
+      const teamRangeType = document.getElementById('team-range').value;
+      const { startD, endD } = getDateLimits(teamRangeType, 'team-start', 'team-end');
+      const now = Date.now();
+
+      let memberCardsMap = {};
+      rawCardStore.forEach(item => {
+        (item.state.entries || []).forEach(e => {
+          if (e.memberId === pid) {
+            let eDate = new Date(e.start || now);
+            if (startD && eDate < startD) return;
+            if (endD && eDate > endD) return;
+            memberCardsMap[item.card.name] = (memberCardsMap[item.card.name] || 0) + (e.duration || 0);
+          }
+        });
+      });
+
+      const labels = Object.keys(memberCardsMap);
+      const dataValues = labels.map(k => (memberCardsMap[k] / 3600).toFixed(2));
+      const colors = labels.map((_, idx) => DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+
+      if (memberChartInstances[pid]) memberChartInstances[pid].destroy();
+
+      memberChartInstances[pid] = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '60%',
+          plugins: {
+            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } }
+          }
+        }
+      });
     }
-    let html = weeks.map(wName => {
-      let w = weeksDataMap[wName];
-      let cardsHtml = Object.keys(w.cards).sort((a,b) => w.cards[b] - w.cards[a]).map(cName => `
-        <div class="log-row" style="margin: 0 20px 4px 20px;"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(w.cards[cName])}</div></div>
-      `).join('');
-      return `
-        <div class="data-block">
-          <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
-            <span class="db-caret">▶</span>
-            <span class="db-title">${esc(wName)}</span>
-            <span class="db-total">${fmt(w.total)}</span>
-          </div>
-          <div class="db-body"><div style="padding: 10px 0;">${cardsHtml}</div></div>
-        </div>`;
-    }).join('');
-    container.innerHTML = html;
   }
 
-  /* ── LÓGICA: DESGLOSE Y EXPORTACIÓN CUSTOM ───────────────── */
+  /* ── FILTROS CUSTOM & EXPORTACIONES ──────────────────────── */
   function getFilteredCustomData() {
     const cfId = document.getElementById('cf-select').value;
     const valId = document.getElementById('cf-value-select').value;
     const rangeType = document.getElementById('custom-range').value;
 
-    if (!cfId || !valId) { alert("Por favor selecciona un Campo Personalizado y una Opción (Filtro)."); return null; }
-    if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos en el tablero."); return null; }
+    if (!cfId || !valId) { alert("Por favor selecciona un Campo Personalizado y un Filtro."); return null; }
+    if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos cargados del tablero."); return null; }
 
-    let startD = null, endD = null;
+    const { startD, endD } = getDateLimits(rangeType, 'custom-start', 'custom-end');
     const now = new Date();
-
-    if (rangeType === 'month') {
-      startD = new Date(now.getFullYear(), now.getMonth(), 1);
-      endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    } else if (rangeType === 'week') {
-      let day = now.getDay() || 7; 
-      startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0);
-      endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999);
-    } else if (rangeType === 'custom') {
-      const sVal = document.getElementById('custom-start').value;
-      const eVal = document.getElementById('custom-end').value;
-      if (!sVal || !eVal) { alert("Selecciona fechas de inicio y fin válidas."); return null; }
-      startD = new Date(sVal + 'T00:00:00');
-      endD = new Date(eVal + 'T23:59:59');
-    }
 
     let aggregated = {}; 
     let displayData = []; 
@@ -830,7 +1050,7 @@
           Object.keys(sessions).forEach(pid => {
             let sess = sessions[pid];
             let elapsed = Math.floor((now - sess.startTime) / 1000);
-            elapsed = Math.min(elapsed, MAX_SECONDS);
+            elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
 
             if (elapsed > 0) {
               let member = sess.memberName || 'Desconocido';
@@ -866,46 +1086,39 @@
       const cfValue = valSelect.options[valSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
 
       if (Object.keys(result.aggregated).length === 0) {
-        alert("No hay registros de tiempo en las fechas y filtros indicados."); return;
+        alert("No hay registros en el rango seleccionado."); return;
       }
       downloadCSV(result.aggregated, `Desglose_${cfName}_${cfValue}.csv`);
 
     } else if (actionType === 'view') {
       const container = document.getElementById('custom-results-container');
-      
       if (result.displayData.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo registrado para esta opción.</div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo para esta combinación.</div>`;
         return;
       }
 
       result.displayData.sort((a,b) => b.total - a.total);
       let grandTotal = 0;
-      let customTeamMap = {}; // Para el gráfico del desglose custom
+      let customTeamMap = {}; 
 
       let html = result.displayData.map(card => {
         grandTotal += card.total;
-        let membersHtml = '';
-        if (card.members && card.members.length) {
-          card.members.sort((a,b) => b.total - a.total);
-          membersHtml = card.members.map(m => {
-            // Acumular tiempo por miembro para el gráfico custom
-            if (!customTeamMap[m.name]) customTeamMap[m.name] = 0;
-            customTeamMap[m.name] += m.total;
-
-            return `
-              <div class="log-row" style="margin: 0 20px 8px 40px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                  ${avHtml(m.name, m.avatarUrl)}
-                  <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
-                </div>
-                <div class="log-dur">${fmt(m.total)}</div>
+        let membersHtml = card.members.sort((a,b) => b.total - a.total).map(m => {
+          customTeamMap[m.name] = (customTeamMap[m.name] || 0) + m.total;
+          return `
+            <div class="log-row" style="margin: 0 20px 8px 40px;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                ${avHtml(m.name, m.avatarUrl)}
+                <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
               </div>
-            `;
-          }).join('');
-        }
+              <div class="log-dur">${fmt(m.total)}</div>
+            </div>
+          `;
+        }).join('');
+
         return `
           <div class="data-block">
-            <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+            <div class="db-header" onclick="toggleAccordion(this, 'c_${esc(card.name)}')">
               <span class="db-caret open">▶</span>
               <span class="db-title">${esc(card.name)}</span>
               <span class="db-total">${fmt(card.total)}</span>
@@ -915,76 +1128,57 @@
         `;
       }).join('');
 
-      // Renderizamos el header con un segundo gráfico exclusivo para este desglose
       let headerHtml = `
         <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 8px;">Total del Filtro Seleccionado</div>
+            <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 8px;">Total Filtrado</div>
             <div style="font-size: 32px; font-weight: 700; color: var(--accent);">${fmt(grandTotal)}</div>
             <div style="font-size: 14px; color: var(--txt-mut); margin-top: 4px;">Equivale a ${fmtH(grandTotal)}</div>
           </div>
           
           <div style="width: 320px; min-height: 180px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; text-align: center;">Distribución de este filtro</div>
+            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; text-align: center;">Distribución</div>
             <div style="position: relative; height: 140px;">
               <canvas id="customChartCanvas"></canvas>
             </div>
           </div>
         </div>
       `;
+      
+      if (customChartInstance) { customChartInstance.destroy(); customChartInstance = null; }
+      
       container.innerHTML = headerHtml + html;
 
-      // Dibujamos el gráfico Custom una vez que el HTML esté inyectado
-      setTimeout(() => {
-         if(customChartInstance) customChartInstance.destroy(); // Limpiar gráfico anterior si existía
+      const ctxCustom = document.getElementById('customChartCanvas');
+      const cLabels = [];
+      const cData = [];
+      const cColors = [];
+      
+      Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => {
+        cLabels.push(name);
+        cData.push((customTeamMap[name] / 3600).toFixed(2));
+        cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+      });
 
-         const ctxCustom = document.getElementById('customChartCanvas');
-         const cLabels = [];
-         const cData = [];
-         const cColors = [];
-         
-         Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => {
-             cLabels.push(name);
-             cData.push((customTeamMap[name] / 3600).toFixed(2));
-             cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
-         });
-
-         customChartInstance = new Chart(ctxCustom, {
-            type: 'doughnut',
-            data: { labels: cLabels, datasets: [{ data: cData, backgroundColor: cColors, borderWidth: 0, hoverOffset: 4 }] },
-            options: {
-              responsive: true, maintainAspectRatio: false, cutout: '65%',
-              plugins: {
-                legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
-                tooltip: { callbacks: { label: function(context) { return ` ${context.raw} Horas`; } } }
-              }
-            }
-         });
-      }, 50);
+      customChartInstance = new Chart(ctxCustom, {
+        type: 'doughnut',
+        data: { labels: cLabels, datasets: [{ data: cData, backgroundColor: cColors, borderWidth: 0, hoverOffset: 4 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '65%',
+          plugins: {
+            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Horas` } }
+          }
+        }
+      });
     }
   };
 
-  /* ── EXPORTACIÓN GLOBAL (NORMAL) ────────────────────────────── */
+  /* ── EXPORTACIÓN GLOBAL ────────────────────────────────────── */
   window.executeExport = function() {
     if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos para exportar."); return; }
     const rangeType = document.getElementById('export-range').value;
-    let startD = null, endD = null;
-    const now = new Date();
-
-    if (rangeType === 'month') {
-      startD = new Date(now.getFullYear(), now.getMonth(), 1);
-      endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    } else if (rangeType === 'week') {
-      let day = now.getDay() || 7; 
-      startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0);
-      endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999);
-    } else if (rangeType === 'custom') {
-      const sVal = document.getElementById('export-start').value;
-      const eVal = document.getElementById('export-end').value;
-      if (!sVal || !eVal) { alert("Selecciona fechas válidas."); return; }
-      startD = new Date(sVal + 'T00:00:00');
-      endD = new Date(eVal + 'T23:59:59');
-    }
+    const { startD, endD } = getDateLimits(rangeType, 'export-start', 'export-end');
 
     let aggregated = {};
     rawCardStore.forEach(item => {
@@ -1006,10 +1200,9 @@
     downloadCSV(aggregated, `TrackingTime_Global_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
-  /* ── FUNCIÓN DE DESCARGA CSV (Reutilizable) ────────────────── */
   function downloadCSV(aggregatedData, filename) {
     let aggregatedList = Object.values(aggregatedData);
-    if (!aggregatedList.length) { alert("No se encontraron registros de tiempo que coincidan con los filtros."); return; }
+    if (!aggregatedList.length) { alert("No se encontraron registros de tiempo que coincidan."); return; }
 
     aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration);
     let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (HH:MM:SS),Horas\n";
@@ -1033,13 +1226,25 @@
     document.body.removeChild(link);
   }
 
-  /* ── INICIALIZACIÓN Y BUCLE DE AUTO-REFRESCO ────────────── */
-  t.board('name').then(board => { document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; }).catch(() => {});
+  /* ── INICIALIZACIÓN Y CICLO DE VIDA ───────────────────────── */
+  t.board('name').then(board => { 
+    document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; 
+  }).catch(() => {});
+
   fetchCustomFieldsList();
-  renderDashboard();
-  setInterval(renderDashboard, 1000);
-  window.addEventListener('focus', renderDashboard);
-  document.addEventListener('visibilitychange', function() { if (!document.hidden) renderDashboard(); });
+  loadAndRenderData();
+
+  // Refresco del reloj visual local (1 segundo)
+  setInterval(processAndRenderUI, 1000);
+
+  // Petición a Trello en segundo plano (20 segundos)
+  setInterval(loadAndRenderData, 20000);
+
+  // Sincronización proactiva cuando la pestaña vuelve a enfocarse
+  window.addEventListener('focus', loadAndRenderData);
+  document.addEventListener('visibilitychange', function() { 
+    if (!document.hidden) loadAndRenderData(); 
+  });
 </script>
 </body>
 </html>
