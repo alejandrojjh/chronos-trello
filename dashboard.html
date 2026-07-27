@@ -176,7 +176,6 @@
     .db-body { display: none; border-top: 1px solid var(--border); background: var(--bg-app); }
     .db-body.open { display: block; }
 
-    /* Caja para gráfico dentro de la tarjeta */
     .accordion-chart-wrap {
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
@@ -378,7 +377,7 @@
       <h1 class="page-title">Desglose Custom (Filtros Avanzados)</h1>
       <div class="export-card" style="margin-bottom: 32px;">
         <div class="export-desc">
-          Filtra, visualiza y descarga el tiempo registrado basándote en un <strong>Custom Field</strong> y un <strong>Rango de Fechas</strong> específico.
+          Filtra, visualiza y descarga el tiempo registrado basándote en un <strong>Custom Field</strong>, un <strong>Miembro</strong> y un <strong>Rango de Fechas</strong> específico.
         </div>
         
         <div class="date-row" style="margin-bottom: 16px;">
@@ -398,7 +397,13 @@
 
         <div class="date-row" style="margin-bottom: 16px;">
           <div class="form-group">
-            <label class="form-label">3. Rango de tiempo</label>
+            <label class="form-label">3. Miembro del Equipo</label>
+            <select class="form-select" id="cf-member-select">
+              <option value="all">Todos los miembros</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">4. Rango de tiempo</label>
             <select class="form-select" id="custom-range" onchange="toggleCustomDates2()">
               <option value="all">Todo el historial</option>
               <option value="month">Este mes</option>
@@ -420,7 +425,7 @@
         </div>
 
         <div style="display: flex; gap: 12px; margin-top: 10px;">
-          <button class="btn-secondary" onclick="executeCustomAction('view')">👁️ Ver en Pantalla</button>
+          <button class="btn-secondary" onclick="executeCustomAction('view')">Ver en Pantalla</button>
           <button class="btn-primary-green" onclick="executeCustomAction('export')">📥 Descargar CSV Filtrado</button>
         </div>
       </div>
@@ -613,14 +618,18 @@
   function loadAndRenderData() {
     fetchLiveBoardData().then(cardStore => {
       rawCardStore = cardStore;
-      updateMemberListDropdown();
+      updateMemberListDropdowns();
       processAndRenderUI();
     }).catch(err => console.error("Error al obtener datos:", err));
   }
 
-  function updateMemberListDropdown() {
+  function updateMemberListDropdowns() {
     const memberSelect = document.getElementById('team-member-select');
-    const currentSelected = memberSelect.value;
+    const cfMemberSelect = document.getElementById('cf-member-select');
+    
+    const currentSelected = memberSelect ? memberSelect.value : 'all';
+    const currentCfSelected = cfMemberSelect ? cfMemberSelect.value : 'all';
+    
     let membersMap = {};
 
     rawCardStore.forEach(item => {
@@ -634,9 +643,17 @@
 
     let html = '<option value="all">Todos los miembros</option>';
     Object.keys(membersMap).sort((a,b) => membersMap[a].localeCompare(membersMap[b])).forEach(pid => {
-      html += `<option value="${pid}" ${currentSelected === pid ? 'selected' : ''}>${esc(membersMap[pid])}</option>`;
+      html += `<option value="${pid}">${esc(membersMap[pid])}</option>`;
     });
-    memberSelect.innerHTML = html;
+
+    if (memberSelect) {
+      memberSelect.innerHTML = html;
+      memberSelect.value = currentSelected;
+    }
+    if (cfMemberSelect) {
+      cfMemberSelect.innerHTML = html;
+      cfMemberSelect.value = currentCfSelected;
+    }
   }
 
   /* ── PROCESAMIENTO Y RENDERIZADO UI ──────────────────────── */
@@ -775,7 +792,7 @@
     pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach((pid, idx) => {
       let member = teamDataMap[pid];
       let pct = totalSecs > 0 ? ((member.total / totalSecs) * 100).toFixed(1) : 0;
-      labels.push(member.name); // Solo el nombre en la leyenda
+      labels.push(member.name);
       dataValues.push(pct); 
       backgroundColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
     });
@@ -860,7 +877,7 @@
 
     cardData.members.sort((a,b) => b.total - a.total).forEach((m, idx) => {
       let pct = ((m.total / cardData.total) * 100).toFixed(1);
-      labels.push(m.name); // Solo el nombre sin %
+      labels.push(m.name);
       dataValues.push(pct);
       colors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
     });
@@ -880,7 +897,7 @@
     });
   }
 
-  /* ── RENDERIZADO TAB EQUIPO (SIN ESPACIO EN BLANCO Y SIN CÍRCULOS) ── */
+  /* ── RENDERIZADO TAB EQUIPO ─────────────────────────────── */
   function renderTeamTab(teamDataMap, selectedMemberId) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
@@ -917,6 +934,7 @@
   function getFilteredCustomData() {
     const cfId = document.getElementById('cf-select').value;
     const valId = document.getElementById('cf-value-select').value;
+    const selectedMemberId = document.getElementById('cf-member-select').value;
     const rangeType = document.getElementById('custom-range').value;
 
     if (!cfId || !valId) { alert("Por favor selecciona un Campo Personalizado y un Filtro."); return null; }
@@ -939,6 +957,8 @@
       let cardMembersMap = {}; 
 
       entries.forEach(e => {
+        if (selectedMemberId !== 'all' && e.memberId !== selectedMemberId) return;
+
         let eDate = new Date(e.start || Date.now());
         if (startD && eDate < startD) return;
         if (endD && eDate > endD) return;
@@ -958,6 +978,8 @@
       if (!endD || now.getTime() <= endD.getTime()) {
         if (!startD || now.getTime() >= startD.getTime()) {
           Object.keys(sessions).forEach(pid => {
+            if (selectedMemberId !== 'all' && pid !== selectedMemberId) return;
+
             let sess = sessions[pid];
             let elapsed = Math.floor((now - sess.startTime) / 1000);
             elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
@@ -996,14 +1018,14 @@
       const cfValue = valSelect.options[valSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
 
       if (Object.keys(result.aggregated).length === 0) {
-        alert("No hay registros en el rango seleccionado."); return;
+        alert("No hay registros en el rango y filtros seleccionados."); return;
       }
       downloadCSV(result.aggregated, `Desglose_${cfName}_${cfValue}.csv`);
 
     } else if (actionType === 'view') {
       const container = document.getElementById('custom-results-container');
       if (result.displayData.length === 0) {
-        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo para esta combinación.</div>`;
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontró tiempo para esta combinación de filtros.</div>`;
         return;
       }
 
@@ -1063,7 +1085,7 @@
       
       Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => {
         let pct = grandTotal > 0 ? ((customTeamMap[name] / grandTotal) * 100).toFixed(1) : 0;
-        cLabels.push(name); // Solo el nombre en la leyenda
+        cLabels.push(name);
         cData.push(pct);
         cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
       });
@@ -1134,7 +1156,7 @@
     document.body.removeChild(link);
   }
 
-  /* ── INICIALIZACIÓN Y CICLO DE VIDA (CERO PARPADEO) ────────── */
+  /* ── INICIALIZACIÓN Y CICLO DE VIDA ───────────────────────── */
   t.board('name').then(board => { 
     document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; 
   }).catch(() => {});
