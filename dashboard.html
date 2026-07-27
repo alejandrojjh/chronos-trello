@@ -44,14 +44,55 @@
       flex-direction: column;
       flex-shrink: 0;
     }
-    .sb-header { padding: 24px 20px; border-bottom: 1px solid var(--border); }
-    .sb-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-    .sb-board { font-size: 12px; color: var(--txt-mut); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-    .sb-nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .nav-item { padding: 10px 12px; border-radius: 6px; color: var(--txt-main); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+    .sb-header {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sb-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+    .sb-board {
+      font-size: 12px;
+      color: var(--txt-mut);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
+    }
+    .sb-nav {
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+    .nav-item {
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: var(--txt-main);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
     .nav-item:hover { background: var(--surf); }
-    .nav-item.active { background: rgba(87, 157, 255, 0.1); color: var(--accent); }
-    .sb-footer { padding: 16px 20px; font-size: 10px; color: var(--txt-mut); border-top: 1px solid var(--border); text-align: center; }
+    .nav-item.active {
+      background: rgba(87, 157, 255, 0.1);
+      color: var(--accent);
+    }
+    .sb-footer {
+      padding: 16px 20px;
+      font-size: 10px;
+      color: var(--txt-mut);
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
 
     /* ── Main Content Area ────────────────────────────────── */
     .main-content {
@@ -67,7 +108,13 @@
     .page-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 24px; }
 
     /* ── Top Row Layout (Stats + Chart) ───────────────────── */
-    .top-row { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; align-items: stretch; }
+    .top-row {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
 
     /* ── Summary Stats ────────────────────────────────────── */
     .summary-grid {
@@ -78,7 +125,13 @@
       gap: 16px;
       align-content: start;
     }
-    .stat-card { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .stat-card {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
     .stat-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; letter-spacing: 0.5px; }
     .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
     .stat-val.blue { color: var(--accent); }
@@ -86,62 +139,118 @@
 
     /* ── Chart Container ──────────────────────────────────── */
     .chart-box {
-      background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 20px; width: 350px; min-height: 250px; display: none; flex-direction: column; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      width: 350px;
+      min-height: 250px;
+      display: none; 
+      flex-direction: column;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    .chart-box-large { width: 100%; max-width: 800px; margin: 24px 0; display: none; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
     .chart-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 12px; }
 
-    /* ── Filters Bar ──────────────────────────────────────── */
-    .filter-bar { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
-    .filter-group { flex: 1; min-width: 200px; }
-
     /* ── Cards UI ─────────────────────────────────────────── */
-    .data-block { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
-    .db-header { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; transition: background 0.2s; }
+    .data-block {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .db-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
     .db-header:hover { background: var(--surf-hover); }
     .db-caret { font-size: 10px; color: var(--txt-mut); transition: transform 0.2s; margin-right: 12px; }
     .db-caret.open { transform: rotate(90deg); }
-    .db-title { flex: 1; font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-    .db-total { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); font-size: 14px; margin-left: 16px; flex-shrink: 0; }
+    .db-title { flex: 1; font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .db-total { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); font-size: 14px; margin-left: 16px; }
     
     .db-body { display: none; border-top: 1px solid var(--border); background: var(--bg-app); }
     .db-body.open { display: block; }
     
-    /* ── Team & Shared UI ─────────────────────────────────── */
-    .person-header { display: flex; align-items: center; padding: 16px 20px; background: var(--surf); border-bottom: 1px solid var(--border); }
-    .av { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; margin-right: 12px; overflow: hidden; flex-shrink: 0; }
+    /* ── Team & Weeks UI ──────────────────────────────────── */
+    .person-header {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--surf);
+      border-bottom: 1px solid var(--border);
+    }
+    .av {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase;
+      margin-right: 12px; overflow: hidden; flex-shrink: 0;
+    }
     .av img { width: 100%; height: 100%; object-fit: cover; }
-    .person-name { flex: 1; font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;}
-    .person-total { font-size: 15px; font-weight: 700; color: var(--green); flex-shrink: 0; }
+    .person-name { flex: 1; font-size: 15px; font-weight: 600; color: #fff; }
+    .person-total { font-size: 15px; font-weight: 700; color: var(--green); }
 
-    .log-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 4px; background: rgba(255,255,255,0.02); margin-bottom: 4px; }
+    .week-group { padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .week-group:last-child { border-bottom: none; }
+    .week-title {
+      font-size: 11px; font-weight: 700; color: var(--txt-mut); text-transform: uppercase;
+      margin-bottom: 10px; display: flex; justify-content: space-between;
+    }
+    .log-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 12px; border-radius: 4px; background: rgba(255,255,255,0.02); margin-bottom: 4px;
+    }
     .log-row:hover { background: rgba(255,255,255,0.05); }
-    .log-card { font-size: 13px; color: var(--txt-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width:0; }
-    .log-dur { font-size: 13px; font-weight: 600; color: var(--txt-main); font-variant-numeric: tabular-nums; margin-left: 16px; flex-shrink: 0; }
+    .log-card { font-size: 13px; color: var(--txt-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .log-dur { font-size: 13px; font-weight: 600; color: var(--txt-main); font-variant-numeric: tabular-nums; margin-left: 16px; }
 
-    /* ── Export UI & Utilities ────────────────────────────── */
-    .export-card { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 650px; }
+    /* ── Export UI ────────────────────────────────────────── */
+    .export-card {
+      background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 650px;
+    }
     .export-desc { color: var(--txt-mut); margin-bottom: 20px; line-height: 1.5; }
     .form-group { margin-bottom: 16px; flex: 1; }
     .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 6px; }
-    .form-select, .form-input { width: 100%; background: var(--bg-app); border: 1px solid var(--border); color: #fff; padding: 10px 14px; border-radius: 4px; font-size: 13px; outline: none; }
+    .form-select, .form-input {
+      width: 100%; background: var(--bg-app); border: 1px solid var(--border); color: #fff;
+      padding: 10px 14px; border-radius: 4px; font-size: 13px; outline: none;
+    }
     .form-select:focus, .form-input:focus { border-color: var(--accent); }
     .form-select:disabled { opacity: 0.5; cursor: not-allowed; }
     .date-row { display: flex; gap: 16px; }
     
-    .btn-toggle { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-right: 16px; transition: .2s; flex-shrink:0; }
-    .btn-toggle:hover { background: var(--accent); color: #000; }
-    
-    .btn-export { background: var(--accent); color: #091e42; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; width: 100%; justify-content: center; }
+    .btn-export {
+      background: var(--accent); color: #091e42; border: none; padding: 12px 24px;
+      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; width: 100%; justify-content: center;
+    }
     .btn-export:hover { background: var(--accent-hvr); }
-    .btn-secondary { background: var(--bg-app); color: var(--txt-main); border: 1px solid var(--border); padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
+
+    .btn-secondary {
+      background: var(--bg-app); color: var(--txt-main); border: 1px solid var(--border); padding: 12px 24px;
+      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
+    }
     .btn-secondary:hover { background: var(--surf-hover); }
-    .btn-primary-green { background: var(--green); color: #161a1d; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: filter 0.2s; display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
+
+    .btn-primary-green {
+      background: var(--green); color: #161a1d; border: none; padding: 12px 24px;
+      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: filter 0.2s;
+      display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
+    }
     .btn-primary-green:hover { filter: brightness(1.1); }
 
+    /* ── Utilities ────────────────────────────────────────── */
     .empty-state { text-align: center; padding: 60px 20px; color: var(--txt-mut); }
     .empty-icon { font-size: 40px; opacity: 0.5; margin-bottom: 16px; }
-    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
     
     /* Scrollbar Estilizado */
@@ -160,9 +269,9 @@
       <div class="sb-board" id="board-name">Cargando tablero...</div>
     </div>
     <nav class="sb-nav">
-      <div class="nav-item active" onclick="switchTab('tab-general', this)">📊 Desglose General</div>
-      <div class="nav-item" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
-      <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Desglose por Equipo</div>
+      <div class="nav-item active" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
+      <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo</div>
+      <div class="nav-item" onclick="switchTab('tab-weeks', this)">📅 Semanas</div>
       <div class="nav-item" onclick="switchTab('tab-custom-view', this)">🔍 Desglose Custom</div>
       <div class="nav-item" onclick="switchTab('tab-export', this)">📥 Exportar Datos</div>
     </nav>
@@ -172,9 +281,10 @@
   <!-- MAIN CONTENT -->
   <main class="main-content">
     
-    <!-- TAB 1: DESGLOSE GENERAL -->
-    <div id="tab-general" class="tab-pane active">
-      <h1 class="page-title">Desglose General</h1>
+    <!-- 🔴 HEADER GLOBAL: Permanece visible en Tarjetas, Equipo y Semanas 🔴 -->
+    <div id="global-stats-header" style="display: block;">
+      <h1 class="page-title" id="dynamic-title">Desglose por Tarjetas</h1>
+      
       <div class="top-row">
         <!-- Bloque Izquierdo: Stats -->
         <div class="summary-grid">
@@ -202,61 +312,24 @@
       </div>
     </div>
 
-    <!-- TAB 2: TARJETAS -->
-    <div id="tab-cards" class="tab-pane">
-      <h1 class="page-title">Desglose por Tarjetas</h1>
-      
-      <div class="filter-bar">
-        <div class="filter-group">
-          <label class="form-label">Buscar Tarjeta Específica</label>
-          <input type="text" id="card-search" class="form-input" placeholder="Ej: Diseño de logo..." oninput="forceRender()">
-        </div>
-        <div style="font-size: 11px; color: var(--txt-mut); align-self: center;">
-          * Si está vacío, se muestran tarjetas trabajadas en los <b>últimos 7 días</b>.
-        </div>
-      </div>
-
+    <!-- TAB 1: TARJETAS (Ahora solo contiene la lista) -->
+    <div id="tab-cards" class="tab-pane active">
       <div id="cards-container">
         <div class="empty-state"><div class="spinner"></div>Analizando tarjetas en tiempo real...</div>
       </div>
     </div>
 
-    <!-- TAB 3: EQUIPO -->
+    <!-- TAB 2: EQUIPO -->
     <div id="tab-team" class="tab-pane">
-      <h1 class="page-title">Desglose por Equipo</h1>
-      
-      <div class="filter-bar">
-        <div class="filter-group">
-          <label class="form-label">Rango de Tiempo</label>
-          <select id="team-time-filter" class="form-select" onchange="toggleTeamDates(); forceRender()">
-            <option value="all">Todo el historial</option>
-            <option value="month">Este mes</option>
-            <option value="week">Esta semana (Lun-Dom)</option>
-            <option value="custom">Personalizado (Elegir fechas)</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="form-label">Filtrar por Persona</label>
-          <select id="team-person-filter" class="form-select" onchange="forceRender()">
-            <option value="all">Todos los miembros</option>
-          </select>
-        </div>
-      </div>
-      
-      <!-- Contenedor dinámico de Fechas Custom para Equipo -->
-      <div class="filter-bar" id="team-custom-dates" style="display: none; padding-top: 0; border: none; background: transparent; margin-top: -16px;">
-        <div class="filter-group">
-          <label class="form-label">Fecha de Inicio</label>
-          <input type="date" id="team-start" class="form-input" onchange="forceRender()">
-        </div>
-        <div class="filter-group">
-          <label class="form-label">Fecha de Fin</label>
-          <input type="date" id="team-end" class="form-input" onchange="forceRender()">
-        </div>
-      </div>
-
       <div id="team-container">
         <div class="empty-state"><div class="spinner"></div>Agrupando trabajo del equipo...</div>
+      </div>
+    </div>
+
+    <!-- TAB 3: SEMANAS -->
+    <div id="tab-weeks" class="tab-pane">
+      <div id="weeks-container">
+        <div class="empty-state"><div class="spinner"></div>Agrupando histórico semanal...</div>
       </div>
     </div>
 
@@ -350,9 +423,6 @@
 
   </main>
 
-  <!-- CONTENEDOR OCULTO PARA PRESERVAR CANVAS (Evita parpadeos al refrescar) -->
-  <div id="canvas-vault" style="display: none;"></div>
-
 <script>
   var t = window.TrelloPowerUp.iframe();
   var KEY = 'chronos';
@@ -361,21 +431,8 @@
   var boardCustomFields = [];
   
   var teamChartInstance = null;
-  var customChartInstance = null;
+  var customChartInstance = null; // Instancia para el gráfico del Desglose Custom
   
-  // Variables de Estado (Antiparpadeo)
-  var userChartsState = {}; 
-  var userChartsInstances = {}; 
-  var cardChartsState = {};
-  var cardChartsInstances = {};
-  var openAccordions = new Set();
-  
-  var knownTeamMembers = {};
-  
-  var lastCardsHash = '';
-  var lastTeamHash = '';
-  var lastPersonsDropdownHash = '';
-
   var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
   
@@ -389,11 +446,11 @@
   function fmtH(s) { return (s/3600).toFixed(2) + 'h'; }
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function initials(n) { return (n||'?').trim().split(/\s+/).slice(0,2).map(w => w[0]||'?').join('').toUpperCase(); }
-  function safeId(str) { return 'id_' + encodeURIComponent(str).replace(/[^a-zA-Z0-9]/g, '_'); }
   
+  const AVATAR_COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
   function mColor(n) { 
     let h=0; for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; 
-    return DYNAMIC_PALETTE[Math.abs(h) % DYNAMIC_PALETTE.length]; 
+    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]; 
   }
   
   function avHtml(name, url) {
@@ -401,12 +458,40 @@
     return `<div class="av" style="background:${mColor(name)}">${esc(initials(name))}</div>`;
   }
 
-  /* ── UI NAVEGACIÓN Y EVENTOS ─────────────────────────────── */
+  function getWeekLabel(dateObj) {
+    const d = new Date(dateObj);
+    const day = d.getDay() || 7; 
+    d.setDate(d.getDate() - (day - 1)); 
+    const startStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
+    d.setDate(d.getDate() + 6); 
+    const endStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
+    return `Semana del ${startStr} al ${endStr}`;
+  }
+
+  /* ── UI NAVEGACIÓN (CONTROL DEL HEADER GLOBAL) ───────────── */
   function switchTab(tabId, el) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
+
+    const globalHeader = document.getElementById('global-stats-header');
+    const dynamicTitle = document.getElementById('dynamic-title');
+
+    // Mostramos el Header global solo en las pestañas de análisis general
+    if (tabId === 'tab-cards') {
+      globalHeader.style.display = 'block';
+      dynamicTitle.textContent = 'Desglose por Tarjetas';
+    } else if (tabId === 'tab-team') {
+      globalHeader.style.display = 'block';
+      dynamicTitle.textContent = 'Desglose por Equipo';
+    } else if (tabId === 'tab-weeks') {
+      globalHeader.style.display = 'block';
+      dynamicTitle.textContent = 'Desglose por Semanas';
+    } else {
+      // Lo ocultamos en Custom View y Exportar
+      globalHeader.style.display = 'none';
+    }
   }
 
   function toggleCustomDates() {
@@ -417,49 +502,6 @@
   function toggleCustomDates2() {
     const val = document.getElementById('custom-range').value;
     document.getElementById('custom-dates2').style.display = (val === 'custom') ? 'flex' : 'none';
-  }
-  
-  function toggleTeamDates() {
-    const val = document.getElementById('team-time-filter').value;
-    document.getElementById('team-custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
-  }
-
-  // Acordeones (Ahora usan estado interno para no perderse)
-  window.toggleAcc = function(id) {
-    if (openAccordions.has(id)) openAccordions.delete(id); else openAccordions.add(id);
-    let body = document.getElementById('body-' + id);
-    let caret = document.getElementById('caret-' + id);
-    if(body) body.classList.toggle('open');
-    if(caret) caret.classList.toggle('open');
-  };
-
-  // Interacción de Gráficos (Equipo y Tarjetas)
-  window.toggleChart = function(type, id) {
-    if (type === 'user') userChartsState[id] = !userChartsState[id];
-    if (type === 'card') cardChartsState[id] = !cardChartsState[id];
-    forceRender();
-  };
-  
-  window.forceRender = function() {
-    lastCardsHash = ''; lastTeamHash = '';
-    renderDashboardLogic();
-  };
-
-  /* ── PRESERVACIÓN VIRTUAL-DOM PARA CANVAS (Antiparpadeo) ─── */
-  function safeMoveCanvases(type, instancesMap) {
-    const vault = document.getElementById('canvas-vault');
-    Object.keys(instancesMap).forEach(id => {
-      let canvas = document.getElementById(`canvas-${type}-${id}`);
-      if (canvas) vault.appendChild(canvas);
-    });
-  }
-
-  function safeRestoreCanvases(type, instancesMap) {
-    Object.keys(instancesMap).forEach(id => {
-      let placeholder = document.getElementById(`placeholder-${type}-${id}`);
-      let canvas = document.getElementById(`canvas-${type}-${id}`);
-      if (placeholder && canvas) placeholder.appendChild(canvas);
-    });
   }
 
   /* ── INICIALIZACIÓN DE CUSTOM FIELDS ─────────────────────── */
@@ -510,175 +552,129 @@
       }));
     });
   }
-  
-  function triggerDataFetch() {
-      fetchLiveBoardData().then(cardStore => {
-          rawCardStore = cardStore;
-          renderDashboardLogic();
-      }).catch(err => {
-          document.getElementById('last-update').textContent = 'Error actualizando. Reintentando...';
+
+  function renderDashboard() {
+    fetchLiveBoardData().then(cardStore => {
+      rawCardStore = cardStore;
+
+      let totalBoardSecs = 0;
+      let activeTimersCount = 0;
+      let workedCardsCount = 0;
+
+      let cardsDataList = [];
+      let teamDataMap = {}; 
+      let weeksDataMap = {}; 
+
+      const now = Date.now();
+
+      cardStore.forEach(item => {
+        let card = item.card;
+        let state = item.state;
+        let entries = state.entries || [];
+        let sessions = state.sessions || {};
+        let cardTotalSecs = 0;
+        let cardMembersMap = {}; 
+        let isRunningOnCard = Object.keys(sessions).length > 0;
+
+        if (isRunningOnCard) activeTimersCount += Object.keys(sessions).length;
+
+        const applyTimeToMaps = (dur, pid, pName, pAv, timestamp) => {
+          cardTotalSecs += dur;
+          if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+          cardMembersMap[pid].total += dur;
+          if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
+          teamDataMap[pid].total += dur;
+          if (!teamDataMap[pid].cards[card.name]) teamDataMap[pid].cards[card.name] = 0;
+          teamDataMap[pid].cards[card.name] += dur;
+          let weekLbl = getWeekLabel(timestamp);
+          if (!weeksDataMap[weekLbl]) weeksDataMap[weekLbl] = { total: 0, cards: {} };
+          weeksDataMap[weekLbl].total += dur;
+          if (!weeksDataMap[weekLbl].cards[card.name]) weeksDataMap[weekLbl].cards[card.name] = 0;
+          weeksDataMap[weekLbl].cards[card.name] += dur;
+        };
+
+        entries.forEach(e => {
+          let dur = e.duration || 0;
+          let pid = e.memberId || 'unknown';
+          let pName = e.memberName || 'Desconocido';
+          let pAv = e.avatarUrl || '';
+          applyTimeToMaps(dur, pid, pName, pAv, e.start || now);
+        });
+
+        Object.keys(sessions).forEach(pid => {
+          let sess = sessions[pid];
+          let elapsed = Math.floor((now - sess.startTime) / 1000);
+          elapsed = Math.min(elapsed, MAX_SECONDS);
+          if (elapsed > 0) {
+            let pName = sess.memberName || 'Desconocido';
+            let pAv = sess.avatarUrl || '';
+            applyTimeToMaps(elapsed, pid, pName, pAv, sess.startTime || now);
+          }
+        });
+
+        if (cardTotalSecs > 0 || isRunningOnCard) {
+          workedCardsCount++;
+          totalBoardSecs += cardTotalSecs;
+          cardsDataList.push({ name: card.name, total: cardTotalSecs, running: isRunningOnCard, members: Object.values(cardMembersMap) });
+        }
       });
+
+      document.getElementById('s-total').textContent = fmtH(totalBoardSecs);
+      document.getElementById('s-cards').textContent = workedCardsCount;
+      document.getElementById('s-active').textContent = activeTimersCount;
+
+      renderChart(teamDataMap);
+      renderCardsTab(cardsDataList);
+      renderTeamTab(teamDataMap);
+      renderWeeksTab(weeksDataMap);
+
+      document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    });
   }
 
-  // La lógica que distribuye los datos (sin parpadeos)
-  function renderDashboardLogic() {
-    const now = new Date();
-    document.getElementById('last-update').textContent = 'Actualizado: ' + now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-
-    if (!rawCardStore || rawCardStore.length === 0) {
-      document.getElementById('cards-container').innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay registros de tiempo en el tablero.</div>`;
-      document.getElementById('team-container').innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de tiempo.</div>`;
-      return;
-    }
-
-    /* ── 1. CÁLCULOS PESTAÑA GENERAL ── */
-    let globalTotalSecs = 0, globalActiveCount = 0, globalWorkedCards = 0, globalTeamMap = {};
-    
-    rawCardStore.forEach(item => {
-      let entries = item.state.entries || [], sessions = item.state.sessions || {}, cardTotal = 0;
-      let isRunning = Object.keys(sessions).length > 0;
-      if (isRunning) globalActiveCount += Object.keys(sessions).length;
-      
-      const applyGlobalTime = (dur, pid, pName) => {
-        cardTotal += dur;
-        if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, total: 0 };
-        globalTeamMap[pid].total += dur;
-      };
-      
-      entries.forEach(e => applyGlobalTime(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido'));
-      Object.keys(sessions).forEach(pid => {
-        let el = Math.min(Math.floor((now.getTime() - sessions[pid].startTime) / 1000), MAX_SECONDS);
-        if (el > 0) applyGlobalTime(el, pid, sessions[pid].memberName || 'Desconocido');
-      });
-      if (cardTotal > 0 || isRunning) { globalWorkedCards++; globalTotalSecs += cardTotal; }
-    });
-
-    document.getElementById('s-total').textContent = fmtH(globalTotalSecs);
-    document.getElementById('s-cards').textContent = globalWorkedCards;
-    document.getElementById('s-active').textContent = globalActiveCount;
-    renderChart(globalTeamMap); // Chart global
-
-    /* ── 2. CÁLCULOS PESTAÑA TARJETAS (Filtros: Search o 7 Días) ── */
-    let searchVal = document.getElementById('card-search').value.toLowerCase().trim();
-    let limitDateCards = searchVal ? null : new Date(now.getTime() - (7 * 24 * 3600 * 1000));
-    let cardsDataList = [];
-
-    rawCardStore.forEach(item => {
-      if (searchVal && !item.card.name.toLowerCase().includes(searchVal)) return;
-      
-      let entries = item.state.entries || [], sessions = item.state.sessions || {};
-      let cTotal = 0, cMembers = {}, isRunning = Object.keys(sessions).length > 0;
-      
-      const addTimeCard = (dur, pid, pName, pAv, dateStr) => {
-        if (limitDateCards && new Date(dateStr) < limitDateCards) return;
-        cTotal += dur;
-        if (!cMembers[pid]) cMembers[pid] = { name: pName, avatarUrl: pAv, total: 0 };
-        cMembers[pid].total += dur;
-      };
-      
-      entries.forEach(e => addTimeCard(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido', e.avatarUrl || '', e.start || now));
-      Object.keys(sessions).forEach(pid => {
-        let el = Math.min(Math.floor((now.getTime() - sessions[pid].startTime) / 1000), MAX_SECONDS);
-        if (el > 0) addTimeCard(el, pid, sessions[pid].memberName || 'Desconocido', sessions[pid].avatarUrl || '', sessions[pid].startTime || now);
-      });
-      
-      if (cTotal > 0 || isRunning) {
-          cardsDataList.push({ id: item.card.id, name: item.card.name, running: isRunning, total: cTotal, members: Object.values(cMembers) });
-      }
-    });
-
-    /* ── 3. CÁLCULOS PESTAÑA EQUIPO (Filtros: Fecha Custom y Persona) ── */
-    let timeFilter = document.getElementById('team-time-filter').value;
-    let personFilter = document.getElementById('team-person-filter').value;
-    let teamStartD = null, teamEndD = null;
-
-    if (timeFilter === 'month') {
-      teamStartD = new Date(now.getFullYear(), now.getMonth(), 1);
-      teamEndD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    } else if (timeFilter === 'week') {
-      let day = now.getDay() || 7; 
-      teamStartD = new Date(now); teamStartD.setDate(now.getDate() - day + 1); teamStartD.setHours(0,0,0,0);
-      teamEndD = new Date(teamStartD); teamEndD.setDate(teamStartD.getDate() + 6); teamEndD.setHours(23,59,59,999);
-    } else if (timeFilter === 'custom') {
-      let sVal = document.getElementById('team-start').value;
-      let eVal = document.getElementById('team-end').value;
-      if (sVal && eVal) {
-        teamStartD = new Date(sVal + 'T00:00:00');
-        teamEndD = new Date(eVal + 'T23:59:59');
-      }
-    }
-
-    let teamDataMap = {};
-    rawCardStore.forEach(item => {
-      let entries = item.state.entries || [], sessions = item.state.sessions || {};
-      
-      const addTimeTeam = (dur, pid, pName, pAv, dateStr) => {
-        let eDate = new Date(dateStr);
-        if (teamStartD && eDate < teamStartD) return;
-        if (teamEndD && eDate > teamEndD) return;
-
-        knownTeamMembers[pid] = pName; 
-        if (personFilter !== 'all' && personFilter !== pid) return;
-        
-        if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
-        teamDataMap[pid].total += dur;
-        teamDataMap[pid].cards[item.card.name] = (teamDataMap[pid].cards[item.card.name] || 0) + dur;
-      };
-      
-      entries.forEach(e => addTimeTeam(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido', e.avatarUrl || '', e.start || now));
-      Object.keys(sessions).forEach(pid => {
-        let sessTime = sessions[pid].startTime || now;
-        let el = Math.min(Math.floor((now.getTime() - sessTime) / 1000), MAX_SECONDS);
-        if (el > 0) addTimeTeam(el, pid, sessions[pid].memberName || 'Desconocido', sessions[pid].avatarUrl || '', sessTime);
-      });
-    });
-
-    updatePersonsDropdown();
-    
-    // Renderizado Dom Selectivo
-    renderCardsTab(cardsDataList);
-    renderTeamTab(teamDataMap);
-  }
-
-  /* ── RENDERIZADO DOM SELECTIVO Y GRÁFICOS (Chart.js) ── */
-  
-  function updatePersonsDropdown() {
-    let select = document.getElementById('team-person-filter');
-    let hash = Object.keys(knownTeamMembers).sort().join('|');
-    if (hash !== lastPersonsDropdownHash) {
-      let currentVal = select.value;
-      select.innerHTML = '<option value="all">Todos los miembros</option>' + 
-        Object.keys(knownTeamMembers).map(pid => `<option value="${pid}">${esc(knownTeamMembers[pid])}</option>`).join('');
-      select.value = currentVal || 'all';
-      lastPersonsDropdownHash = hash;
-    }
-  }
-
-  function renderChart(globalTeamMap) {
-    const pids = Object.keys(globalTeamMap);
+  /* ── GRÁFICO GLOBAL (CHART.JS) ── */
+  function renderChart(teamDataMap) {
+    const pids = Object.keys(teamDataMap);
     const container = document.getElementById('chart-container');
     const ctx = document.getElementById('teamChart');
 
-    if (pids.length === 0) { container.style.display = 'none'; return; }
+    if (pids.length === 0) {
+      container.style.display = 'none'; 
+      return;
+    }
+
     container.style.display = 'flex'; 
     
-    const labels = [], dataValues = [], backgroundColors = [];
-    pids.sort((a,b) => globalTeamMap[b].total - globalTeamMap[a].total).forEach(pid => {
-      let member = globalTeamMap[pid];
+    const labels = [];
+    const dataValues = [];
+    const backgroundColors = [];
+
+    let colorMap = {};
+    let colorIndex = 0;
+
+    pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach(pid => {
+      let member = teamDataMap[pid];
       labels.push(member.name);
       dataValues.push((member.total / 3600).toFixed(2)); 
-      backgroundColors.push(mColor(member.name));
+      if (!colorMap[member.name]) {
+        colorMap[member.name] = DYNAMIC_PALETTE[colorIndex % DYNAMIC_PALETTE.length];
+        colorIndex++;
+      }
+      backgroundColors.push(colorMap[member.name]);
     });
 
     if (teamChartInstance) {
       teamChartInstance.data.labels = labels;
       teamChartInstance.data.datasets[0].data = dataValues;
       teamChartInstance.data.datasets[0].backgroundColor = backgroundColors;
-      teamChartInstance.update('none'); 
+      teamChartInstance.update();
     } else {
       teamChartInstance = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }] },
+        data: {
+          labels: labels,
+          datasets: [{ data: dataValues, backgroundColor: backgroundColors, borderWidth: 0, hoverOffset: 4 }]
+        },
         options: {
           responsive: true, maintainAspectRatio: false, cutout: '65%', 
           plugins: {
@@ -693,158 +689,86 @@
   function renderCardsTab(cardsDataList) {
     const container = document.getElementById('cards-container');
     if (!cardsDataList.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay tarjetas que coincidan con el filtro actual.</div>`;
-      lastCardsHash = '';
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No hay registros de tiempo en las tarjetas.</div>`;
       return;
     }
-    
     cardsDataList.sort((a,b) => b.total - a.total);
-    // Hash para detectar si cambiaron las tarjetas, el numero de miembros, o estados de click.
-    let currentHash = cardsDataList.map(c => c.id + (c.running?'1':'0') + c.members.length + (cardChartsState[c.id]?'1':'0') + (openAccordions.has(c.id)?'1':'0')).join('||');
-
-    if (currentHash !== lastCardsHash) {
-      safeMoveCanvases('card', cardChartsInstances); // Salvamos los Canvas
-
-      let html = cardsDataList.map(card => {
-        let isOpen = openAccordions.has(card.id);
-        let membersHtml = '';
-        if (card.members && card.members.length) {
-          card.members.sort((a,b) => b.total - a.total);
-          membersHtml = card.members.map(m => `
-            <div class="log-row" style="margin: 0 20px 8px 40px;">
-              <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-                ${avHtml(m.name, m.avatarUrl)}
-                <span style="font-size: 13px; color: var(--txt-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(m.name)}</span>
-              </div>
-              <div class="log-dur" id="c-m-${card.id}-${safeId(m.name)}">${fmt(m.total)}</div>
+    let html = cardsDataList.map(card => {
+      let membersHtml = '';
+      if (card.members && card.members.length) {
+        card.members.sort((a,b) => b.total - a.total);
+        membersHtml = card.members.map(m => `
+          <div class="log-row" style="margin: 0 20px 8px 40px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              ${avHtml(m.name, m.avatarUrl)}
+              <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
             </div>
-          `).join('');
-        }
-        
-        let chartAreaId = 'placeholder-card-' + card.id;
-        let chartHtml = cardChartsState[card.id] ? `
-          <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center;">
-             <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); margin-bottom:12px; text-transform:uppercase;">Distribución en Tarjeta</div>
-             <div id="${chartAreaId}" style="height: 180px; width: 100%; position: relative;">${!cardChartsInstances[card.id] ? `<canvas id="canvas-card-${card.id}"></canvas>` : ''}</div>
-          </div>` : '';
-
-        return `
-          <div class="data-block">
-            <div class="db-header" onclick="toggleAcc('${card.id}')">
-              <span class="db-caret ${isOpen?'open':''}" id="caret-${card.id}">▶</span>
-              <span class="db-title">${esc(card.name)}</span>
-              ${card.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px; flex-shrink:0;">● Activo</span>' : ''}
-              <button class="btn-toggle" style="margin-left:auto; margin-right: 16px;" onclick="event.stopPropagation(); toggleChart('card', '${card.id}')">${cardChartsState[card.id] ? "Ocultar Gráfico" : "Ver Gráfico 📊"}</button>
-              <span class="db-total" id="c-tot-${card.id}">${fmt(card.total)}</span>
-            </div>
-            <div class="db-body ${isOpen?'open':''}" id="body-${card.id}"><div style="padding: 10px 0;">${membersHtml}</div>${chartHtml}</div>
+            <div class="log-dur">${fmt(m.total)}</div>
           </div>
-        `;
-      }).join('');
-      
-      container.innerHTML = html;
-      safeRestoreCanvases('card', cardChartsInstances); // Recuperamos los Canvas
-      lastCardsHash = currentHash;
-    } else {
-      // Reemplazo silencioso por IDs para cero parpadeo
-      cardsDataList.forEach(c => {
-        let tEl = document.getElementById(`c-tot-${c.id}`); if(tEl) tEl.textContent = fmt(c.total);
-        c.members.forEach(m => { let mEl = document.getElementById(`c-m-${c.id}-${safeId(m.name)}`); if(mEl) mEl.textContent = fmt(m.total); });
-      });
-    }
-
-    // Actualizar Chart.js Data
-    Object.keys(cardChartsState).forEach(cId => {
-      let card = cardsDataList.find(x => x.id === cId);
-      if (cardChartsState[cId] && card) {
-        let ctx = document.getElementById('canvas-card-' + cId);
-        if (!ctx) return;
-        let labels = [], data = [], colors = [];
-        card.members.sort((a,b) => b.total - a.total).forEach(m => { labels.push(m.name); data.push((m.total/3600).toFixed(2)); colors.push(mColor(m.name)); });
-        if (cardChartsInstances[cId]) {
-          cardChartsInstances[cId].data.labels = labels; cardChartsInstances[cId].data.datasets[0].data = data; cardChartsInstances[cId].data.datasets[0].backgroundColor = colors; cardChartsInstances[cId].update('none');
-        } else {
-          cardChartsInstances[cId] = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db' } }, tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } } } });
-        }
+        `).join('');
       }
-    });
-    // Limpieza de memoria
-    Object.keys(cardChartsInstances).forEach(cId => { if (!cardChartsState[cId]) { cardChartsInstances[cId].destroy(); delete cardChartsInstances[cId]; } });
+      return `
+        <div class="data-block">
+          <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+            <span class="db-caret">▶</span>
+            <span class="db-title">${esc(card.name)}</span>
+            ${card.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px;">● Activo</span>' : ''}
+            <span class="db-total">${fmt(card.total)}</span>
+          </div>
+          <div class="db-body"><div style="padding: 10px 0;">${membersHtml}</div></div>
+        </div>
+      `;
+    }).join('');
+    container.innerHTML = html;
   }
 
   function renderTeamTab(teamDataMap) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
-    
     if (!pids.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado para estos filtros.</div>`;
-      lastTeamHash = '';
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado.</div>`;
       return;
     }
-    
-    let currentHash = pids.map(pid => pid + Object.keys(teamDataMap[pid].cards).length + (userChartsState[pid]?'1':'0')).join('||');
-
-    if (currentHash !== lastTeamHash) {
-      safeMoveCanvases('user', userChartsInstances);
-
-      let html = pids.map(pid => {
-        let p = teamDataMap[pid];
-        let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
-          <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur" id="t-c-${pid}-${safeId(cName)}">${fmt(p.cards[cName])}</div></div>
-        `).join('');
-        
-        let chartAreaId = 'placeholder-user-' + pid;
-        let chartHtml = userChartsState[pid] ? `
-          <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center;">
-             <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); margin-bottom:12px; text-transform:uppercase;">Distribución de ${esc(p.name)}</div>
-             <div id="${chartAreaId}" style="height: 180px; width: 100%; position: relative;">${!userChartsInstances[pid] ? `<canvas id="canvas-user-${pid}"></canvas>` : ''}</div>
-          </div>` : '';
-
-        return `
-          <div class="data-block">
-            <div class="person-header">
-              ${avHtml(p.name, p.avatarUrl)}
-              <div class="person-name">${esc(p.name)}</div>
-              <button class="btn-toggle" onclick="toggleChart('user', '${esc(pid)}')">${userChartsState[pid] ? "Ocultar Gráfico" : "Ver Gráfico 📊"}</button>
-              <div class="person-total" id="t-tot-${pid}">${fmt(p.total)}</div>
-            </div>
-            <div class="db-body open">
-              <div style="padding: 10px 20px;">${cardsHtml}</div>
-              ${chartHtml}
-            </div>
-          </div>`;
-      }).join('');
-      
-      container.innerHTML = html;
-      safeRestoreCanvases('user', userChartsInstances);
-      lastTeamHash = currentHash;
-    } else {
-      // Reemplazo silencioso por IDs para cero parpadeo
-      pids.forEach(pid => {
-        let el = document.getElementById(`t-tot-${pid}`); if(el) el.textContent = fmt(teamDataMap[pid].total);
-        Object.keys(teamDataMap[pid].cards).forEach(cName => { let cel = document.getElementById(`t-c-${pid}-${safeId(cName)}`); if(cel) cel.textContent = fmt(teamDataMap[pid].cards[cName]); });
-      });
-    }
-
-    // Actualizar Chart.js Data
-    Object.keys(userChartsState).forEach(pid => {
-      if (userChartsState[pid] && teamDataMap[pid]) {
-        let ctx = document.getElementById('canvas-user-' + pid);
-        if (!ctx) return;
-        let labels = [], data = [], colors = [], cards = teamDataMap[pid].cards;
-        Object.keys(cards).sort((a,b) => cards[b] - cards[a]).forEach(cName => { labels.push(cName); data.push((cards[cName] / 3600).toFixed(2)); colors.push(mColor(cName)); });
-        if (userChartsInstances[pid]) {
-          userChartsInstances[pid].data.labels = labels; userChartsInstances[pid].data.datasets[0].data = data; userChartsInstances[pid].data.datasets[0].backgroundColor = colors; userChartsInstances[pid].update('none'); 
-        } else {
-          userChartsInstances[pid] = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db' } }, tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } } } });
-        }
-      }
-    });
-    // Limpieza de memoria
-    Object.keys(userChartsInstances).forEach(pid => { if (!userChartsState[pid]) { userChartsInstances[pid].destroy(); delete userChartsInstances[pid]; } });
+    let html = pids.map(pid => {
+      let p = teamDataMap[pid];
+      let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
+        <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(p.cards[cName])}</div></div>
+      `).join('');
+      return `
+        <div class="data-block">
+          <div class="person-header">${avHtml(p.name, p.avatarUrl)}<div class="person-name">${esc(p.name)}</div><div class="person-total">${fmt(p.total)}</div></div>
+          <div class="db-body open"><div style="padding: 10px 20px;">${cardsHtml}</div></div>
+        </div>`;
+    }).join('');
+    container.innerHTML = html;
   }
 
-  /* ── LÓGICA: DESGLOSE Y EXPORTACIÓN CUSTOM (Intacta) ───────────────── */
+  function renderWeeksTab(weeksDataMap) {
+    const weeks = Object.keys(weeksDataMap);
+    const container = document.getElementById('weeks-container');
+    if (!weeks.length) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div>No hay datos para mostrar por semanas.</div>`;
+      return;
+    }
+    let html = weeks.map(wName => {
+      let w = weeksDataMap[wName];
+      let cardsHtml = Object.keys(w.cards).sort((a,b) => w.cards[b] - w.cards[a]).map(cName => `
+        <div class="log-row" style="margin: 0 20px 4px 20px;"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(w.cards[cName])}</div></div>
+      `).join('');
+      return `
+        <div class="data-block">
+          <div class="db-header" onclick="this.querySelector('.db-caret').classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+            <span class="db-caret">▶</span>
+            <span class="db-title">${esc(wName)}</span>
+            <span class="db-total">${fmt(w.total)}</span>
+          </div>
+          <div class="db-body"><div style="padding: 10px 0;">${cardsHtml}</div></div>
+        </div>`;
+    }).join('');
+    container.innerHTML = html;
+  }
+
+  /* ── LÓGICA: DESGLOSE Y EXPORTACIÓN CUSTOM ───────────────── */
   function getFilteredCustomData() {
     const cfId = document.getElementById('cf-select').value;
     const valId = document.getElementById('cf-value-select').value;
@@ -956,7 +880,7 @@
 
       result.displayData.sort((a,b) => b.total - a.total);
       let grandTotal = 0;
-      let customTeamMap = {}; 
+      let customTeamMap = {}; // Para el gráfico del desglose custom
 
       let html = result.displayData.map(card => {
         grandTotal += card.total;
@@ -964,8 +888,10 @@
         if (card.members && card.members.length) {
           card.members.sort((a,b) => b.total - a.total);
           membersHtml = card.members.map(m => {
+            // Acumular tiempo por miembro para el gráfico custom
             if (!customTeamMap[m.name]) customTeamMap[m.name] = 0;
             customTeamMap[m.name] += m.total;
+
             return `
               <div class="log-row" style="margin: 0 20px 8px 40px;">
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -989,6 +915,7 @@
         `;
       }).join('');
 
+      // Renderizamos el header con un segundo gráfico exclusivo para este desglose
       let headerHtml = `
         <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
@@ -1007,8 +934,10 @@
       `;
       container.innerHTML = headerHtml + html;
 
+      // Dibujamos el gráfico Custom una vez que el HTML esté inyectado
       setTimeout(() => {
-         if(customChartInstance) customChartInstance.destroy(); 
+         if(customChartInstance) customChartInstance.destroy(); // Limpiar gráfico anterior si existía
+
          const ctxCustom = document.getElementById('customChartCanvas');
          const cLabels = [];
          const cData = [];
@@ -1105,17 +1034,12 @@
   }
 
   /* ── INICIALIZACIÓN Y BUCLE DE AUTO-REFRESCO ────────────── */
-  
-  // Extraemos la ejecución inicial para forzar la carga y quitar el "Sincronizando..." inmediatamente
   t.board('name').then(board => { document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; }).catch(() => {});
   fetchCustomFieldsList();
-  
-  // Arranque inmediato
-  triggerDataFetch();
-  
-  // Actualización en vivo (1 segundo)
-  setInterval(triggerDataFetch, 1000);
-  
+  renderDashboard();
+  setInterval(renderDashboard, 1000);
+  window.addEventListener('focus', renderDashboard);
+  document.addEventListener('visibilitychange', function() { if (!document.hidden) renderDashboard(); });
 </script>
 </body>
 </html>
