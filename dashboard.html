@@ -25,18 +25,9 @@
       --red:        #f87168;
     }
 
-    body {
-      background: var(--bg-app);
-      color: var(--txt-main);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 13px;
-      display: flex;
-      height: 100vh;
-      width: 100vw;
-      overflow: hidden;
-    }
+    body { background: var(--bg-app); color: var(--txt-main); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-    /* ── Sidebar ───────────────────────────────────────────── */
+    /* ── Sidebar ── */
     .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
     .sb-header { padding: 24px 20px; border-bottom: 1px solid var(--border); }
     .sb-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
@@ -47,8 +38,7 @@
     .nav-item.active { background: rgba(87, 157, 255, 0.1); color: var(--accent); }
     .sb-footer { padding: 16px 20px; font-size: 10px; color: var(--txt-mut); border-top: 1px solid var(--border); text-align: center; }
 
-    /* ── Main Content Area ────────────────────────────────── */
-    /* Aquí forzamos min-width: 0 y overflow-x: hidden para matar el scroll horizontal */
+    /* ── Main Content Area (Anti-Scroll Horizontal) ── */
     .main-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 32px 40px; position: relative; min-width: 0; }
     .tab-pane { display: none; animation: fadeIn 0.3s ease; }
     .tab-pane.active { display: block; }
@@ -56,7 +46,7 @@
 
     .page-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 24px; }
 
-    /* ── Top Row Layout (Stats) ───────────────────────────── */
+    /* ── Stats & Layouts ── */
     .top-row { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; align-items: stretch; width: 100%; }
     .summary-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-content: start; max-width: 100%; }
     .stat-card { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -64,22 +54,25 @@
     .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
     .stat-val.blue { color: var(--accent); }
     .stat-val.green { color: var(--green); }
+    
+    .chart-box { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 20px; width: 100%; max-width: 500px; min-height: 300px; display: flex; flex-direction: column; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .chart-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 12px; text-align: center; }
 
-    /* ── Cards UI ─────────────────────────────────────────── */
+    /* ── Filter Bar ── */
+    .filter-bar { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 24px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+    .filter-group { flex: 1; min-width: 200px; }
+    
+    /* ── Cards UI ── */
     .data-block { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; max-width: 100%; }
     .db-header { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; transition: background 0.2s; }
     .db-header:hover { background: var(--surf-hover); }
     .db-caret { font-size: 10px; color: var(--txt-mut); transition: transform 0.2s; margin-right: 12px; }
     .db-caret.open { transform: rotate(90deg); }
-    
-    /* Agregamos min-width: 0 a los textos para que se corten en vez de empujar la pantalla */
     .db-title { flex: 1; font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
     .db-total { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); font-size: 14px; margin-left: 16px; flex-shrink: 0; }
-    
     .db-body { display: none; border-top: 1px solid var(--border); background: var(--bg-app); }
     .db-body.open { display: block; }
     
-    /* ── Team & Weeks UI ──────────────────────────────────── */
     .person-header { display: flex; align-items: center; padding: 16px 20px; background: var(--surf); border-bottom: 1px solid var(--border); }
     .av { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; margin-right: 12px; overflow: hidden; flex-shrink: 0; }
     .av img { width: 100%; height: 100%; object-fit: cover; }
@@ -91,7 +84,7 @@
     .log-card { font-size: 13px; color: var(--txt-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
     .log-dur { font-size: 13px; font-weight: 600; color: var(--txt-main); font-variant-numeric: tabular-nums; margin-left: 16px; flex-shrink: 0; }
 
-    /* ── Export UI & Utilities ────────────────────────────── */
+    /* ── Utilities ── */
     .export-card { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 100%; width: 650px; }
     .export-desc { color: var(--txt-mut); margin-bottom: 20px; line-height: 1.5; }
     .form-group { margin-bottom: 16px; flex: 1; min-width: 0; }
@@ -103,7 +96,6 @@
     
     .btn-toggle { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-right: 16px; transition: .2s; flex-shrink: 0; }
     .btn-toggle:hover { background: var(--accent); color: #000; }
-    
     .btn-export { background: var(--accent); color: #091e42; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; width: 100%; justify-content: center; }
     .btn-export:hover { background: var(--accent-hvr); }
     .btn-secondary { background: var(--bg-app); color: var(--txt-main); border: 1px solid var(--border); padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
@@ -112,7 +104,6 @@
     .btn-primary-green:hover { filter: brightness(1.1); }
 
     .empty-state { text-align: center; padding: 60px 20px; color: var(--txt-mut); }
-    .empty-icon { font-size: 40px; opacity: 0.5; margin-bottom: 16px; }
     .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
@@ -131,9 +122,9 @@
       <div class="sb-board" id="board-name">Cargando tablero...</div>
     </div>
     <nav class="sb-nav">
-      <div class="nav-item active" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
-      <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo</div>
-      <div class="nav-item" onclick="switchTab('tab-weeks', this)">📅 Semanas</div>
+      <div class="nav-item active" onclick="switchTab('tab-general', this)">📊 Desglose General</div>
+      <div class="nav-item" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
+      <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Desglose por Equipo</div>
       <div class="nav-item" onclick="switchTab('tab-custom-view', this)">🔍 Desglose Custom</div>
       <div class="nav-item" onclick="switchTab('tab-export', this)">📥 Exportar Datos</div>
     </nav>
@@ -142,11 +133,10 @@
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
-    
-    <!-- HEADER GLOBAL DE ESTADÍSTICAS -->
-    <div id="global-stats-header" style="display: block;">
-      <h1 class="page-title" id="dynamic-title">Desglose por Tarjetas</h1>
-      
+
+    <!-- TAB 1: DESGLOSE GENERAL -->
+    <div id="tab-general" class="tab-pane active">
+      <h1 class="page-title">Desglose General (En Vivo)</h1>
       <div class="top-row">
         <div class="summary-grid">
           <div class="stat-card">
@@ -163,99 +153,84 @@
           </div>
         </div>
       </div>
+      <div class="chart-box" id="global-chart-container" style="display:none;">
+        <div class="chart-title">Distribución Global por Equipo</div>
+        <div style="flex: 1; position: relative;">
+          <canvas id="globalChart"></canvas>
+        </div>
+      </div>
     </div>
 
-    <!-- TAB 1: TARJETAS -->
-    <div id="tab-cards" class="tab-pane active">
+    <!-- TAB 2: TARJETAS -->
+    <div id="tab-cards" class="tab-pane">
+      <h1 class="page-title">Desglose por Tarjetas</h1>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label class="form-label">Buscar Tarjeta Específica</label>
+          <input type="text" id="card-search" class="form-input" placeholder="Ej: Diseño de logo..." oninput="forceRender()">
+        </div>
+        <div style="font-size: 11px; color: var(--txt-mut); align-self: center;">
+          * Si está vacío, se muestran tarjetas trabajadas en los últimos 7 días.
+        </div>
+      </div>
       <div id="cards-container">
-        <div class="empty-state"><div class="spinner"></div>Analizando tarjetas en tiempo real...</div>
+        <div class="empty-state"><div class="spinner"></div>Analizando tarjetas...</div>
       </div>
     </div>
 
-    <!-- TAB 2: EQUIPO -->
+    <!-- TAB 3: EQUIPO -->
     <div id="tab-team" class="tab-pane">
+      <h1 class="page-title">Desglose por Equipo</h1>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label class="form-label">Rango de Tiempo</label>
+          <select id="team-time-filter" class="form-select" onchange="forceRender()">
+            <option value="all">Todo el historial</option>
+            <option value="month">Este mes</option>
+            <option value="week">Esta semana (Lun-Dom)</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="form-label">Filtrar por Persona</label>
+          <select id="team-person-filter" class="form-select" onchange="forceRender()">
+            <option value="all">Todos los miembros</option>
+          </select>
+        </div>
+      </div>
       <div id="team-container">
-        <div class="empty-state"><div class="spinner"></div>Agrupando trabajo del equipo...</div>
+        <div class="empty-state"><div class="spinner"></div>Agrupando trabajo...</div>
       </div>
     </div>
 
-    <!-- TAB 3: SEMANAS -->
-    <div id="tab-weeks" class="tab-pane">
-      <div style="max-width: 400px; margin-bottom: 24px; background: var(--surf); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
-        <label class="form-label">Filtrar por Semana</label>
-        <select id="week-selector" class="form-select" onchange="updateWeekFilter()">
-          <option value="">Cargando semanas...</option>
-        </select>
-      </div>
-
-      <div id="weeks-container">
-        <div class="empty-state"><div class="spinner"></div>Agrupando histórico semanal...</div>
-      </div>
-    </div>
-
-    <!-- TAB 4: DESGLOSE Y EXPORTACIÓN CUSTOM -->
+    <!-- TAB 4: CUSTOM VIEW -->
     <div id="tab-custom-view" class="tab-pane">
       <h1 class="page-title">Desglose Custom (Filtros Avanzados)</h1>
       <div class="export-card" style="margin-bottom: 32px;">
-        <div class="export-desc">
-          Filtra, visualiza y descarga el tiempo registrado basándote en un <strong>Custom Field</strong> y un <strong>Rango de Fechas</strong> específico.
-        </div>
-        
+        <div class="export-desc">Filtra, visualiza y descarga el tiempo registrado basándote en un <strong>Custom Field</strong> y un <strong>Rango de Fechas</strong> específico.</div>
         <div class="date-row" style="margin-bottom: 16px;">
-          <div class="form-group">
-            <label class="form-label">1. Campo Personalizado</label>
-            <select class="form-select" id="cf-select" onchange="updateCustomValues()">
-              <option value="">Cargando campos...</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">2. Opción (Filtro)</label>
-            <select class="form-select" id="cf-value-select" disabled>
-              <option value="">Selecciona un campo primero...</option>
-            </select>
-          </div>
+          <div class="form-group"><label class="form-label">1. Campo Personalizado</label><select class="form-select" id="cf-select" onchange="updateCustomValues()"><option value="">Cargando campos...</option></select></div>
+          <div class="form-group"><label class="form-label">2. Opción (Filtro)</label><select class="form-select" id="cf-value-select" disabled><option value="">Selecciona un campo primero...</option></select></div>
         </div>
-
         <div class="date-row" style="margin-bottom: 16px;">
-          <div class="form-group">
-            <label class="form-label">3. Rango de tiempo</label>
-            <select class="form-select" id="custom-range" onchange="toggleCustomDates2()">
-              <option value="all">Todo el historial</option>
-              <option value="month">Este mes</option>
-              <option value="week">Esta semana</option>
-              <option value="custom">Personalizado (Elegir fechas)</option>
-            </select>
-          </div>
+          <div class="form-group"><label class="form-label">3. Rango de tiempo</label><select class="form-select" id="custom-range" onchange="toggleCustomDates2()"><option value="all">Todo el historial</option><option value="month">Este mes</option><option value="week">Esta semana</option><option value="custom">Personalizado (Elegir fechas)</option></select></div>
         </div>
-
         <div class="date-row" id="custom-dates2" style="display: none; margin-bottom: 24px;">
-          <div class="form-group">
-            <label class="form-label">Fecha Inicio</label>
-            <input type="date" class="form-input" id="custom-start">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Fecha Fin</label>
-            <input type="date" class="form-input" id="custom-end">
-          </div>
+          <div class="form-group"><label class="form-label">Fecha Inicio</label><input type="date" class="form-input" id="custom-start"></div>
+          <div class="form-group"><label class="form-label">Fecha Fin</label><input type="date" class="form-input" id="custom-end"></div>
         </div>
-
         <div style="display: flex; gap: 12px; margin-top: 10px;">
           <button class="btn-secondary" onclick="executeCustomAction('view')">👁️ Ver en Pantalla</button>
           <button class="btn-primary-green" onclick="executeCustomAction('export')">📥 Descargar CSV Filtrado</button>
         </div>
       </div>
-
       <div id="custom-results-container" style="max-width: 800px;"></div>
     </div>
 
-    <!-- TAB 5: EXPORTAR NORMAL -->
+    <!-- TAB 5: EXPORTAR -->
     <div id="tab-export" class="tab-pane">
       <h1 class="page-title">Exportar Datos (Global)</h1>
       <div class="export-card">
-        <div class="export-desc">
-          Descarga un reporte consolidado en archivo <strong>.csv</strong> con todo el tiempo de tu tablero por actividad y miembro.
-        </div>
-        
+        <div class="export-desc">Descarga un reporte consolidado en archivo <strong>.csv</strong> con todo el tiempo de tu tablero por actividad y miembro.</div>
         <div class="form-group">
           <label class="form-label">Rango de tiempo</label>
           <select class="form-select" id="export-range" onchange="toggleCustomDates()">
@@ -265,314 +240,296 @@
             <option value="custom">Personalizado (Elegir fechas)</option>
           </select>
         </div>
-
         <div class="date-row" id="custom-dates" style="display: none;">
-          <div class="form-group">
-            <label class="form-label">Fecha Inicio</label>
-            <input type="date" class="form-input" id="export-start">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Fecha Fin</label>
-            <input type="date" class="form-input" id="export-end">
-          </div>
+          <div class="form-group"><label class="form-label">Fecha Inicio</label><input type="date" class="form-input" id="export-start"></div>
+          <div class="form-group"><label class="form-label">Fecha Fin</label><input type="date" class="form-input" id="export-end"></div>
         </div>
-
         <button class="btn-export" onclick="executeExport()">Descargar Reporte Consolidado</button>
       </div>
     </div>
 
   </main>
 
-  <!-- CONTENEDOR OCULTO PARA PRESERVAR CANVAS (Evita parpadeos al refrescar) -->
+  <!-- CONTENEDOR OCULTO PARA PROTEGER CANVAS (Evita parpadeos al refrescar HTML) -->
   <div id="canvas-vault" style="display: none;"></div>
 
 <script>
   var t = window.TrelloPowerUp.iframe();
   var KEY = 'chronos';
-  
   var rawCardStore = []; 
   var boardCustomFields = [];
-  var customChartInstance = null;
   
   // ==========================================
   // ESTADOS Y OPTIMIZACIÓN (CERO PARPADEO)
   // ==========================================
+  var globalChartInstance = null;
+  var customChartInstance = null;
+  
+  // Estados de Gráficos Individuales (Mapas: id -> boolean/chart)
   var userChartsState = {}; 
   var userChartsInstances = {}; 
-  var currentWeekFilter = null; 
-  var isWeekChartVisible = false; 
-  var weekChartInstance = null;
+  var cardChartsState = {};
+  var cardChartsInstances = {};
 
-  // Trackers de estructura (Hashes) para actualizar solo lo necesario
+  // Hashes para saber si debemos re-renderizar el DOM o solo actualizar números
   var lastCardsHash = '';
   var lastTeamHash = '';
-  var lastWeeksHash = '';
+  var lastPersonsDropdownHash = '';
+  
   var openAccordions = new Set(); // Guarda los acordeones abiertos
+  var knownTeamMembers = {}; // Para llenar el filtro dinámico
   
-  var MAX_SESSION_HOURS = 9;
-  var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
-  
+  var MAX_SECONDS = 9 * 3600;
   const DYNAMIC_PALETTE = ['#f87168', '#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#00c7e6', '#ff8f73', '#ffc400', '#8777d9'];
 
-  /* ── UTILIDADES ──────────────────────────────────────────── */
-  function fmt(s) {
-    s = Math.max(0, Math.floor(s||0));
-    return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => String(v).padStart(2,'0')).join(':');
-  }
+  /* ── UTILIDADES ── */
+  function fmt(s) { s = Math.max(0, Math.floor(s||0)); return [Math.floor(s/3600), Math.floor((s%3600)/60), s%60].map(v => String(v).padStart(2,'0')).join(':'); }
   function fmtH(s) { return (s/3600).toFixed(2) + 'h'; }
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function initials(n) { return (n||'?').trim().split(/\s+/).slice(0,2).map(w => w[0]||'?').join('').toUpperCase(); }
-  function safeId(str) { return 'id_' + encodeURIComponent(str).replace(/[^a-zA-Z0-9]/g, '_'); } // ID seguro para DOM
-  
-  function mColor(n) { 
-    let h=0; for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; 
-    return DYNAMIC_PALETTE[Math.abs(h) % DYNAMIC_PALETTE.length]; 
-  }
-  
-  function avHtml(name, url) {
-    if(url) return `<div class="av"><img src="${esc(url)}" onerror="this.style.display='none'"></div>`;
-    return `<div class="av" style="background:${mColor(name)}">${esc(initials(name))}</div>`;
-  }
+  function mColor(n) { let h=0; for(let i=0; i<(n||'').length; i++) h = (h*31 + n.charCodeAt(i))|0; return DYNAMIC_PALETTE[Math.abs(h) % DYNAMIC_PALETTE.length]; }
+  function avHtml(name, url) { return url ? `<div class="av"><img src="${esc(url)}" onerror="this.style.display='none'"></div>` : `<div class="av" style="background:${mColor(name)}">${esc(initials(name))}</div>`; }
 
-  function getWeekLabel(dateObj) {
-    const d = new Date(dateObj);
-    const day = d.getDay() || 7; 
-    d.setDate(d.getDate() - (day - 1)); 
-    const startStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
-    d.setDate(d.getDate() + 6); 
-    const endStr = d.toLocaleDateString('es-ES', {day:'numeric', month:'short'});
-    return `Semana del ${startStr} al ${endStr}`;
-  }
-
-  /* ── UI NAVEGACIÓN Y EVENTOS ─────────────────────────────── */
+  /* ── INTERFAZ Y EVENTOS ── */
   function switchTab(tabId, el) {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    el.classList.add('active');
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-
-    const dynamicTitle = document.getElementById('dynamic-title');
-    if (tabId === 'tab-cards') { document.getElementById('global-stats-header').style.display = 'block'; dynamicTitle.textContent = 'Desglose por Tarjetas'; }
-    else if (tabId === 'tab-team') { document.getElementById('global-stats-header').style.display = 'block'; dynamicTitle.textContent = 'Desglose por Equipo'; }
-    else if (tabId === 'tab-weeks') { document.getElementById('global-stats-header').style.display = 'block'; dynamicTitle.textContent = 'Desglose por Semanas'; }
-    else { document.getElementById('global-stats-header').style.display = 'none'; }
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active');
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active')); document.getElementById(tabId).classList.add('active');
   }
 
   function toggleCustomDates() { document.getElementById('custom-dates').style.display = (document.getElementById('export-range').value === 'custom') ? 'flex' : 'none'; }
   function toggleCustomDates2() { document.getElementById('custom-dates2').style.display = (document.getElementById('custom-range').value === 'custom') ? 'flex' : 'none'; }
 
-  // Controladores de estado interactivo DESLIGADOS del innerHTML
   window.toggleAcc = function(id) {
-    if (openAccordions.has(id)) openAccordions.delete(id);
-    else openAccordions.add(id);
-    let body = document.getElementById('body-' + id);
-    let caret = document.getElementById('caret-' + id);
-    if(body) body.classList.toggle('open');
-    if(caret) caret.classList.toggle('open');
+    if (openAccordions.has(id)) openAccordions.delete(id); else openAccordions.add(id);
+    let body = document.getElementById('body-' + id); let caret = document.getElementById('caret-' + id);
+    if(body) body.classList.toggle('open'); if(caret) caret.classList.toggle('open');
   };
 
-  window.toggleUserChart = function(pid) {
-    userChartsState[pid] = !userChartsState[pid];
-    lastTeamHash = ''; // Forzar re-render de estructura
-    renderDashboard();
+  window.toggleChart = function(type, id) {
+    if (type === 'user') userChartsState[id] = !userChartsState[id];
+    if (type === 'card') cardChartsState[id] = !cardChartsState[id];
+    forceRender();
   };
 
-  window.toggleWeekChart = function() {
-    isWeekChartVisible = !isWeekChartVisible;
-    lastWeeksHash = ''; // Forzar re-render de estructura
-    renderDashboard();
+  window.forceRender = function() {
+    lastCardsHash = ''; lastTeamHash = ''; // Vaciamos los hashes para forzar re-render de HTML
+    processAndRender();
   };
 
-  window.updateWeekFilter = function() {
-    currentWeekFilter = document.getElementById('week-selector').value;
-    isWeekChartVisible = false;
-    lastWeeksHash = ''; 
-    renderDashboard();
-  };
-
-  /* ── PRESERVACIÓN VIRTUAL-DOM PARA CANVAS (Antiparpadeo) ─── */
-  function preserveCanvases() {
-    const vault = document.getElementById('canvas-vault');
-    Object.keys(userChartsInstances).forEach(pid => {
-      let canvas = document.getElementById('canvas-user-' + pid);
+  /* ── VIRTUAL DOM / VAULT ── */
+  // Movemos los canvas a la bóveda SOLO cuando vamos a reescribir el innerHTML
+  function safeMoveCanvases(type, instancesMap) {
+    let vault = document.getElementById('canvas-vault');
+    Object.keys(instancesMap).forEach(id => {
+      let canvas = document.getElementById(`canvas-${type}-${id}`);
       if (canvas) vault.appendChild(canvas);
     });
-    let wCanvas = document.getElementById('canvas-week-chart');
-    if (wCanvas) vault.appendChild(wCanvas);
   }
-
-  function restoreCanvases() {
-    Object.keys(userChartsInstances).forEach(pid => {
-      let placeholder = document.getElementById('placeholder-user-' + pid);
-      let canvas = document.getElementById('canvas-user-' + pid);
+  function safeRestoreCanvases(type, instancesMap) {
+    Object.keys(instancesMap).forEach(id => {
+      let placeholder = document.getElementById(`placeholder-${type}-${id}`);
+      let canvas = document.getElementById(`canvas-${type}-${id}`);
       if (placeholder && canvas) placeholder.appendChild(canvas);
     });
-    let wPlaceholder = document.getElementById('placeholder-week-chart');
-    let wCanvas = document.getElementById('canvas-week-chart');
-    if (wPlaceholder && wCanvas) wPlaceholder.appendChild(wCanvas);
   }
 
-  /* ── LECTURA DIRECTA Y FILTRADO ───────── */
-  function fetchCustomFieldsList() {
-    t.board('customFields').then(board => {
-      if (board && board.customFields) {
-        boardCustomFields = board.customFields.filter(cf => cf.type === 'list');
-        const cfSelect = document.getElementById('cf-select');
-        cfSelect.innerHTML = '<option value="">-- Elige un campo --</option>';
-        boardCustomFields.forEach(cf => { let opt = document.createElement('option'); opt.value = cf.id; opt.textContent = cf.name; cfSelect.appendChild(opt); });
-      }
-    }).catch(()=>{});
-  }
-
-  window.updateCustomValues = function() {
-    const sId = document.getElementById('cf-select').value;
-    const vSel = document.getElementById('cf-value-select');
-    if (!sId) { vSel.innerHTML = '<option value="">Selecciona un campo primero...</option>'; vSel.disabled = true; return; }
-    const field = boardCustomFields.find(cf => cf.id === sId);
-    vSel.innerHTML = '<option value="">-- Selecciona el filtro --</option>';
-    if (field && field.options) {
-      field.options.forEach(o => { let opt = document.createElement('option'); opt.value = o.id; opt.textContent = o.value.text; vSel.appendChild(opt); });
-      vSel.disabled = false;
-    }
-  };
-
+  /* ── EXTRACCIÓN DE DATOS ── */
   function fetchLiveBoardData() {
     return t.cards('id', 'name', 'customFieldItems').then(cards => Promise.all(cards.map(c => t.get(c.id, 'shared', KEY).then(state => ({ card: c, state: state || {} })).catch(() => ({ card: c, state: {} })))));
   }
 
-  function renderDashboard() {
-    fetchLiveBoardData().then(cardStore => {
-      rawCardStore = cardStore;
-      let totalBoardSecs = 0, activeTimersCount = 0, workedCardsCount = 0;
-      let cardsDataList = [], teamDataMap = {}, weeksDataMap = {}; 
-      const now = Date.now();
-
-      cardStore.forEach(item => {
-        let card = item.card, state = item.state, entries = state.entries || [], sessions = state.sessions || {};
-        let cardTotalSecs = 0, cardMembersMap = {}, isRunning = Object.keys(sessions).length > 0;
-
-        if (isRunning) activeTimersCount += Object.keys(sessions).length;
-
-        const applyTimeToMaps = (dur, pid, pName, pAv, timestamp) => {
-          cardTotalSecs += dur;
-          if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
-          cardMembersMap[pid].total += dur;
-          if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
-          teamDataMap[pid].total += dur;
-          teamDataMap[pid].cards[card.name] = (teamDataMap[pid].cards[card.name]||0) + dur;
-          
-          let weekLbl = getWeekLabel(timestamp);
-          if (!weeksDataMap[weekLbl]) weeksDataMap[weekLbl] = { total: 0, cards: {} };
-          weeksDataMap[weekLbl].total += dur;
-          weeksDataMap[weekLbl].cards[card.name] = (weeksDataMap[weekLbl].cards[card.name]||0) + dur;
-        };
-
-        entries.forEach(e => applyTimeToMaps(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido', e.avatarUrl || '', e.start || now));
-        Object.keys(sessions).forEach(pid => {
-          let elapsed = Math.min(Math.floor((now - sessions[pid].startTime) / 1000), MAX_SECONDS);
-          if (elapsed > 0) applyTimeToMaps(elapsed, pid, sessions[pid].memberName || 'Desconocido', sessions[pid].avatarUrl || '', sessions[pid].startTime || now);
-        });
-
-        if (cardTotalSecs > 0 || isRunning) {
-          workedCardsCount++;
-          totalBoardSecs += cardTotalSecs;
-          cardsDataList.push({ name: card.name, total: cardTotalSecs, running: isRunning, members: Object.values(cardMembersMap) });
-        }
+  function processAndRender() {
+    if (!rawCardStore || !rawCardStore.length) return;
+    const now = new Date();
+    
+    // --- 1. PROCESAR GENERAL ---
+    let totalSecs = 0, totalCards = 0, activeTimers = 0, globalTeamMap = {};
+    rawCardStore.forEach(item => {
+      let entries = item.state.entries || [], sessions = item.state.sessions || {}, cardTotal = 0;
+      let isRunning = Object.keys(sessions).length > 0;
+      if (isRunning) activeTimers += Object.keys(sessions).length;
+      
+      const addTime = (dur, pid, pName) => {
+        cardTotal += dur;
+        if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, total: 0 };
+        globalTeamMap[pid].total += dur;
+      };
+      
+      entries.forEach(e => addTime(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido'));
+      Object.keys(sessions).forEach(pid => {
+        let el = Math.min(Math.floor((now.getTime() - sessions[pid].startTime) / 1000), MAX_SECONDS);
+        if (el > 0) addTime(el, pid, sessions[pid].memberName || 'Desconocido');
       });
-
-      // Actualizar Global Stats (Siempre por ID, súper rápido y sin parpadeo)
-      document.getElementById('s-total').textContent = fmtH(totalBoardSecs);
-      document.getElementById('s-cards').textContent = workedCardsCount;
-      document.getElementById('s-active').textContent = activeTimersCount;
-
-      preserveCanvases(); 
-
-      renderCardsTab(cardsDataList);
-      renderTeamTab(teamDataMap);
-      renderWeeksTab(weeksDataMap);
-
-      restoreCanvases(); 
-      updateCharts(teamDataMap, weeksDataMap); 
-
-      document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      if (cardTotal > 0 || isRunning) { totalCards++; totalSecs += cardTotal; }
     });
+    
+    // Actualizar Textos General (Directo, sin parpadeo)
+    document.getElementById('s-total').textContent = fmtH(totalSecs);
+    document.getElementById('s-cards').textContent = totalCards;
+    document.getElementById('s-active').textContent = activeTimers;
+    renderGlobalChart(globalTeamMap);
+
+    // --- 2. PROCESAR PESTAÑA TARJETAS ---
+    let searchVal = document.getElementById('card-search').value.toLowerCase().trim();
+    let limitDateCards = searchVal ? null : new Date(now.getTime() - (7 * 24 * 3600 * 1000)); // Si no hay búsqueda, últimos 7 días
+    
+    let displayCards = [];
+    rawCardStore.forEach(item => {
+      if (searchVal && !item.card.name.toLowerCase().includes(searchVal)) return;
+      let entries = item.state.entries || [], sessions = item.state.sessions || {}, cTotal = 0, cMembers = {}, isRunning = Object.keys(sessions).length > 0;
+      
+      const addTimeCard = (dur, pid, pName, pAv, dateStr) => {
+        if (limitDateCards && new Date(dateStr) < limitDateCards) return;
+        cTotal += dur;
+        if (!cMembers[pid]) cMembers[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+        cMembers[pid].total += dur;
+      };
+      
+      entries.forEach(e => addTimeCard(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido', e.avatarUrl || '', e.start || now));
+      Object.keys(sessions).forEach(pid => {
+        let el = Math.min(Math.floor((now.getTime() - sessions[pid].startTime) / 1000), MAX_SECONDS);
+        if (el > 0) addTimeCard(el, pid, sessions[pid].memberName || 'Desconocido', sessions[pid].avatarUrl || '', sessions[pid].startTime || now);
+      });
+      
+      if (cTotal > 0 || isRunning) displayCards.push({ id: item.card.id, name: item.card.name, running: isRunning, total: cTotal, members: Object.values(cMembers) });
+    });
+    renderTabCards(displayCards);
+
+    // --- 3. PROCESAR PESTAÑA EQUIPO ---
+    let timeFilter = document.getElementById('team-time-filter').value;
+    let personFilter = document.getElementById('team-person-filter').value;
+    let limitDateTeam = null;
+    if (timeFilter === 'month') limitDateTeam = new Date(now.getFullYear(), now.getMonth(), 1);
+    if (timeFilter === 'week') { let day = now.getDay() || 7; limitDateTeam = new Date(now); limitDateTeam.setDate(now.getDate() - day + 1); limitDateTeam.setHours(0,0,0,0); }
+
+    let displayTeam = {};
+    rawCardStore.forEach(item => {
+      let entries = item.state.entries || [], sessions = item.state.sessions || {};
+      
+      const addTimeTeam = (dur, pid, pName, pAv, dateStr) => {
+        if (limitDateTeam && new Date(dateStr) < limitDateTeam) return;
+        knownTeamMembers[pid] = pName; // Para el dropdown
+        if (personFilter !== 'all' && personFilter !== pid) return;
+        
+        if (!displayTeam[pid]) displayTeam[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
+        displayTeam[pid].total += dur;
+        displayTeam[pid].cards[item.card.name] = (displayTeam[pid].cards[item.card.name] || 0) + dur;
+      };
+      
+      entries.forEach(e => addTimeTeam(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido', e.avatarUrl || '', e.start || now));
+      Object.keys(sessions).forEach(pid => {
+        let el = Math.min(Math.floor((now.getTime() - sessions[pid].startTime) / 1000), MAX_SECONDS);
+        if (el > 0) addTimeTeam(el, pid, sessions[pid].memberName || 'Desconocido', sessions[pid].avatarUrl || '', sessions[pid].startTime || now);
+      });
+    });
+    updatePersonsDropdown();
+    renderTabTeam(displayTeam);
+
+    document.getElementById('last-update').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   }
 
-  /* ── SISTEMA DE ACTUALIZACIÓN DOM SELECTIVO (Evita parpadeos) ── */
-  function renderCardsTab(cardsDataList) {
-    const container = document.getElementById('cards-container');
-    if (!cardsDataList.length) { container.innerHTML = `<div class="empty-state">No hay registros de tiempo en las tarjetas.</div>`; lastCardsHash = ''; return; }
-    
-    cardsDataList.sort((a,b) => b.total - a.total);
-    // El hash detecta si cambió la cantidad de tarjetas, miembros o su orden exacto.
-    let currentHash = cardsDataList.map(c => c.name + (c.running?'1':'0') + c.members.length).join('||');
-    
-    if (currentHash !== lastCardsHash) {
-      let html = cardsDataList.map(card => {
-        let cId = safeId(card.name);
-        let isOpen = openAccordions.has(cId);
-        let membersHtml = '';
-        if (card.members.length) {
-          card.members.sort((a,b) => b.total - a.total);
-          membersHtml = card.members.map(m => `
-            <div class="log-row" style="margin: 0 20px 8px 40px;">
-              <div style="display:flex; align-items:center; gap:10px; min-width:0;">
-                ${avHtml(m.name, m.avatarUrl)}
-                <span style="font-size: 13px; color: var(--txt-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(m.name)}</span>
-              </div>
-              <div class="log-dur" id="c-m-${cId}-${safeId(m.name)}">${fmt(m.total)}</div>
-            </div>
-          `).join('');
-        }
-        return `
-          <div class="data-block">
-            <div class="db-header" onclick="toggleAcc('${cId}')">
-              <span class="db-caret ${isOpen?'open':''}" id="caret-${cId}">▶</span>
-              <span class="db-title">${esc(card.name)}</span>
-              ${card.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px; flex-shrink:0;">● Activo</span>' : ''}
-              <span class="db-total" id="c-tot-${cId}">${fmt(card.total)}</span>
-            </div>
-            <div class="db-body ${isOpen?'open':''}" id="body-${cId}"><div style="padding: 10px 0;">${membersHtml}</div></div>
-          </div>
-        `;
-      }).join('');
-      container.innerHTML = html;
-      lastCardsHash = currentHash;
-    } else {
-      // Actualización Ultra Rápida por ID (NO interrumpe clics)
-      cardsDataList.forEach(card => {
-        let cId = safeId(card.name);
-        let totEl = document.getElementById(`c-tot-${cId}`);
-        if(totEl) totEl.textContent = fmt(card.total);
-        card.members.forEach(m => {
-          let memEl = document.getElementById(`c-m-${cId}-${safeId(m.name)}`);
-          if(memEl) memEl.textContent = fmt(m.total);
-        });
-      });
+  /* ── RENDERIZADORES DE PESTAÑAS Y DOM ── */
+
+  function updatePersonsDropdown() {
+    let select = document.getElementById('team-person-filter');
+    let hash = Object.keys(knownTeamMembers).sort().join('|');
+    if (hash !== lastPersonsDropdownHash) {
+      let currentVal = select.value;
+      select.innerHTML = '<option value="all">Todos los miembros</option>' + 
+        Object.keys(knownTeamMembers).map(pid => `<option value="${pid}">${esc(knownTeamMembers[pid])}</option>`).join('');
+      select.value = currentVal || 'all';
+      lastPersonsDropdownHash = hash;
     }
   }
 
-  function renderTeamTab(teamDataMap) {
-    const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
-    const container = document.getElementById('team-container');
-    if (!pids.length) { container.innerHTML = `<div class="empty-state">No hay historial de trabajo registrado.</div>`; lastTeamHash = ''; return; }
+  function renderTabCards(cards) {
+    const container = document.getElementById('cards-container');
+    if (!cards.length) { container.innerHTML = `<div class="empty-state">No hay tarjetas que coincidan con el filtro.</div>`; lastCardsHash = ''; return; }
     
-    let currentHash = pids.map(pid => pid + Object.keys(teamDataMap[pid].cards).length + userChartsState[pid]).join('||');
+    cards.sort((a,b) => b.total - a.total);
+    let currentHash = cards.map(c => c.id + (c.running?'1':'0') + c.members.length + (cardChartsState[c.id]?'1':'0') + (openAccordions.has(c.id)?'1':'0')).join('||');
+    
+    if (currentHash !== lastCardsHash) {
+      safeMoveCanvases('card', cardChartsInstances); // Proteger gráficos antes de reescribir HTML
+      
+      let html = cards.map(c => {
+        let isOpen = openAccordions.has(c.id);
+        let mHtml = '';
+        if (c.members.length) {
+          c.members.sort((a,b) => b.total - a.total);
+          mHtml = c.members.map(m => `<div class="log-row" style="margin: 0 20px 8px 40px;"><div style="display:flex; align-items:center; gap:10px; min-width:0;">${avHtml(m.name, m.avatarUrl)}<span style="font-size: 13px; color: var(--txt-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(m.name)}</span></div><div class="log-dur" id="c-m-${c.id}-${m.name.replace(/[^a-zA-Z0-9]/g,'')}">${fmt(m.total)}</div></div>`).join('');
+        }
+        
+        let chartAreaId = 'placeholder-card-' + c.id;
+        let chartHtml = cardChartsState[c.id] ? `
+          <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center;">
+             <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); margin-bottom:12px; text-transform:uppercase;">Distribución en Tarjeta</div>
+             <div id="${chartAreaId}" style="height: 180px; width: 100%; position: relative;">${!cardChartsInstances[c.id] ? `<canvas id="canvas-card-${c.id}"></canvas>` : ''}</div>
+          </div>` : '';
+
+        return `
+          <div class="data-block">
+            <div class="db-header" onclick="toggleAcc('${c.id}')">
+              <span class="db-caret ${isOpen?'open':''}" id="caret-${c.id}">▶</span>
+              <span class="db-title">${esc(c.name)}</span>
+              ${c.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px; flex-shrink:0;">● Activo</span>' : ''}
+              <button class="btn-toggle" style="margin-left:auto; margin-right: 16px;" onclick="event.stopPropagation(); toggleChart('card', '${c.id}')">${cardChartsState[c.id] ? "Ocultar Gráfico" : "Ver Gráfico 📊"}</button>
+              <span class="db-total" id="c-tot-${c.id}">${fmt(c.total)}</span>
+            </div>
+            <div class="db-body ${isOpen?'open':''}" id="body-${c.id}"><div style="padding: 10px 0;">${mHtml}</div>${chartHtml}</div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+      safeRestoreCanvases('card', cardChartsInstances); // Devolver gráficos
+      lastCardsHash = currentHash;
+    } else {
+      // Actualización directa sin parpadeo
+      cards.forEach(c => {
+        let tEl = document.getElementById(`c-tot-${c.id}`); if(tEl) tEl.textContent = fmt(c.total);
+        c.members.forEach(m => { let mEl = document.getElementById(`c-m-${c.id}-${m.name.replace(/[^a-zA-Z0-9]/g,'')}`); if(mEl) mEl.textContent = fmt(m.total); });
+      });
+    }
+
+    // Actualizar Chart.js Data
+    Object.keys(cardChartsState).forEach(cId => {
+      let card = cards.find(x => x.id === cId);
+      if (cardChartsState[cId] && card) {
+        let ctx = document.getElementById('canvas-card-' + cId);
+        if (!ctx) return;
+        let labels = [], data = [], colors = [];
+        card.members.sort((a,b) => b.total - a.total).forEach(m => { labels.push(m.name); data.push((m.total/3600).toFixed(2)); colors.push(mColor(m.name)); });
+        if (cardChartsInstances[cId]) {
+          cardChartsInstances[cId].data.labels = labels; cardChartsInstances[cId].data.datasets[0].data = data; cardChartsInstances[cId].data.datasets[0].backgroundColor = colors; cardChartsInstances[cId].update('none');
+        } else {
+          cardChartsInstances[cId] = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db' } }, tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } } } });
+        }
+      }
+    });
+    // Limpiar charts sin uso
+    Object.keys(cardChartsInstances).forEach(cId => { if (!cardChartsState[cId]) { cardChartsInstances[cId].destroy(); delete cardChartsInstances[cId]; } });
+  }
+
+  function renderTabTeam(teamMap) {
+    const pids = Object.keys(teamMap).sort((a,b) => teamMap[b].total - teamMap[a].total);
+    const container = document.getElementById('team-container');
+    if (!pids.length) { container.innerHTML = `<div class="empty-state">No hay historial para los filtros actuales.</div>`; lastTeamHash = ''; return; }
+    
+    let currentHash = pids.map(pid => pid + Object.keys(teamMap[pid].cards).length + (userChartsState[pid]?'1':'0')).join('||');
     
     if (currentHash !== lastTeamHash) {
+      safeMoveCanvases('user', userChartsInstances); // Proteger
+      
       let html = pids.map(pid => {
-        let p = teamDataMap[pid];
-        let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
-          <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur" id="t-c-${safeId(pid)}-${safeId(cName)}">${fmt(p.cards[cName])}</div></div>
-        `).join('');
+        let p = teamMap[pid];
+        let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `<div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur" id="t-c-${pid}-${cName.replace(/[^a-zA-Z0-9]/g,'')}">${fmt(p.cards[cName])}</div></div>`).join('');
         
-        let chartAreaId = 'placeholder-user-' + safeId(pid);
+        let chartAreaId = 'placeholder-user-' + pid;
         let chartHtml = userChartsState[pid] ? `
           <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center;">
-             <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); margin-bottom:12px; text-transform:uppercase;">Distribución de ${esc(p.name)}</div>
-             <div id="${chartAreaId}" style="height: 180px; width: 100%; position: relative;">
-               ${!userChartsInstances[safeId(pid)] ? `<canvas id="canvas-user-${safeId(pid)}"></canvas>` : ''}
-             </div>
+             <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); margin-bottom:12px; text-transform:uppercase;">Distribución de Proyectos</div>
+             <div id="${chartAreaId}" style="height: 180px; width: 100%; position: relative;">${!userChartsInstances[pid] ? `<canvas id="canvas-user-${pid}"></canvas>` : ''}</div>
           </div>` : '';
 
         return `
@@ -580,172 +537,70 @@
             <div class="person-header">
               ${avHtml(p.name, p.avatarUrl)}
               <div class="person-name">${esc(p.name)}</div>
-              <button class="btn-toggle" onclick="toggleUserChart('${esc(pid)}')">${userChartsState[pid] ? "Ocultar Gráfico" : "Ver Gráfico 📊"}</button>
-              <div class="person-total" id="t-tot-${safeId(pid)}">${fmt(p.total)}</div>
+              <button class="btn-toggle" onclick="toggleChart('user', '${pid}')">${userChartsState[pid] ? "Ocultar Gráfico" : "Ver Gráfico 📊"}</button>
+              <div class="person-total" id="t-tot-${pid}">${fmt(p.total)}</div>
             </div>
             <div class="db-body open"><div style="padding: 10px 20px;">${cardsHtml}</div>${chartHtml}</div>
           </div>`;
       }).join('');
+      
       container.innerHTML = html;
+      safeRestoreCanvases('user', userChartsInstances); // Restaurar
       lastTeamHash = currentHash;
     } else {
       pids.forEach(pid => {
-        let el = document.getElementById(`t-tot-${safeId(pid)}`);
-        if(el) el.textContent = fmt(teamDataMap[pid].total);
-        Object.keys(teamDataMap[pid].cards).forEach(cName => {
-          let cel = document.getElementById(`t-c-${safeId(pid)}-${safeId(cName)}`);
-          if(cel) cel.textContent = fmt(teamDataMap[pid].cards[cName]);
-        });
+        let el = document.getElementById(`t-tot-${pid}`); if(el) el.textContent = fmt(teamMap[pid].total);
+        Object.keys(teamMap[pid].cards).forEach(cName => { let cel = document.getElementById(`t-c-${pid}-${cName.replace(/[^a-zA-Z0-9]/g,'')}`); if(cel) cel.textContent = fmt(teamMap[pid].cards[cName]); });
       });
     }
-  }
 
-  function renderWeeksTab(weeksDataMap) {
-    const weeks = Object.keys(weeksDataMap).sort((a,b) => new Date(b.split(' ')[2]) - new Date(a.split(' ')[2]));
-    const select = document.getElementById('week-selector');
-    const container = document.getElementById('weeks-container');
-
-    if (weeks.length === 0) { container.innerHTML = `<div class="empty-state">No hay datos por semanas.</div>`; select.innerHTML = '<option>Sin datos</option>'; return; }
-    
-    // Si no hay semana actual, pre-seleccionar la última
-    if (!currentWeekFilter || !weeks.includes(currentWeekFilter)) { currentWeekFilter = weeks[0]; }
-    
-    // Rellenar select solo si es distinto para no parpadear el dropdown
-    let selectHash = weeks.join('|') + currentWeekFilter;
-    if (select.getAttribute('data-hash') !== selectHash) {
-      select.innerHTML = weeks.map(w => `<option value="${w}" ${w === currentWeekFilter ? 'selected' : ''}>${w}</option>`).join('');
-      select.setAttribute('data-hash', selectHash);
-    }
-
-    let w = weeksDataMap[currentWeekFilter];
-    let currentHash = currentWeekFilter + Object.keys(w.cards).length + isWeekChartVisible;
-    
-    if (currentHash !== lastWeeksHash) {
-      let cardsHtml = Object.keys(w.cards).sort((a,b) => w.cards[b] - w.cards[a]).map(cName => `
-        <div class="log-row" style="margin: 0 20px 4px 20px;"><div class="log-card">${esc(cName)}</div><div class="log-dur" id="w-c-${safeId(cName)}">${fmt(w.cards[cName])}</div></div>
-      `).join('');
-      
-      let chartHtml = isWeekChartVisible ? `
-        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center;">
-           <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); margin-bottom:12px; text-transform:uppercase;">Distribución de la ${esc(currentWeekFilter)}</div>
-           <div id="placeholder-week-chart" style="height: 180px; width: 100%; position: relative;">
-             ${!weekChartInstance ? `<canvas id="canvas-week-chart"></canvas>` : ''}
-           </div>
-        </div>` : '';
-
-      container.innerHTML = `
-        <div class="data-block">
-          <div class="person-header">
-            <div class="person-name" style="font-size: 14px;">${esc(currentWeekFilter)}</div>
-            <button class="btn-toggle" onclick="toggleWeekChart()">${isWeekChartVisible ? "Ocultar Gráfico" : "Ver Gráfico 📊"}</button>
-            <div class="person-total" id="w-tot">${fmt(w.total)}</div>
-          </div>
-          <div class="db-body open"><div style="padding: 10px 0;">${cardsHtml}</div>${chartHtml}</div>
-        </div>
-      `;
-      lastWeeksHash = currentHash;
-    } else {
-      let el = document.getElementById('w-tot');
-      if (el) el.textContent = fmt(w.total);
-      Object.keys(w.cards).forEach(cName => {
-        let cel = document.getElementById(`w-c-${safeId(cName)}`);
-        if(cel) cel.textContent = fmt(w.cards[cName]);
-      });
-    }
-  }
-
-  /* ── GRÁFICOS (CHART.JS) ── */
-  function updateCharts(teamDataMap, weeksDataMap) {
-    // 1. Gráficos de Usuarios
+    // Actualizar Chart.js Data
     Object.keys(userChartsState).forEach(pid => {
-      let sId = safeId(pid);
-      if (userChartsState[pid] && teamDataMap[pid]) {
-        let ctx = document.getElementById('canvas-user-' + sId);
+      if (userChartsState[pid] && teamMap[pid]) {
+        let ctx = document.getElementById('canvas-user-' + pid);
         if (!ctx) return;
-        
-        let labels = [], data = [], colors = [], cards = teamDataMap[pid].cards;
-        Object.keys(cards).sort((a,b) => cards[b] - cards[a]).forEach(cName => {
-          labels.push(cName); data.push((cards[cName] / 3600).toFixed(2)); colors.push(mColor(cName));
-        });
-
-        if (userChartsInstances[sId]) {
-          userChartsInstances[sId].data.labels = labels; userChartsInstances[sId].data.datasets[0].data = data; userChartsInstances[sId].data.datasets[0].backgroundColor = colors;
-          userChartsInstances[sId].update('none'); 
+        let labels = [], data = [], colors = [], cards = teamMap[pid].cards;
+        Object.keys(cards).sort((a,b) => cards[b] - cards[a]).forEach(cName => { labels.push(cName); data.push((cards[cName] / 3600).toFixed(2)); colors.push(mColor(cName)); });
+        if (userChartsInstances[pid]) {
+          userChartsInstances[pid].data.labels = labels; userChartsInstances[pid].data.datasets[0].data = data; userChartsInstances[pid].data.datasets[0].backgroundColor = colors; userChartsInstances[pid].update('none'); 
         } else {
-          userChartsInstances[sId] = new Chart(ctx, {
-            type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db' } }, tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } } }
-          });
+          userChartsInstances[pid] = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db' } }, tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } } } });
         }
       }
     });
+    Object.keys(userChartsInstances).forEach(pid => { if (!userChartsState[pid]) { userChartsInstances[pid].destroy(); delete userChartsInstances[pid]; } });
+  }
 
-    Object.keys(userChartsInstances).forEach(sId => {
-      let pid = Object.keys(userChartsState).find(k => safeId(k) === sId);
-      if (!pid || !userChartsState[pid]) { userChartsInstances[sId].destroy(); delete userChartsInstances[sId]; }
+  function renderGlobalChart(globalTeamMap) {
+    const pids = Object.keys(globalTeamMap);
+    const container = document.getElementById('global-chart-container');
+    if (pids.length === 0) { container.style.display = 'none'; return; }
+    container.style.display = 'flex';
+    
+    let labels = [], data = [], colors = [];
+    pids.sort((a,b) => globalTeamMap[b].total - globalTeamMap[a].total).forEach(pid => {
+      labels.push(globalTeamMap[pid].name); data.push((globalTeamMap[pid].total / 3600).toFixed(2)); colors.push(mColor(globalTeamMap[pid].name));
     });
 
-    // 2. Gráfico de la Semana
-    let wCtx = document.getElementById('canvas-week-chart');
-    if (isWeekChartVisible && wCtx && weeksDataMap[currentWeekFilter]) {
-      let wLabels = [], wData = [], wColors = [], wCards = weeksDataMap[currentWeekFilter].cards;
-      Object.keys(wCards).sort((a,b) => wCards[b] - wCards[a]).forEach(cName => {
-        wLabels.push(cName); wData.push((wCards[cName] / 3600).toFixed(2)); wColors.push(mColor(cName));
-      });
-
-      if (weekChartInstance) {
-        weekChartInstance.data.labels = wLabels; weekChartInstance.data.datasets[0].data = wData; weekChartInstance.data.datasets[0].backgroundColor = wColors;
-        weekChartInstance.update('none');
-      } else {
-        weekChartInstance = new Chart(wCtx, {
-          type: 'doughnut', data: { labels: wLabels, datasets: [{ data: wData, backgroundColor: wColors, borderWidth: 0 }] },
-          options: { responsive: true, maintainAspectRatio: false, cutout: '50%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db' } }, tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } } }
-        });
-      }
-    } else if (!isWeekChartVisible && weekChartInstance) {
-       weekChartInstance.destroy(); weekChartInstance = null;
+    if (globalChartInstance) {
+      globalChartInstance.data.labels = labels; globalChartInstance.data.datasets[0].data = data; globalChartInstance.data.datasets[0].backgroundColor = colors; globalChartInstance.update('none');
+    } else {
+      globalChartInstance = new Chart(document.getElementById('globalChart'), { type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 12 }, padding: 20 } }, tooltip: { callbacks: { label: c => ` ${c.raw} Horas` } } } } });
     }
   }
 
-  /* ── LÓGICA: DESGLOSE Y EXPORTACIÓN CUSTOM Y NORMAL (SIN TOCAR) ───────────────── */
+  /* ── LÓGICA DE CUSTOM FIELD Y EXPORTACIÓN (Intacta) ── */
   function getFilteredCustomData() {
-    const cfId = document.getElementById('cf-select').value;
-    const valId = document.getElementById('cf-value-select').value;
-    const rangeType = document.getElementById('custom-range').value;
-    if (!cfId || !valId) { alert("Selecciona Campo y Filtro."); return null; }
+    const cfId = document.getElementById('cf-select').value, valId = document.getElementById('cf-value-select').value, rangeType = document.getElementById('custom-range').value;
+    if (!cfId || !valId) { alert("Selecciona Campo y Filtro."); return null; } if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos en el tablero."); return null; }
     let startD = null, endD = null, now = new Date();
-    if (rangeType === 'month') { startD = new Date(now.getFullYear(), now.getMonth(), 1); endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59); } 
-    else if (rangeType === 'week') { let day = now.getDay() || 7; startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0); endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999); } 
-    else if (rangeType === 'custom') { const sVal = document.getElementById('custom-start').value, eVal = document.getElementById('custom-end').value; if (!sVal || !eVal) { alert("Fechas inválidas."); return null; } startD = new Date(sVal + 'T00:00:00'); endD = new Date(eVal + 'T23:59:59'); }
+    if (rangeType === 'month') { startD = new Date(now.getFullYear(), now.getMonth(), 1); endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59); } else if (rangeType === 'week') { let day = now.getDay() || 7; startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0); endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999); } else if (rangeType === 'custom') { const sVal = document.getElementById('custom-start').value, eVal = document.getElementById('custom-end').value; if (!sVal || !eVal) { alert("Fechas inválidas."); return null; } startD = new Date(sVal + 'T00:00:00'); endD = new Date(eVal + 'T23:59:59'); }
     let aggregated = {}, displayData = []; 
     rawCardStore.forEach(item => {
-      const cfItems = item.card.customFieldItems;
-      if (!cfItems || !cfItems.some(cf => cf.idCustomField === cfId && cf.idValue === valId)) return;
+      const cfItems = item.card.customFieldItems; if (!cfItems || !cfItems.some(cf => cf.idCustomField === cfId && cf.idValue === valId)) return;
       let cardName = item.card.name, entries = item.state.entries || [], sessions = item.state.sessions || {}, cardTotalSecs = 0, cardMembersMap = {}; 
-      entries.forEach(e => {
-        let eDate = new Date(e.start || Date.now());
-        if (startD && eDate < startD) return; if (endD && eDate > endD) return;
-        let member = e.memberName || 'Desconocido', dur = e.duration || 0, key = `${member}___${cardName}`;
-        if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
-        aggregated[key].totalDuration += dur;
-        if (!cardMembersMap[e.memberId]) cardMembersMap[e.memberId] = { name: member, avatarUrl: e.avatarUrl, total: 0 };
-        cardMembersMap[e.memberId].total += dur; cardTotalSecs += dur;
-      });
-      if (!endD || now.getTime() <= endD.getTime()) {
-        if (!startD || now.getTime() >= startD.getTime()) {
-          Object.keys(sessions).forEach(pid => {
-            let sess = sessions[pid], elapsed = Math.floor((now - sess.startTime) / 1000);
-            elapsed = Math.min(elapsed, MAX_SECONDS);
-            if (elapsed > 0) {
-              let member = sess.memberName || 'Desconocido', key = `${member}___${cardName}`;
-              if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
-              aggregated[key].totalDuration += elapsed;
-              if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: member, avatarUrl: sess.avatarUrl, total: 0 };
-              cardMembersMap[pid].total += elapsed; cardTotalSecs += elapsed;
-            }
-          });
-        }
-      }
+      entries.forEach(e => { let eDate = new Date(e.start || Date.now()); if (startD && eDate < startD) return; if (endD && eDate > endD) return; let member = e.memberName || 'Desconocido', dur = e.duration || 0, key = `${member}___${cardName}`; if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 }; aggregated[key].totalDuration += dur; if (!cardMembersMap[e.memberId]) cardMembersMap[e.memberId] = { name: member, avatarUrl: e.avatarUrl, total: 0 }; cardMembersMap[e.memberId].total += dur; cardTotalSecs += dur; });
+      if (!endD || now.getTime() <= endD.getTime()) { if (!startD || now.getTime() >= startD.getTime()) { Object.keys(sessions).forEach(pid => { let sess = sessions[pid], elapsed = Math.min(Math.floor((now - sess.startTime) / 1000), MAX_SECONDS); if (elapsed > 0) { let member = sess.memberName || 'Desconocido', key = `${member}___${cardName}`; if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 }; aggregated[key].totalDuration += elapsed; if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: member, avatarUrl: sess.avatarUrl, total: 0 }; cardMembersMap[pid].total += elapsed; cardTotalSecs += elapsed; } }); } }
       if (cardTotalSecs > 0) { displayData.push({ name: cardName, total: cardTotalSecs, members: Object.values(cardMembersMap) }); }
     });
     return { aggregated, displayData };
@@ -759,73 +614,34 @@
       if (Object.keys(result.aggregated).length === 0) { alert("No hay registros en esas fechas y filtros."); return; }
       downloadCSV(result.aggregated, `Desglose_${cfName}_${cfValue}.csv`);
     } else if (actionType === 'view') {
-      const container = document.getElementById('custom-results-container');
-      if (result.displayData.length === 0) { container.innerHTML = `<div class="empty-state">No se encontró tiempo.</div>`; return; }
-      result.displayData.sort((a,b) => b.total - a.total);
-      let grandTotal = 0, customTeamMap = {}; 
-      let html = result.displayData.map(card => {
-        grandTotal += card.total;
-        let membersHtml = '';
-        if (card.members && card.members.length) {
-          card.members.sort((a,b) => b.total - a.total);
-          membersHtml = card.members.map(m => {
-            if (!customTeamMap[m.name]) customTeamMap[m.name] = 0;
-            customTeamMap[m.name] += m.total;
-            return `<div class="log-row" style="margin: 0 20px 8px 40px;"><div style="display:flex; align-items:center; gap:10px;">${avHtml(m.name, m.avatarUrl)}<span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span></div><div class="log-dur">${fmt(m.total)}</div></div>`;
-          }).join('');
-        }
-        return `<div class="data-block"><div class="db-header"><span class="db-title">${esc(card.name)}</span><span class="db-total">${fmt(card.total)}</span></div><div class="db-body open"><div style="padding: 10px 0;">${membersHtml}</div></div></div>`;
-      }).join('');
+      const container = document.getElementById('custom-results-container'); if (result.displayData.length === 0) { container.innerHTML = `<div class="empty-state">No se encontró tiempo.</div>`; return; }
+      result.displayData.sort((a,b) => b.total - a.total); let grandTotal = 0, customTeamMap = {}; 
+      let html = result.displayData.map(card => { grandTotal += card.total; let membersHtml = ''; if (card.members && card.members.length) { card.members.sort((a,b) => b.total - a.total); membersHtml = card.members.map(m => { if (!customTeamMap[m.name]) customTeamMap[m.name] = 0; customTeamMap[m.name] += m.total; return `<div class="log-row" style="margin: 0 20px 8px 40px;"><div style="display:flex; align-items:center; gap:10px;">${avHtml(m.name, m.avatarUrl)}<span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span></div><div class="log-dur">${fmt(m.total)}</div></div>`; }).join(''); } return `<div class="data-block"><div class="db-header"><span class="db-title">${esc(card.name)}</span><span class="db-total">${fmt(card.total)}</span></div><div class="db-body open"><div style="padding: 10px 0;">${membersHtml}</div></div></div>`; }).join('');
       let headerHtml = `<div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;"><div style="flex: 1; min-width: 200px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 8px;">Total del Filtro Seleccionado</div><div style="font-size: 32px; font-weight: 700; color: var(--accent);">${fmt(grandTotal)}</div><div style="font-size: 14px; color: var(--txt-mut); margin-top: 4px;">Equivale a ${fmtH(grandTotal)}</div></div><div style="width: 320px; min-height: 180px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; text-align: center;">Distribución de este filtro</div><div style="position: relative; height: 140px;"><canvas id="customChartCanvas"></canvas></div></div></div>`;
       container.innerHTML = headerHtml + html;
-      setTimeout(() => {
-         if(customChartInstance) customChartInstance.destroy(); 
-         const ctxCustom = document.getElementById('customChartCanvas');
-         const cLabels = [], cData = [], cColors = [];
-         Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => { cLabels.push(name); cData.push((customTeamMap[name] / 3600).toFixed(2)); cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]); });
-         customChartInstance = new Chart(ctxCustom, { type: 'doughnut', data: { labels: cLabels, datasets: [{ data: cData, backgroundColor: cColors, borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } }, tooltip: { callbacks: { label: function(context) { return ` ${context.raw} Horas`; } } } } } });
-      }, 50);
+      setTimeout(() => { if(customChartInstance) customChartInstance.destroy(); const ctxCustom = document.getElementById('customChartCanvas'); const cLabels = [], cData = [], cColors = []; Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => { cLabels.push(name); cData.push((customTeamMap[name] / 3600).toFixed(2)); cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]); }); customChartInstance = new Chart(ctxCustom, { type: 'doughnut', data: { labels: cLabels, datasets: [{ data: cData, backgroundColor: cColors, borderWidth: 0, hoverOffset: 4 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } }, tooltip: { callbacks: { label: function(context) { return ` ${context.raw} Horas`; } } } } } }); }, 50);
     }
   };
 
   window.executeExport = function() {
     if (!rawCardStore || rawCardStore.length === 0) { alert("No hay datos."); return; }
     const rangeType = document.getElementById('export-range').value; let startD = null, endD = null, now = new Date();
-    if (rangeType === 'month') { startD = new Date(now.getFullYear(), now.getMonth(), 1); endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59); } 
-    else if (rangeType === 'week') { let day = now.getDay() || 7; startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0); endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999); } 
-    else if (rangeType === 'custom') { const sVal = document.getElementById('export-start').value, eVal = document.getElementById('export-end').value; if (!sVal || !eVal) { alert("Fechas inválidas."); return; } startD = new Date(sVal + 'T00:00:00'); endD = new Date(eVal + 'T23:59:59'); }
-    let aggregated = {};
-    rawCardStore.forEach(item => {
-      let cardName = item.card.name, entries = item.state.entries || [];
-      entries.forEach(e => {
-        let eDate = new Date(e.start || Date.now());
-        if (startD && eDate < startD) return; if (endD && eDate > endD) return;
-        let member = e.memberName || 'Desconocido', key = `${member}___${cardName}`;
-        if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
-        aggregated[key].totalDuration += (e.duration || 0);
-      });
-    });
-    downloadCSV(aggregated, `TrackingTime_Global_${new Date().toISOString().slice(0,10)}.csv`);
+    if (rangeType === 'month') { startD = new Date(now.getFullYear(), now.getMonth(), 1); endD = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59); } else if (rangeType === 'week') { let day = now.getDay() || 7; startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0); endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999); } else if (rangeType === 'custom') { const sVal = document.getElementById('export-start').value, eVal = document.getElementById('export-end').value; if (!sVal || !eVal) { alert("Fechas inválidas."); return; } startD = new Date(sVal + 'T00:00:00'); endD = new Date(eVal + 'T23:59:59'); }
+    let aggregated = {}; rawCardStore.forEach(item => { let cardName = item.card.name, entries = item.state.entries || []; entries.forEach(e => { let eDate = new Date(e.start || Date.now()); if (startD && eDate < startD) return; if (endD && eDate > endD) return; let member = e.memberName || 'Desconocido', key = `${member}___${cardName}`; if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 }; aggregated[key].totalDuration += (e.duration || 0); }); }); downloadCSV(aggregated, `TrackingTime_Global_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
   function downloadCSV(aggregatedData, filename) {
-    let aggregatedList = Object.values(aggregatedData);
-    if (!aggregatedList.length) { alert("No hay registros en esos filtros."); return; }
-    aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration);
-    let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (HH:MM:SS),Horas\n";
-    let rows = aggregatedList.map(item => `"${item.member.replace(/"/g, '""')}","${item.card.replace(/"/g, '""')}",${fmt(item.totalDuration)},${(item.totalDuration / 3600).toFixed(2)}`);
-    csvContent += rows.join("\n");
-    let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), link = document.createElement("a");
-    link.setAttribute("href", url); link.setAttribute("download", filename);
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    let aggregatedList = Object.values(aggregatedData); if (!aggregatedList.length) { alert("No hay registros en esos filtros."); return; } aggregatedList.sort((a,b) => b.totalDuration - a.totalDuration); let csvContent = "\uFEFFMiembro,Actividad / Tarjeta,Tiempo Total (HH:MM:SS),Horas\n"; let rows = aggregatedList.map(item => `"${item.member.replace(/"/g, '""')}","${item.card.replace(/"/g, '""')}",${fmt(item.totalDuration)},${(item.totalDuration / 3600).toFixed(2)}`); csvContent += rows.join("\n"); let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), url = URL.createObjectURL(blob), link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", filename); document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }
 
   t.board('name').then(board => { document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; }).catch(() => {});
   fetchCustomFieldsList();
-  renderDashboard();
-  setInterval(renderDashboard, 1000);
-  window.addEventListener('focus', renderDashboard);
-  document.addEventListener('visibilitychange', function() { if (!document.hidden) renderDashboard(); });
+  
+  // Refresco Inicial y Loop
+  setInterval(() => {
+    fetchLiveBoardData().then(store => { rawCardStore = store; processAndRender(); });
+  }, 1000);
+  
 </script>
 </body>
 </html>
