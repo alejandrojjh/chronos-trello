@@ -556,12 +556,15 @@
     return { startD, endD };
   }
 
-  /* ── ACORDEONES SIN PERDER ESTADO ───────────────────────── */
+  /* ── ACORDEONES CORREGIDOS ───────────────────────────────── */
   window.toggleAccordion = function(headerEl, id) {
-    const bodyEl = headerEl.nextElementSibling;
+    const blockEl = headerEl.closest('.data-block');
+    const bodyEl = blockEl ? blockEl.querySelector('.db-body') : null;
     const caretEl = headerEl.querySelector('.db-caret');
     
-    caretEl.classList.toggle('open');
+    if (!bodyEl) return;
+
+    if (caretEl) caretEl.classList.toggle('open');
     bodyEl.classList.toggle('open');
 
     if (bodyEl.classList.contains('open')) {
@@ -877,7 +880,6 @@
     container.innerHTML = html;
   }
 
-  /* 🔴 CAMBIO: Gráfico de dona (Doughnut) para tarjetas */
   function toggleCardChart(cardId) {
     const chartWrap = document.getElementById(`card-chart-wrap-${cardId}`);
     if (!chartWrap) return;
@@ -1224,21 +1226,20 @@
     document.body.removeChild(link);
   }
 
-  /* ── INICIALIZACIÓN Y CICLO DE VIDA ───────────────────────── */
+  /* ── INICIALIZACIÓN Y CICLO DE VIDA (CADA 4 MINUTOS) ───────── */
   t.board('name').then(board => { 
     document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; 
   }).catch(() => {});
 
   fetchCustomFieldsList();
+  
+  // Carga inicial al abrir la pantalla
   loadAndRenderData();
 
-  // Refresco del reloj visual local (1 segundo)
-  setInterval(processAndRenderUI, 1000);
+  // Petición y refresco completo cada 4 MINUTOS (240000ms) - Sin parpadeos intermedios
+  setInterval(loadAndRenderData, 4 * 60 * 1000);
 
-  // Petición a Trello en segundo plano (20 segundos)
-  setInterval(loadAndRenderData, 20000);
-
-  // Sincronización proactiva cuando la pestaña vuelve a enfocarse
+  // Sincronización cuando se cambia o regresa a la pestaña
   window.addEventListener('focus', loadAndRenderData);
   document.addEventListener('visibilitychange', function() { 
     if (!document.hidden) loadAndRenderData(); 
