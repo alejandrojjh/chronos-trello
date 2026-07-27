@@ -10,7 +10,7 @@
   
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-   
+    
     :root {
       --bg-app:     #1d2125;
       --bg-sidebar: #161a1d;
@@ -176,7 +176,7 @@
     .db-body { display: none; border-top: 1px solid var(--border); background: var(--bg-app); }
     .db-body.open { display: block; }
 
-    /* Caja para gráficos dentro del acordeón */
+    /* Caja para gráfico dentro de la tarjeta */
     .accordion-chart-wrap {
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
@@ -196,19 +196,12 @@
       transition: background 0.2s;
     }
     .person-header:hover { background: var(--surf-hover); }
-    .av {
-      width: 28px; height: 28px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase;
-      margin-right: 12px; overflow: hidden; flex-shrink: 0;
-    }
-    .av img { width: 100%; height: 100%; object-fit: cover; }
     .person-name { flex: 1; font-size: 15px; font-weight: 600; color: #fff; }
     .person-total { font-size: 15px; font-weight: 700; color: var(--green); }
 
     .log-row {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 6px 12px; border-radius: 4px; background: rgba(255,255,255,0.02); margin-bottom: 4px;
+      padding: 8px 16px; border-radius: 4px; background: rgba(255,255,255,0.02); margin-bottom: 4px;
     }
     .log-row:hover { background: rgba(255,255,255,0.05); }
     .log-card { font-size: 13px; color: var(--txt-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -482,7 +475,6 @@
   var teamChartInstance = null;
   var customChartInstance = null;
   var cardChartInstances = {};   
-  var memberChartInstances = {}; 
   
   var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
@@ -503,19 +495,6 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;'); 
-  }
-  
-  function initials(n) { return (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '?').join('').toUpperCase(); }
-  
-  const AVATAR_COLORS = ['#579dff', '#4bce97', '#fea362', '#9f8fef', '#e774bb', '#f87168'];
-  function mColor(n) { 
-    let h = 0; for (let i = 0; i < (n || '').length; i++) h = (h * 31 + n.charCodeAt(i)) | 0; 
-    return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]; 
-  }
-  
-  function avHtml(name, url) {
-    if (url) return `<div class="av"><img src="${esc(url)}" onerror="this.parentElement.style.background='${mColor(name)}'; this.remove();"></div>`;
-    return `<div class="av" style="background:${mColor(name)}">${esc(initials(name))}</div>`;
   }
 
   function getDateLimits(rangeType, startId, endId) {
@@ -539,7 +518,7 @@
     return { startD, endD };
   }
 
-  /* ── MANEJO UNIFICADO DE ACORDEONES Y DIBUJO DE GRÁFICOS ─── */
+  /* ── ACORDEONES ─────────────────────────────────────────── */
   window.toggleAccordion = function(headerEl, id, type) {
     const blockEl = headerEl.closest('.data-block');
     const bodyEl = blockEl ? blockEl.querySelector('.db-body') : null;
@@ -554,8 +533,6 @@
       openAccordions.add(id);
       if (type === 'card') {
         setTimeout(() => renderCardChart(id), 30);
-      } else if (type === 'member') {
-        setTimeout(() => renderMemberChart(id), 30);
       }
     } else {
       openAccordions.delete(id);
@@ -697,13 +674,12 @@
         let dur = e.duration || 0;
         let pid = e.memberId || 'unknown';
         let pName = e.memberName || 'Desconocido';
-        let pAv = e.avatarUrl || '';
 
         cardTotalSecs += dur;
-        if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+        if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, total: 0 };
         cardMembersMap[pid].total += dur;
 
-        if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+        if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, total: 0 };
         globalTeamMap[pid].total += dur;
       });
 
@@ -714,13 +690,12 @@
 
         if (elapsed > 0) {
           let pName = sess.memberName || 'Desconocido';
-          let pAv = sess.avatarUrl || '';
 
           cardTotalSecs += elapsed;
-          if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+          if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, total: 0 };
           cardMembersMap[pid].total += elapsed;
 
-          if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, avatarUrl: pAv, total: 0 };
+          if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, total: 0 };
           globalTeamMap[pid].total += elapsed;
         }
       });
@@ -737,9 +712,9 @@
         });
       }
 
-      const applyTeamTimeToMap = (dur, pid, pName, pAv) => {
+      const applyTeamTimeToMap = (dur, pid, pName) => {
         if (selectedTeamMember !== 'all' && pid !== selectedTeamMember) return;
-        if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, avatarUrl: pAv, total: 0, cards: {} };
+        if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, total: 0, cards: {} };
         teamDataMap[pid].total += dur;
         teamDataMap[pid].cards[card.name] = (teamDataMap[pid].cards[card.name] || 0) + dur;
       };
@@ -748,7 +723,7 @@
         let eDate = new Date(e.start || now);
         if (teamStartD && eDate < teamStartD) return;
         if (teamEndD && eDate > teamEndD) return;
-        applyTeamTimeToMap(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido', e.avatarUrl || '');
+        applyTeamTimeToMap(e.duration || 0, e.memberId || 'unknown', e.memberName || 'Desconocido');
       });
 
       if (!teamEndD || now.getTime() <= teamEndD.getTime()) {
@@ -758,7 +733,7 @@
             let elapsed = Math.floor((now - sess.startTime) / 1000);
             elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
             if (elapsed > 0) {
-              applyTeamTimeToMap(elapsed, pid, sess.memberName || 'Desconocido', sess.avatarUrl || '');
+              applyTeamTimeToMap(elapsed, pid, sess.memberName || 'Desconocido');
             }
           });
         }
@@ -800,7 +775,7 @@
     pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach((pid, idx) => {
       let member = teamDataMap[pid];
       let pct = totalSecs > 0 ? ((member.total / totalSecs) * 100).toFixed(1) : 0;
-      labels.push(`${member.name} (${pct}%)`);
+      labels.push(member.name); // Solo el nombre en la leyenda
       dataValues.push(pct); 
       backgroundColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
     });
@@ -842,10 +817,7 @@
       let isOpen = openAccordions.has(card.id);
       let membersHtml = card.members.sort((a,b) => b.total - a.total).map(m => `
         <div class="log-row" style="margin: 0 20px 8px 40px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            ${avHtml(m.name, m.avatarUrl)}
-            <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
-          </div>
+          <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
           <div class="log-dur">${fmt(m.total)}</div>
         </div>
       `).join('');
@@ -870,7 +842,6 @@
     }).join('');
     container.innerHTML = html;
 
-    // Renderizamos gráficos de los acordeones que quedaron abiertos
     openAccordions.forEach(id => {
       setTimeout(() => renderCardChart(id), 30);
     });
@@ -889,7 +860,7 @@
 
     cardData.members.sort((a,b) => b.total - a.total).forEach((m, idx) => {
       let pct = ((m.total / cardData.total) * 100).toFixed(1);
-      labels.push(`${m.name} (${pct}%)`);
+      labels.push(m.name); // Solo el nombre sin %
       dataValues.push(pct);
       colors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
     });
@@ -909,7 +880,7 @@
     });
   }
 
-  /* ── RENDERIZADO TAB EQUIPO ─────────────────────────────── */
+  /* ── RENDERIZADO TAB EQUIPO (SIN ESPACIO EN BLANCO Y SIN CÍRCULOS) ── */
   function renderTeamTab(teamDataMap, selectedMemberId) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
@@ -930,78 +901,16 @@
         <div class="data-block">
           <div class="person-header" onclick="toggleAccordion(this, 'team_${pid}', 'member')">
             <span class="db-caret ${isOpen ? 'open' : ''}">▶</span>
-            ${avHtml(p.name, p.avatarUrl)}
             <div class="person-name">${esc(p.name)}</div>
             <div class="person-total">${fmt(p.total)}</div>
           </div>
 
           <div class="db-body ${isOpen ? 'open' : ''}">
-            <div class="accordion-chart-wrap">
-              <canvas id="member-canvas-${pid}"></canvas>
-            </div>
             <div style="padding: 10px 20px;">${cardsHtml}</div>
           </div>
         </div>`;
     }).join('');
     container.innerHTML = html;
-
-    pids.forEach(pid => {
-      if (openAccordions.has(`team_${pid}`)) {
-        setTimeout(() => renderMemberChart(pid), 30);
-      }
-    });
-  }
-
-  function renderMemberChart(pid) {
-    const ctx = document.getElementById(`member-canvas-${pid}`);
-    if (!ctx) return;
-    
-    const teamRangeType = document.getElementById('team-range').value;
-    const { startD, endD } = getDateLimits(teamRangeType, 'team-start', 'team-end');
-    const now = Date.now();
-
-    let memberCardsMap = {};
-    let memberTotalSecs = 0;
-
-    rawCardStore.forEach(item => {
-      (item.state.entries || []).forEach(e => {
-        if (e.memberId === pid) {
-          let eDate = new Date(e.start || now);
-          if (startD && eDate < startD) return;
-          if (endD && eDate > endD) return;
-          let dur = e.duration || 0;
-          memberCardsMap[item.card.name] = (memberCardsMap[item.card.name] || 0) + dur;
-          memberTotalSecs += dur;
-        }
-      });
-    });
-
-    if (!memberTotalSecs) return;
-
-    const labels = [];
-    const dataValues = [];
-    const colors = [];
-
-    Object.keys(memberCardsMap).sort((a,b) => memberCardsMap[b] - memberCardsMap[a]).forEach((cName, idx) => {
-      let pct = ((memberCardsMap[cName] / memberTotalSecs) * 100).toFixed(1);
-      labels.push(`${cName} (${pct}%)`);
-      dataValues.push(pct);
-      colors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
-    });
-
-    if (memberChartInstances[pid]) memberChartInstances[pid].destroy();
-
-    memberChartInstances[pid] = new Chart(ctx, {
-      type: 'doughnut',
-      data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0 }] },
-      options: {
-        responsive: true, maintainAspectRatio: false, cutout: '60%',
-        plugins: {
-          legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
-          tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } }
-        }
-      }
-    });
   }
 
   /* ── FILTROS CUSTOM & EXPORTACIONES ──────────────────────── */
@@ -1041,7 +950,7 @@
         if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
         aggregated[key].totalDuration += dur;
 
-        if (!cardMembersMap[e.memberId]) cardMembersMap[e.memberId] = { name: member, avatarUrl: e.avatarUrl, total: 0 };
+        if (!cardMembersMap[e.memberId]) cardMembersMap[e.memberId] = { name: member, total: 0 };
         cardMembersMap[e.memberId].total += dur;
         cardTotalSecs += dur;
       });
@@ -1060,7 +969,7 @@
               if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
               aggregated[key].totalDuration += elapsed;
 
-              if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: member, avatarUrl: sess.avatarUrl, total: 0 };
+              if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: member, total: 0 };
               cardMembersMap[pid].total += elapsed;
               cardTotalSecs += elapsed;
             }
@@ -1108,10 +1017,7 @@
           customTeamMap[m.name] = (customTeamMap[m.name] || 0) + m.total;
           return `
             <div class="log-row" style="margin: 0 20px 8px 40px;">
-              <div style="display:flex; align-items:center; gap:10px;">
-                ${avHtml(m.name, m.avatarUrl)}
-                <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
-              </div>
+              <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
               <div class="log-dur">${fmt(m.total)}</div>
             </div>
           `;
@@ -1157,7 +1063,7 @@
       
       Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => {
         let pct = grandTotal > 0 ? ((customTeamMap[name] / grandTotal) * 100).toFixed(1) : 0;
-        cLabels.push(`${name} (${pct}%)`);
+        cLabels.push(name); // Solo el nombre en la leyenda
         cData.push(pct);
         cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
       });
@@ -1235,13 +1141,13 @@
 
   fetchCustomFieldsList();
   
-  // Carga inicial al entrar al dashboard
+  // Carga inicial
   loadAndRenderData();
 
-  // Refresco discreto de datos cada 3 minutos (sin ciclo de 1s que cause parpadeos)
+  // Refresco silencioso cada 3 minutos
   setInterval(loadAndRenderData, 3 * 60 * 1000);
 
-  // Sincronización proactiva solo cuando la pestaña pasa de segundo plano a activo
+  // Sincronización cuando entra en foco
   window.addEventListener('focus', loadAndRenderData);
   document.addEventListener('visibilitychange', function() { 
     if (!document.hidden) loadAndRenderData(); 
