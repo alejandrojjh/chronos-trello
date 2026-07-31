@@ -165,7 +165,6 @@
       margin-top: 1px;
     }
 
-    /* Contenedor de duración y acciones (Lápiz) */
     .entry-actions {
       display: flex;
       align-items: center;
@@ -327,13 +326,16 @@
   (function () {
     var KEY        = 'chronos';
     var ACTIVE_KEY = 'chronos-active-users';
+    var SUM_KEY    = 'chronos-summary';
+    var DAILY_KEY  = 'chronos-daily';
     var t          = window.TrelloPowerUp.iframe();
+    
     var state      = null;
     var me         = null;
+    var currentCard = { id: '', name: '' };
     var tick       = null;
-    var currentEditStart = null; // Variable para identificar el registro exacto a editar
+    var currentEditStart = null; 
 
-    // 🔴 LÍMITE MÁXIMO DE SESIÓN (En horas) 🔴
     var MAX_SESSION_HOURS = 9; 
     var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
 
@@ -380,11 +382,9 @@
       el.className = 'save-status' + (isErr ? ' err' : '');
     }
 
-    // Convertir texto de tiempo a segundos (con soporte para '0')
     function parseTimeToSeconds(str) {
       if (!str) return null;
       str = str.trim().toLowerCase();
-      
       if (str === '0' || str === '00:00:00') return 0;
 
       var hMatch = str.match(/(\d+)\s*h/);
@@ -404,11 +404,82 @@
       } else if (parts.length === 2) {
         return (parseInt(parts[0], 10) * 3600) + (parseInt(parts[1], 10) * 60);
       }
-
       var num = parseFloat(str);
       if (!isNaN(num)) return Math.floor(num * 60);
-
       return null;
+    }
+
+    /* ── sync board summary (NUEVA ARQUITECTURA OPTIMIZADA) ── */
+    function syncBoardSummary(cardStateObj) {
+      return Promise.all([
+        t.get('board', 'shared', SUM_KEY).catch(function(){ return {}; }),
+        t.get('board', 'shared', DAILY_KEY).catch(function(){ return {}; })
+      ]).then(function(res) {
+        var summary = res[0] || {};
+        var daily   = res[1] || {};
+
+        var cardId   = currentCard.id;
+        var cardName = currentCard.name;
+
+        // Cálculos locales para el resumen
+        var total = (cardStateObj.entries || []).reduce(function(a, e){ return a + (e.duration || 0); }, 0);
+        var running = !!(cardStateObj.sessions && Object.keys(cardStateObj.sessions).length > 0);
+        var mMap = {};
+
+        (cardStateObj.entries || []).forEach(function(e){
+          if (!e.memberId) return;
+          if (!mMap[e.memberId]) mMap[e.memberId] = { name: e.memberName, avatarUrl: e.avatarUrl, total: 0 };
+          mMap[e.memberId].total += e.duration;
+        });
+
+        if (cardStateObj.sessions) {
+          Object.keys(cardStateObj.sessions).forEach(function(id){
+            var s = cardStateObj.sessions[id];
+            var live = Math.min(Math.floor((Date.now() - s.startTime) / 1000), MAX_SECONDS);
+            if (!mMap[id]) mMap[id] = { name: s.memberName, avatarUrl: s.avatarUrl, total: 0 };
+            mMap[id].total += live;
+            total += live;
+          });
+        }
+
+        // Limpiar registros antiguos de esta tarjeta en Daily para reescribirlos
+        Object.keys(daily).forEach(function(day){
+          daily[day] = daily[day].filter(function(d){ return d.cardId !== cardId; });
+          if (daily[day].length === 0) delete daily[day];
+        });
+
+        // Escribir nuevos totales
+        if (!cardStateObj || (!total && !running)) {
+          delete summary[cardId];
+        } else {
+          var mList = Object.keys(mMap).map(function(id){
+            return { id: id, name: mMap[id].name, avatarUrl: mMap[id].avatarUrl, total: mMap[id].total };
+          });
+          summary[cardId] = { name: cardName, total: total, running: running, members: mList, updatedAt: Date.now() };
+
+          var cutoff = Date.now() - 365*24*3600*1000;
+          (cardStateObj.entries || []).forEach(function(e){
+            if (!e.start || e.start < cutoff) return;
+            var day = new Date(e.start).toISOString().slice(0,10);
+            if (!daily[day]) daily[day] = [];
+            daily[day].push({
+              cardId: cardId, cardName: cardName, memberId: e.memberId, memberName: e.memberName,
+              avatarUrl: e.avatarUrl, duration: e.duration, start: e.start
+            });
+          });
+        }
+
+        // Limpieza general de basura en Daily
+        var cutoffGeneral = Date.now() - 365*24*3600*1000;
+        Object.keys(daily).forEach(function(day){
+          if (new Date(day).getTime() < cutoffGeneral) delete daily[day];
+        });
+
+        return Promise.all([
+          t.set('board', 'shared', SUM_KEY, summary),
+          t.set('board', 'shared', DAILY_KEY, daily)
+        ]);
+      });
     }
 
     /* ── time calculations ───────────────────────────────── */
@@ -419,10 +490,11 @@
       var sess = state.sessions && state.sessions[me.id];
       if (sess && sess.startTime) {
         var elapsed = Math.floor((Date.now()-sess.startTime)/1000);
-        base += Math.min(elapsed, MAX_SECONDS); // Límite de sesión
+        base += Math.min(elapsed, MAX_SECONDS);
       }
       return base;
     }
+    
     function allTotal() {
       if (!state) return 0;
       var base = (state.entries||[]).reduce(function(s,e){ return s+(e.duration||0); },0);
@@ -431,14 +503,13 @@
           var s = state.sessions[id];
           if (s && s.startTime) {
             var elapsed = Math.floor((Date.now()-s.startTime)/1000);
-            base += Math.min(elapsed, MAX_SECONDS); // Límite de sesión global
+            base += Math.min(elapsed, MAX_SECONDS);
           }
         });
       }
       return base;
     }
 
-    /* ── clock tick ──────────────────────────────────────── */
     function updateClock() {
       if (!state || !me) return;
       document.getElementById('clock').textContent     = fmt(myTotal());
@@ -448,7 +519,6 @@
     /* ── render ──────────────────────────────────────────── */
     function render() {
       if (!state || !me) return;
-
       var btn      = document.getElementById('toggle-btn');
       var resetBtn = document.getElementById('reset-btn');
       btn.disabled      = false;
@@ -466,13 +536,12 @@
       } else {
         if (tick) { clearInterval(tick); tick = null; }
         clockEl.className   = 'clock';
-        clockEl.textContent = fmt(myTotal()); // Reloj acumulativo siempre visible
+        clockEl.textContent = fmt(myTotal());
         btn.className = 'btn btn-start';
         btn.textContent = '▶ Play';
         document.getElementById('all-total').textContent = fmt(allTotal());
       }
 
-      /* Entradas recientes (Logs) */
       var entries = (state.entries||[]).slice().reverse().slice(0,10);
       var el = document.getElementById('entries');
       
@@ -482,8 +551,6 @@
         el.innerHTML = entries.map(function(e){
           var isMe = e.memberId===me.id;
           var name = isMe ? 'Tú' : (e.memberName||'Desconocido');
-          
-          // Renderizar botón de editar solo si es tu propio registro
           var editHtml = isMe ? '<button class="entry-edit-btn" data-start="'+e.start+'" data-dur="'+e.duration+'" title="Modificar este registro">✏️</button>' : '';
 
           return '<li class="entry">' +
@@ -499,43 +566,34 @@
           '</li>';
         }).join('');
       }
-
       t.sizeTo('#root').catch(function(){});
     }
 
-    /* ── Evento de Delegación para el Lápiz de Editar Fila ── */
+    /* ── Delegación de Eventos ───────────────────────────── */
     document.getElementById('entries').addEventListener('click', function(e) {
       var btn = e.target.closest('.entry-edit-btn');
-      if (!btn) return;
-      if (!state || !me) return;
-      
-      // Guardar la marca de tiempo original para identificar esta entrada exacta
+      if (!btn || !state || !me) return;
       currentEditStart = parseInt(btn.getAttribute('data-start'), 10);
       var currentDur = parseInt(btn.getAttribute('data-dur'), 10);
-      
       document.getElementById('reset-panel').style.display = 'none';
       document.getElementById('edit-input').value = fmt(currentDur);
       document.getElementById('edit-panel').style.display = 'block';
       t.sizeTo('#root').catch(function(){});
     });
 
-    /* ── toggle details event ────────────────────────────── */
     document.getElementById('toggle-details-btn').addEventListener('click', function () {
       var detailsSec = document.getElementById('details-section');
-      var btn = this;
-      
       if (detailsSec.style.display === 'none') {
         detailsSec.style.display = 'block';
-        btn.textContent = 'Hide Details';
+        this.textContent = 'Hide Details';
       } else {
         detailsSec.style.display = 'none';
-        btn.textContent = 'Show Details';
+        this.textContent = 'Show Details';
       }
-      
       t.sizeTo('#root').catch(function(){});
     });
 
-    /* ── toggle start/stop click (CON CONTROL CONCURRENTE Y AUTOPAUSA) ── */
+    /* ── EVENTO: Play / Stop ─────────────────────────────── */
     document.getElementById('toggle-btn').addEventListener('click', function () {
       if (!state || !me) return;
       var btn = this;
@@ -545,12 +603,10 @@
 
       Promise.all([
         t.get('card', 'shared', KEY).catch(function(){ return null; }),
-        t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; }),
-        t.card('id', 'name').catch(function(){ return { id: '', name: '' }; })
+        t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; })
       ]).then(function(results) {
         var freshCardState = results[0] || {};
         var activeUsers    = results[1] || {};
-        var currentCard    = results[2];
 
         if (!freshCardState.sessions) freshCardState.sessions = {};
         if (!freshCardState.entries)  freshCardState.entries  = [];
@@ -558,21 +614,15 @@
         var isRunningOnThisCard = !!freshCardState.sessions[me.id];
 
         if (isRunningOnThisCard) {
-          /* ── DETENER EL TIMER ACTUAL ── */
+          // DETENER
           var sess = freshCardState.sessions[me.id];
           var now  = Date.now();
-          var dur  = Math.floor((now - sess.startTime) / 1000);
-          
-          dur = Math.min(dur, MAX_SECONDS); // Aplicar límite
+          var dur  = Math.min(Math.floor((now - sess.startTime) / 1000), MAX_SECONDS);
 
           if (dur > 0) {
             freshCardState.entries.push({
-              memberId:   me.id,
-              memberName: me.fullName,
-              avatarUrl:  me.avatarUrl || '',
-              start:      sess.startTime,
-              end:        now,
-              duration:   dur
+              memberId: me.id, memberName: me.fullName, avatarUrl: me.avatarUrl || '',
+              start: sess.startTime, end: now, duration: dur
             });
           }
           delete freshCardState.sessions[me.id];
@@ -582,13 +632,15 @@
             t.set('card', 'shared', KEY, freshCardState),
             t.set('board', 'shared', ACTIVE_KEY, activeUsers)
           ]).then(function() {
+            return syncBoardSummary(freshCardState); // <--- Sincroniza el dashboard
+          }).then(function() {
             state = freshCardState;
             render();
             setSaveStatus('');
           });
 
         } else {
-          /* ── INICIAR TIMER EN ESTA TARJETA ── */
+          // INICIAR
           var prevSession = activeUsers[me.id];
           var closePrevCardPromise = Promise.resolve();
 
@@ -597,46 +649,33 @@
               if (prevCardState && prevCardState.sessions && prevCardState.sessions[me.id]) {
                 var pSess = prevCardState.sessions[me.id];
                 var now   = Date.now();
-                var dur   = Math.floor((now - pSess.startTime) / 1000);
+                var dur   = Math.min(Math.floor((now - pSess.startTime) / 1000), MAX_SECONDS);
                 
-                dur = Math.min(dur, MAX_SECONDS); // Aplicar límite tarjeta previa
-
                 if (dur > 0) {
                   if (!prevCardState.entries) prevCardState.entries = [];
                   prevCardState.entries.push({
-                    memberId:   me.id,
-                    memberName: me.fullName,
-                    avatarUrl:  me.avatarUrl || '',
-                    start:      pSess.startTime,
-                    end:        now,
-                    duration:   dur
+                    memberId: me.id, memberName: me.fullName, avatarUrl: me.avatarUrl || '',
+                    start: pSess.startTime, end: now, duration: dur
                   });
                 }
                 delete prevCardState.sessions[me.id];
-                return t.set(prevSession.cardId, 'shared', KEY, prevCardState);
+                return t.set(prevSession.cardId, 'shared', KEY, prevCardState)
+                  .then(function() { return syncBoardSummary(prevCardState); });
               }
-            }).catch(function(e) {
-              console.warn('Advertencia al cerrar la tarjeta previa:', e);
-            });
+            }).catch(function(e) { console.warn('Advertencia:', e); });
           }
 
           return closePrevCardPromise.then(function() {
             var now = Date.now();
-            freshCardState.sessions[me.id] = {
-              startTime:  now,
-              memberName: me.fullName,
-              avatarUrl:  me.avatarUrl || ''
-            };
-            activeUsers[me.id] = {
-              cardId:    currentCard.id,
-              cardName:  currentCard.name,
-              startTime: now
-            };
+            freshCardState.sessions[me.id] = { startTime: now, memberName: me.fullName, avatarUrl: me.avatarUrl || '' };
+            activeUsers[me.id] = { cardId: currentCard.id, cardName: currentCard.name, startTime: now };
 
             return Promise.all([
               t.set('card', 'shared', KEY, freshCardState),
               t.set('board', 'shared', ACTIVE_KEY, activeUsers)
             ]).then(function() {
+              return syncBoardSummary(freshCardState); // <--- Sincroniza el dashboard
+            }).then(function() {
               state = freshCardState;
               render();
               setSaveStatus('');
@@ -645,45 +684,37 @@
         }
       }).catch(function(err) {
         setSaveStatus('Error', true);
-        showError('No se pudo guardar el cambio: ' + String(err));
-      }).then(function() {
+        showError('No se pudo guardar: ' + String(err));
+      }).finally(function() {
         btn.disabled = false;
       });
     });
 
     /* ── PANELS INLINE CONTROLS ───────────────────────────────────── */
-    var resetPanel = document.getElementById('reset-panel');
-    var editPanel  = document.getElementById('edit-panel');
-    var editInput  = document.getElementById('edit-input');
-
-    // Botón "Reiniciar mis datos"
     document.getElementById('reset-btn').addEventListener('click', function () {
       if (!state || !me) return;
-      editPanel.style.display = 'none';
-      resetPanel.style.display = 'block';
+      document.getElementById('edit-panel').style.display = 'none';
+      document.getElementById('reset-panel').style.display = 'block';
       t.sizeTo('#root').catch(function(){});
     });
 
-    // Cancelar Reinicio
     document.getElementById('cancel-reset').addEventListener('click', function () {
-      resetPanel.style.display = 'none';
+      document.getElementById('reset-panel').style.display = 'none';
       t.sizeTo('#root').catch(function(){});
     });
 
-    // Cancelar Edición Granular
     document.getElementById('cancel-edit').addEventListener('click', function () {
-      editPanel.style.display = 'none';
+      document.getElementById('edit-panel').style.display = 'none';
       currentEditStart = null;
       t.sizeTo('#root').catch(function(){});
     });
 
-    // Confirmar Reinicio - AHORA CON PREVENCIÓN DE CARRERAS DE DATOS
+    /* ── EVENTO: Reset ───────────────────────────────────── */
     document.getElementById('confirm-reset').addEventListener('click', function () {
       if (!state || !me) return;
-      resetPanel.style.display = 'none';
+      document.getElementById('reset-panel').style.display = 'none';
       setSaveStatus('Borrando…');
       
-      // Obtener datos frescos antes de borrar
       Promise.all([
         t.get('card', 'shared', KEY).catch(function(){ return {}; }),
         t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; })
@@ -692,7 +723,6 @@
         var activeUsers = results[1] || {};
 
         if (freshCardState.sessions) delete freshCardState.sessions[me.id];
-        // Solo borramos TU ID, el del resto queda a salvo
         freshCardState.entries = (freshCardState.entries||[]).filter(function(e){ return e.memberId !== me.id; });
         delete activeUsers[me.id];
 
@@ -700,68 +730,63 @@
           t.set('card', 'shared', KEY, freshCardState),
           t.set('board', 'shared', ACTIVE_KEY, activeUsers)
         ]).then(function(){
+          return syncBoardSummary(freshCardState); // <--- Sincroniza el dashboard
+        }).then(function(){
           state = freshCardState;
           render();
           setSaveStatus('');
         });
       }).catch(function(err){
         setSaveStatus('Error', true);
-        showError('Error al reiniciar tiempo: ' + String(err));
+        showError('Error: ' + String(err));
       });
     });
 
-    // Guardar Edición Granular - CON PREVENCIÓN DE CARRERAS DE DATOS
+    /* ── EVENTO: Edición Granular ────────────────────────── */
     document.getElementById('save-edit').addEventListener('click', function () {
       if (!state || !me || currentEditStart === null) return;
 
+      var editInput = document.getElementById('edit-input');
       var newSeconds = parseTimeToSeconds(editInput.value);
       if (newSeconds === null || newSeconds < 0) {
-        showError("Formato no válido. Usa '01:30:00', '1h 30m' o pon '0' para borrar.");
+        showError("Usa formato válido: '01:30:00', '1h 30m' o '0' para borrar.");
         return;
       }
 
       showError('');
       setSaveStatus('Guardando…');
-      editPanel.style.display = 'none';
+      document.getElementById('edit-panel').style.display = 'none';
 
-      // Obtener datos frescos exactamente un momento antes de guardar
       Promise.all([
-        t.get('card', 'shared', KEY).catch(function(){ return {}; }),
-        t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; })
+        t.get('card', 'shared', KEY).catch(function(){ return {}; })
       ]).then(function(results) {
         var freshCardState = results[0] || {};
-        var activeUsers = results[1] || {};
-
         if (!freshCardState.entries) freshCardState.entries = [];
 
-        // Buscar el índice exacto del registro usando el Start Time original
         var entryIndex = freshCardState.entries.findIndex(function(e) {
           return e.memberId === me.id && e.start === currentEditStart;
         });
 
         if (entryIndex > -1) {
           if (newSeconds === 0) {
-            // Eliminar la entrada si el usuario escribió 0
             freshCardState.entries.splice(entryIndex, 1);
           } else {
-            // Actualizar la duración del registro específico
             freshCardState.entries[entryIndex].duration = newSeconds;
             freshCardState.entries[entryIndex].end = freshCardState.entries[entryIndex].start + (newSeconds * 1000);
           }
         }
 
-        return Promise.all([
-          t.set('card', 'shared', KEY, freshCardState),
-          t.set('board', 'shared', ACTIVE_KEY, activeUsers)
-        ]).then(function(){
-          state = freshCardState;
-          currentEditStart = null;
-          render();
-          setSaveStatus('');
-        });
+        return t.set('card', 'shared', KEY, freshCardState)
+          .then(function(){ return syncBoardSummary(freshCardState); }) // <--- Sincroniza el dashboard
+          .then(function(){
+            state = freshCardState;
+            currentEditStart = null;
+            render();
+            setSaveStatus('');
+          });
       }).catch(function(err){
         setSaveStatus('Error', true);
-        showError('Error al modificar tiempo: ' + String(err));
+        showError('Error: ' + String(err));
       });
     });
 
@@ -770,9 +795,10 @@
       return { id: 'anon-' + Math.random().toString(36).slice(2), fullName: 'Usuario', username: 'usuario', avatar: null };
     });
 
-    t.card('name').then(function(cardData) {
-      if(cardData && cardData.name) {
-        document.getElementById('task-title-mock').value = cardData.name;
+    t.card('id', 'name').then(function(cardData) {
+      if(cardData) {
+        currentCard = cardData;
+        document.getElementById('task-title-mock').value = cardData.name || '';
       }
     }).catch(function(){});
 
@@ -782,15 +808,12 @@
     ]).then(function (results) {
       var raw = results[0];
       var m   = results[1];
-
       var avatarUrl = '';
-      if (m && m.avatar) {
-        avatarUrl = 'https://trello-members.s3.amazonaws.com/' + m.id + '/' + m.avatar + '/50.png';
-      }
+      if (m && m.avatar) avatarUrl = 'https://trello-members.s3.amazonaws.com/' + m.id + '/' + m.avatar + '/50.png';
 
       me = {
         id:        (m && m.id) || 'anon',
-        fullName: (m && (m.fullName || m.username)) || 'Usuario',
+        fullName:  (m && (m.fullName || m.username)) || 'Usuario',
         avatarUrl: avatarUrl
       };
 
