@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>TrackingTime Reports</title>
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
-  <!-- LIBRERÍA CHART.JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
@@ -36,226 +35,80 @@
     }
 
     /* ── Sidebar ───────────────────────────────────────────── */
-    .sidebar {
-      width: 260px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-    }
-    .sb-header {
-      padding: 24px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .sb-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.3px;
-    }
-    .sb-board {
-      font-size: 12px;
-      color: var(--txt-mut);
-      margin-top: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-weight: 500;
-    }
-    .sb-nav {
-      padding: 16px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 1;
-    }
-    .nav-item {
-      padding: 10px 12px;
-      border-radius: 6px;
-      color: var(--txt-main);
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.2s;
-    }
+    .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .sb-header { padding: 24px 20px; border-bottom: 1px solid var(--border); }
+    .sb-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .sb-board { font-size: 12px; color: var(--txt-mut); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+    .sb-nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .nav-item { padding: 10px 12px; border-radius: 6px; color: var(--txt-main); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
     .nav-item:hover { background: var(--surf); }
-    .nav-item.active {
-      background: rgba(87, 157, 255, 0.1);
-      color: var(--accent);
-    }
-    .sb-footer {
-      padding: 16px 20px;
-      font-size: 10px;
-      color: var(--txt-mut);
-      border-top: 1px solid var(--border);
-      text-align: center;
-    }
+    .nav-item.active { background: rgba(87, 157, 255, 0.1); color: var(--accent); }
+    .sb-footer { padding: 16px 20px; font-size: 10px; color: var(--txt-mut); border-top: 1px solid var(--border); text-align: center; }
 
     /* ── Main Content Area ────────────────────────────────── */
-    .main-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 32px 40px;
-      position: relative;
-    }
+    .main-content { flex: 1; overflow-y: auto; padding: 32px 40px; position: relative; }
     .tab-pane { display: none; animation: fadeIn 0.2s ease; }
     .tab-pane.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 
     .page-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 24px; }
-
-    /* ── Top Row Layout (Stats + Chart) ───────────────────── */
-    .top-row {
-      display: flex;
-      gap: 24px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      align-items: stretch;
-    }
+    .top-row { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; align-items: stretch; }
 
     /* ── Summary Stats ────────────────────────────────────── */
-    .summary-grid {
-      flex: 1;
-      min-width: 300px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      align-content: start;
-    }
-    .stat-card {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
+    .summary-grid { flex: 1; min-width: 300px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-content: start; }
+    .stat-card { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .stat-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; letter-spacing: 0.5px; }
     .stat-val { font-size: 28px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
     .stat-val.blue { color: var(--accent); }
     .stat-val.green { color: var(--green); }
 
     /* ── Chart Container ──────────────────────────────────── */
-    .chart-box {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      width: 400px;
-      min-height: 250px;
-      display: none; 
-      flex-direction: column;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
+    .chart-box { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 20px; width: 400px; min-height: 250px; display: none; flex-direction: column; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .chart-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 12px; }
 
     /* ── Cards UI ─────────────────────────────────────────── */
-    .data-block {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 12px;
-      overflow: hidden;
-    }
-    .db-header {
-      display: flex;
-      align-items: center;
-      padding: 14px 20px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.2s;
-    }
+    .data-block { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+    .db-header { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; transition: background 0.2s; }
     .db-header:hover { background: var(--surf-hover); }
     .db-caret { font-size: 10px; color: var(--txt-mut); transition: transform 0.2s; margin-right: 12px; }
     .db-caret.open { transform: rotate(90deg); }
     .db-title { flex: 1; font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .db-total { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); font-size: 14px; margin-left: 16px; }
-    
     .db-body { display: none; border-top: 1px solid var(--border); background: var(--bg-app); }
     .db-body.open { display: block; }
-
-    .accordion-chart-wrap {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg-sidebar);
-      height: 190px;
-      position: relative;
-    }
+    .accordion-chart-wrap { padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--bg-sidebar); height: 190px; position: relative; }
     
     /* ── Team & Member UI ─────────────────────────────────── */
-    .person-header {
-      display: flex;
-      align-items: center;
-      padding: 16px 20px;
-      background: var(--surf);
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.2s;
-    }
+    .person-header { display: flex; align-items: center; padding: 16px 20px; background: var(--surf); cursor: pointer; user-select: none; transition: background 0.2s; }
     .person-header:hover { background: var(--surf-hover); }
     .person-name { flex: 1; font-size: 15px; font-weight: 600; color: #fff; }
     .person-total { font-size: 15px; font-weight: 700; color: var(--green); }
-
-    .log-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 8px 16px; border-radius: 4px; background: rgba(255,255,255,0.02); margin-bottom: 4px;
-    }
+    .log-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; border-radius: 4px; background: rgba(255,255,255,0.02); margin-bottom: 4px; }
     .log-row:hover { background: rgba(255,255,255,0.05); }
     .log-card { font-size: 13px; color: var(--txt-main); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .log-dur { font-size: 13px; font-weight: 600; color: var(--txt-main); font-variant-numeric: tabular-nums; margin-left: 16px; }
 
-    /* ── Forms, Buttons & Filters ─────────────────────────── */
-    .filter-row {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      align-items: flex-end;
-    }
-    .export-card {
-      background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 650px;
-    }
+    /* ── Forms & Utilities ─────────────────────────── */
+    .filter-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-end; }
+    .export-card { background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 650px; }
     .export-desc { color: var(--txt-mut); margin-bottom: 20px; line-height: 1.5; }
     .form-group { margin-bottom: 16px; flex: 1; min-width: 200px; }
     .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 6px; }
-    .form-select, .form-input {
-      width: 100%; background: var(--bg-app); border: 1px solid var(--border); color: #fff;
-      padding: 10px 14px; border-radius: 4px; font-size: 13px; outline: none;
-    }
+    .form-select, .form-input { width: 100%; background: var(--bg-app); border: 1px solid var(--border); color: #fff; padding: 10px 14px; border-radius: 4px; font-size: 13px; outline: none; }
     .form-select:focus, .form-input:focus { border-color: var(--accent); }
     .form-select:disabled { opacity: 0.5; cursor: not-allowed; }
     .date-row { display: flex; gap: 16px; width: 100%; }
 
-    .btn-export {
-      background: var(--accent); color: #091e42; border: none; padding: 12px 24px;
-      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
-      display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; width: 100%; justify-content: center;
-    }
+    .btn-export { background: var(--accent); color: #091e42; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 100%; margin-top: 10px; }
     .btn-export:hover { background: var(--accent-hvr); }
-
-    .btn-secondary {
-      background: var(--bg-app); color: var(--txt-main); border: 1px solid var(--border); padding: 12px 24px;
-      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s;
-      display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
-    }
+    .btn-secondary { background: var(--bg-app); color: var(--txt-main); border: 1px solid var(--border); padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: background 0.2s; flex: 1; display: flex; justify-content: center; }
     .btn-secondary:hover { background: var(--surf-hover); }
-
-    .btn-primary-green {
-      background: var(--green); color: #161a1d; border: none; padding: 12px 24px;
-      font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: filter 0.2s;
-      display: inline-flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
-    }
+    .btn-primary-green { background: var(--green); color: #161a1d; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 4px; cursor: pointer; transition: filter 0.2s; flex: 1; display: flex; justify-content: center; }
     .btn-primary-green:hover { filter: brightness(1.1); }
 
-    /* ── Utilities ────────────────────────────────────────── */
     .empty-state { text-align: center; padding: 60px 20px; color: var(--txt-mut); }
     .empty-icon { font-size: 40px; opacity: 0.5; margin-bottom: 16px; }
-    .spinner {
-      width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent);
-      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;
-    }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     
     ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -277,6 +130,7 @@
       <div class="nav-item" onclick="switchTab('tab-cards', this)">📚 Desglose por Tarjetas</div>
       <div class="nav-item" onclick="switchTab('tab-team', this)">👥 Equipo</div>
       <div class="nav-item" onclick="switchTab('tab-custom-view', this)">🔍 Desglose Custom</div>
+      <div class="nav-item" onclick="switchTab('tab-custom-overall', this)">📈 Custom Overall (Beta)</div>
       <div class="nav-item" onclick="switchTab('tab-export', this)">📥 Exportar Datos</div>
     </nav>
     <div class="sb-footer" id="last-update">Sincronizando...</div>
@@ -288,8 +142,26 @@
     <!-- TAB 1: GLOBAL -->
     <div id="tab-global" class="tab-pane active">
       <h1 class="page-title">Resumen Global del Tablero</h1>
+      
+      <!-- NUEVO: Filtros Globales (Afectan Pestaña 1 y 2) -->
+      <div class="filter-row">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Rango de tiempo global</label>
+          <select class="form-select" id="global-range" onchange="toggleGlobalCustomDates()">
+            <option value="all">Todo el historial</option>
+            <option value="year">Este año</option>
+            <option value="month">Este mes</option>
+            <option value="week">Esta semana</option>
+            <option value="custom">Personalizado (Elegir fechas)</option>
+          </select>
+        </div>
+      </div>
+      <div class="date-row" id="global-custom-dates" style="display: none; margin-bottom: 20px;">
+        <div class="form-group"><label class="form-label">Fecha Inicio</label><input type="date" class="form-input" id="global-start" onchange="processAndRenderUI()"></div>
+        <div class="form-group"><label class="form-label">Fecha Fin</label><input type="date" class="form-input" id="global-end" onchange="processAndRenderUI()"></div>
+      </div>
+
       <div class="top-row">
-        <!-- Bloque Izquierdo: Stats Globales -->
         <div class="summary-grid">
           <div class="stat-card">
             <div class="stat-lbl">Tiempo Total Invertido</div>
@@ -305,132 +177,120 @@
           </div>
         </div>
 
-        <!-- Bloque Derecho: Chart Global -->
         <div class="chart-box" id="chart-container">
           <div class="chart-title">Distribución Global (%)</div>
-          <div style="flex: 1; position: relative;">
-            <canvas id="teamChart"></canvas>
-          </div>
+          <div style="flex: 1; position: relative;"><canvas id="teamChart"></canvas></div>
         </div>
       </div>
     </div>
 
     <!-- TAB 2: TARJETAS -->
     <div id="tab-cards" class="tab-pane">
-      <h1 class="page-title">Desglose por Tarjetas</h1>
-      
-      <!-- Filtro de Búsqueda de Tarjetas -->
+      <h1 class="page-title">Desglose por Tarjetas (Filtrado Global)</h1>
       <div class="filter-row">
         <div class="form-group" style="max-width: 400px; margin-bottom: 0;">
           <label class="form-label">Buscar Tarjeta</label>
           <input type="text" class="form-input" id="card-search-input" placeholder="🔍 Escribe el nombre de la tarjeta..." oninput="debouncedRenderCards()">
         </div>
       </div>
-
-      <div id="cards-container">
-        <div class="empty-state"><div class="spinner"></div>Analizando tarjetas en tiempo real...</div>
-      </div>
+      <div id="cards-container"><div class="empty-state"><div class="spinner"></div>Analizando tarjetas en tiempo real...</div></div>
     </div>
 
     <!-- TAB 3: EQUIPO -->
     <div id="tab-team" class="tab-pane">
       <h1 class="page-title">Desglose por Equipo</h1>
-      
-      <!-- Filtros de Equipo: Tiempo y Persona -->
       <div class="filter-row">
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Rango de tiempo</label>
+          <label class="form-label">Rango de tiempo (Equipo)</label>
           <select class="form-select" id="team-range" onchange="toggleTeamCustomDates()">
             <option value="all">Todo el historial</option>
+            <option value="year">Este año</option>
             <option value="month">Este mes</option>
             <option value="week">Esta semana</option>
             <option value="custom">Personalizado (Elegir fechas)</option>
           </select>
         </div>
-
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Miembro del Equipo</label>
-          <select class="form-select" id="team-member-select" onchange="processAndRenderUI()">
-            <option value="all">Todos los miembros</option>
-          </select>
+          <select class="form-select" id="team-member-select" onchange="processAndRenderUI()"><option value="all">Todos los miembros</option></select>
         </div>
       </div>
-
       <div class="date-row" id="team-custom-dates" style="display: none; margin-bottom: 20px;">
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Fecha Inicio</label>
-          <input type="date" class="form-input" id="team-start" onchange="processAndRenderUI()">
-        </div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Fecha Fin</label>
-          <input type="date" class="form-input" id="team-end" onchange="processAndRenderUI()">
-        </div>
+        <div class="form-group"><label class="form-label">Fecha Inicio</label><input type="date" class="form-input" id="team-start" onchange="processAndRenderUI()"></div>
+        <div class="form-group"><label class="form-label">Fecha Fin</label><input type="date" class="form-input" id="team-end" onchange="processAndRenderUI()"></div>
       </div>
-
-      <div id="team-container">
-        <div class="empty-state"><div class="spinner"></div>Agrupando trabajo del equipo...</div>
-      </div>
+      <div id="team-container"><div class="empty-state"><div class="spinner"></div>Agrupando trabajo del equipo...</div></div>
     </div>
 
-    <!-- TAB 4: DESGLOSE CUSTOM -->
+    <!-- TAB 4: DESGLOSE CUSTOM (ORIGINAL) -->
     <div id="tab-custom-view" class="tab-pane">
-      <h1 class="page-title">Desglose Custom (Filtros Avanzados)</h1>
+      <h1 class="page-title">Desglose Custom Avanzado</h1>
       <div class="export-card" style="margin-bottom: 32px;">
         <div class="export-desc">
-          Filtra, visualiza y descarga el tiempo registrado basándote en un <strong>Custom Field</strong>, un <strong>Miembro</strong> y un <strong>Rango de Fechas</strong> específico.
+          Filtra, visualiza y descarga el tiempo basándote en un <strong>Custom Field Específico</strong> y una <strong>Opción exacta</strong>.
         </div>
-        
         <div class="date-row" style="margin-bottom: 16px;">
-          <div class="form-group">
-            <label class="form-label">1. Campo Personalizado</label>
-            <select class="form-select" id="cf-select" onchange="updateCustomValues()">
-              <option value="">Cargando campos...</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">2. Opción (Filtro)</label>
-            <select class="form-select" id="cf-value-select" disabled>
-              <option value="">Selecciona un campo primero...</option>
-            </select>
-          </div>
+          <div class="form-group"><label class="form-label">1. Campo Personalizado</label><select class="form-select" id="cf-select" onchange="updateCustomValues()"><option value="">Cargando campos...</option></select></div>
+          <div class="form-group"><label class="form-label">2. Opción (Filtro)</label><select class="form-select" id="cf-value-select" disabled><option value="">Selecciona un campo primero...</option></select></div>
         </div>
-
         <div class="date-row" style="margin-bottom: 16px;">
-          <div class="form-group">
-            <label class="form-label">3. Miembro del Equipo</label>
-            <select class="form-select" id="cf-member-select">
-              <option value="all">Todos los miembros</option>
-            </select>
-          </div>
+          <div class="form-group"><label class="form-label">3. Miembro del Equipo</label><select class="form-select" id="cf-member-select"><option value="all">Todos los miembros</option></select></div>
           <div class="form-group">
             <label class="form-label">4. Rango de tiempo</label>
             <select class="form-select" id="custom-range" onchange="toggleCustomDates2()">
               <option value="all">Todo el historial</option>
+              <option value="year">Este año</option>
               <option value="month">Este mes</option>
               <option value="week">Esta semana</option>
-              <option value="custom">Personalizado (Elegir fechas)</option>
+              <option value="custom">Personalizado</option>
             </select>
           </div>
         </div>
-
         <div class="date-row" id="custom-dates2" style="display: none; margin-bottom: 24px;">
-          <div class="form-group">
-            <label class="form-label">Fecha Inicio</label>
-            <input type="date" class="form-input" id="custom-start">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Fecha Fin</label>
-            <input type="date" class="form-input" id="custom-end">
-          </div>
+          <div class="form-group"><label class="form-label">Inicio</label><input type="date" class="form-input" id="custom-start"></div>
+          <div class="form-group"><label class="form-label">Fin</label><input type="date" class="form-input" id="custom-end"></div>
         </div>
-
         <div style="display: flex; gap: 12px; margin-top: 10px;">
           <button class="btn-secondary" onclick="executeCustomAction('view')">Ver en Pantalla</button>
           <button class="btn-primary-green" onclick="executeCustomAction('export')">📥 Descargar CSV Filtrado</button>
         </div>
       </div>
-
       <div id="custom-results-container" style="max-width: 800px;"></div>
+    </div>
+
+    <!-- TAB 6 (NUEVO): CUSTOM OVERALL BETA -->
+    <div id="tab-custom-overall" class="tab-pane">
+      <h1 class="page-title">Custom Fields Overall (Beta)</h1>
+      <div class="export-card" style="margin-bottom: 32px;">
+        <div class="export-desc">
+          Visualiza de forma rápida la distribución global del tiempo invertido agrupado por <strong>todas las opciones</strong> de un Campo Personalizado a la vez (ej. ver todos los Clientes de un plumazo).
+        </div>
+        
+        <div class="date-row" style="margin-bottom: 16px;">
+          <div class="form-group">
+            <label class="form-label">1. Agrupar Todo por el Campo:</label>
+            <select class="form-select" id="cf-overall-select" onchange="renderCustomOverall()">
+              <option value="">Cargando campos...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">2. Rango de tiempo</label>
+            <select class="form-select" id="overall-range" onchange="toggleOverallCustomDates()">
+              <option value="all">Todo el historial</option>
+              <option value="year">Este año</option>
+              <option value="month">Este mes</option>
+              <option value="week">Esta semana</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="date-row" id="overall-custom-dates" style="display: none; margin-bottom: 24px;">
+          <div class="form-group"><label class="form-label">Inicio</label><input type="date" class="form-input" id="overall-start" onchange="renderCustomOverall()"></div>
+          <div class="form-group"><label class="form-label">Fin</label><input type="date" class="form-input" id="overall-end" onchange="renderCustomOverall()"></div>
+        </div>
+      </div>
+      <div id="overall-results-container" style="max-width: 800px;"></div>
     </div>
 
     <!-- TAB 5: EXPORTAR NORMAL -->
@@ -440,28 +300,20 @@
         <div class="export-desc">
           Descarga un reporte consolidado en archivo <strong>.csv</strong> con todo el tiempo de tu tablero por actividad y miembro.
         </div>
-        
         <div class="form-group">
           <label class="form-label">Rango de tiempo</label>
           <select class="form-select" id="export-range" onchange="toggleCustomDates()">
             <option value="all">Todo el historial</option>
+            <option value="year">Este año</option>
             <option value="month">Este mes</option>
             <option value="week">Esta semana</option>
-            <option value="custom">Personalizado (Elegir fechas)</option>
+            <option value="custom">Personalizado</option>
           </select>
         </div>
-
         <div class="date-row" id="custom-dates" style="display: none;">
-          <div class="form-group">
-            <label class="form-label">Fecha Inicio</label>
-            <input type="date" class="form-input" id="export-start">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Fecha Fin</label>
-            <input type="date" class="form-input" id="export-end">
-          </div>
+          <div class="form-group"><label class="form-label">Fecha Inicio</label><input type="date" class="form-input" id="export-start"></div>
+          <div class="form-group"><label class="form-label">Fecha Fin</label><input type="date" class="form-input" id="export-end"></div>
         </div>
-
         <button class="btn-export" onclick="executeExport()">Descargar Reporte Consolidado</button>
       </div>
     </div>
@@ -477,9 +329,14 @@
   var boardCustomFields = [];
   var openAccordions = new Set();
   
+  // Instancias de gráficos para Garbage Collection
   var teamChartInstance = null;
   var customChartInstance = null;
+  var customOverallChartInstance = null;
   var cardChartInstances = {};   
+  var teamMemberChartInstances = {}; // NUEVO: para pestaña equipo
+  
+  window.currentTeamDataMap = {}; // Para alimentar los gráficos individuales
   
   var MAX_SESSION_HOURS = 9;
   var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
@@ -492,14 +349,8 @@
     return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map(v => String(v).padStart(2, '0')).join(':');
   }
   function fmtH(s) { return ((s || 0) / 3600).toFixed(2) + 'h'; }
-  
   function esc(s) { 
-    return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;'); 
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); 
   }
 
   function debounce(fn, delay) {
@@ -510,18 +361,18 @@
       timer = setTimeout(function() { fn.apply(context, args); }, delay);
     };
   }
-
   var debouncedRenderCards = debounce(renderCardsTab, 200);
 
   function destroyCardCharts() {
-    Object.keys(cardChartInstances).forEach(function(id) {
-      if (cardChartInstances[id]) {
-        cardChartInstances[id].destroy();
-      }
-    });
+    Object.keys(cardChartInstances).forEach(id => { if (cardChartInstances[id]) cardChartInstances[id].destroy(); });
     cardChartInstances = {};
   }
+  function destroyTeamMemberCharts() {
+    Object.keys(teamMemberChartInstances).forEach(id => { if (teamMemberChartInstances[id]) teamMemberChartInstances[id].destroy(); });
+    teamMemberChartInstances = {};
+  }
 
+  // Agregado el parámetro 'year' en la lógica de límites
   function getDateLimits(rangeType, startId, endId) {
     let startD = null, endD = null;
     const now = new Date();
@@ -532,6 +383,9 @@
       let day = now.getDay() || 7;
       startD = new Date(now); startD.setDate(now.getDate() - day + 1); startD.setHours(0,0,0,0);
       endD = new Date(startD); endD.setDate(startD.getDate() + 6); endD.setHours(23,59,59,999);
+    } else if (rangeType === 'year') {
+      startD = new Date(now.getFullYear(), 0, 1);
+      endD = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
     } else if (rangeType === 'custom') {
       const sVal = document.getElementById(startId).value;
       const eVal = document.getElementById(endId).value;
@@ -550,21 +404,19 @@
     const caretEl = headerEl.querySelector('.db-caret');
     
     if (!bodyEl) return;
-
     if (caretEl) caretEl.classList.toggle('open');
     bodyEl.classList.toggle('open');
 
     if (bodyEl.classList.contains('open')) {
       openAccordions.add(id);
-      if (type === 'card') {
-        setTimeout(() => renderCardChart(id), 30);
-      }
+      if (type === 'card') setTimeout(() => renderCardChart(id), 30);
+      if (type === 'member') setTimeout(() => renderTeamMemberChart(id.replace('team_','')), 30); // NUEVO
     } else {
       openAccordions.delete(id);
     }
   };
 
-  /* ── UI NAVEGACIÓN ───────────────────────────────────────── */
+  /* ── UI NAVEGACIÓN Y FILTROS ─────────────────────────────── */
   function switchTab(tabId, el) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
@@ -572,20 +424,28 @@
     document.getElementById(tabId).classList.add('active');
   }
 
+  function toggleGlobalCustomDates() {
+    const val = document.getElementById('global-range').value;
+    document.getElementById('global-custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
+    processAndRenderUI();
+  }
   function toggleTeamCustomDates() {
     const val = document.getElementById('team-range').value;
     document.getElementById('team-custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
     processAndRenderUI();
   }
-
   function toggleCustomDates() {
     const val = document.getElementById('export-range').value;
     document.getElementById('custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
   }
-
   function toggleCustomDates2() {
     const val = document.getElementById('custom-range').value;
     document.getElementById('custom-dates2').style.display = (val === 'custom') ? 'flex' : 'none';
+  }
+  function toggleOverallCustomDates() {
+    const val = document.getElementById('overall-range').value;
+    document.getElementById('overall-custom-dates').style.display = (val === 'custom') ? 'flex' : 'none';
+    renderCustomOverall();
   }
 
   /* ── CARGA OPTIMIZADA POR LOTES (BATCHING) ────────────────── */
@@ -594,12 +454,16 @@
       if (board && board.customFields) {
         boardCustomFields = board.customFields.filter(cf => cf.type === 'list');
         const cfSelect = document.getElementById('cf-select');
+        const cfOverallSelect = document.getElementById('cf-overall-select');
+        
         cfSelect.innerHTML = '<option value="">-- Elige un campo --</option>';
+        cfOverallSelect.innerHTML = '<option value="">-- Elige un campo --</option>';
+        
         boardCustomFields.forEach(cf => {
-          let option = document.createElement('option');
-          option.value = cf.id;
-          option.textContent = cf.name;
-          cfSelect.appendChild(option);
+          let option1 = document.createElement('option'); option1.value = cf.id; option1.textContent = cf.name;
+          let option2 = document.createElement('option'); option2.value = cf.id; option2.textContent = cf.name;
+          cfSelect.appendChild(option1);
+          cfOverallSelect.appendChild(option2);
         });
       }
     }).catch(err => console.error('Error cargando custom fields:', err));
@@ -618,21 +482,18 @@
     if (selectedField && selectedField.options) {
       selectedField.options.forEach(opt => {
         let optionHTML = document.createElement('option');
-        optionHTML.value = opt.id;
-        optionHTML.textContent = opt.value.text;
+        optionHTML.value = opt.id; optionHTML.textContent = opt.value.text;
         valueSelect.appendChild(optionHTML);
       });
       valueSelect.disabled = false;
     }
   };
 
-  // Carga en bloques de 15 tarjetas para no saturar el canal iframe
   function fetchLiveBoardData() {
     return t.cards('id', 'name', 'customFieldItems').then(cards => {
       var chunkSize = 15;
       var results = [];
       var chain = Promise.resolve();
-
       for (var i = 0; i < cards.length; i += chunkSize) {
         (function(chunk) {
           chain = chain.then(function() {
@@ -640,13 +501,10 @@
               return t.get(c.id, 'shared', KEY)
                 .then(cState => ({ card: c, state: cState || {} }))
                 .catch(() => ({ card: c, state: {} }));
-            })).then(chunkResults => {
-              results = results.concat(chunkResults);
-            });
+            })).then(chunkResults => { results = results.concat(chunkResults); });
           });
         })(cards.slice(i, i + chunkSize));
       }
-
       return chain.then(function() { return results; });
     });
   }
@@ -656,25 +514,20 @@
       rawCardStore = cardStore;
       updateMemberListDropdowns();
       processAndRenderUI();
+      if(document.getElementById('cf-overall-select').value) renderCustomOverall();
     }).catch(err => console.error("Error al obtener datos:", err));
   }
 
   function updateMemberListDropdowns() {
     const memberSelect = document.getElementById('team-member-select');
     const cfMemberSelect = document.getElementById('cf-member-select');
-    
     const currentSelected = memberSelect ? memberSelect.value : 'all';
     const currentCfSelected = cfMemberSelect ? cfMemberSelect.value : 'all';
     
     let membersMap = {};
-
     rawCardStore.forEach(item => {
-      (item.state.entries || []).forEach(e => {
-        if (e.memberId) membersMap[e.memberId] = e.memberName || 'Desconocido';
-      });
-      Object.keys(item.state.sessions || {}).forEach(pid => {
-        membersMap[pid] = item.state.sessions[pid].memberName || 'Desconocido';
-      });
+      (item.state.entries || []).forEach(e => { if (e.memberId) membersMap[e.memberId] = e.memberName || 'Desconocido'; });
+      Object.keys(item.state.sessions || {}).forEach(pid => { membersMap[pid] = item.state.sessions[pid].memberName || 'Desconocido'; });
     });
 
     let html = '<option value="all">Todos los miembros</option>';
@@ -682,17 +535,11 @@
       html += `<option value="${pid}">${esc(membersMap[pid])}</option>`;
     });
 
-    if (memberSelect) {
-      memberSelect.innerHTML = html;
-      memberSelect.value = currentSelected;
-    }
-    if (cfMemberSelect) {
-      cfMemberSelect.innerHTML = html;
-      cfMemberSelect.value = currentCfSelected;
-    }
+    if (memberSelect) { memberSelect.innerHTML = html; memberSelect.value = currentSelected; }
+    if (cfMemberSelect) { cfMemberSelect.innerHTML = html; cfMemberSelect.value = currentCfSelected; }
   }
 
-  /* ── PROCESAMIENTO Y RENDERIZADO UI ──────────────────────── */
+  /* ── PROCESAMIENTO Y RENDERIZADO UI (CON FILTROS GLOBAL & TEAM) ──────────────── */
   function processAndRenderUI() {
     if (!rawCardStore) return;
 
@@ -703,6 +550,11 @@
     let globalTeamMap = {}; 
     let cardsDataList = [];
     
+    // Obtener Fechas Globales
+    const globalRangeType = document.getElementById('global-range') ? document.getElementById('global-range').value : 'all';
+    const { startD: gStartD, endD: gEndD } = getDateLimits(globalRangeType, 'global-start', 'global-end');
+
+    // Obtener Fechas de Equipo
     const teamRangeType = document.getElementById('team-range').value;
     const { startD: teamStartD, endD: teamEndD } = getDateLimits(teamRangeType, 'team-start', 'team-end');
     const selectedTeamMember = document.getElementById('team-member-select').value;
@@ -718,11 +570,18 @@
       
       let cardTotalSecs = 0;
       let cardMembersMap = {}; 
+      
+      // Chequear timer activo Global (si cae dentro de la fecha, un timer en vivo siempre es "hoy")
       let activeSessionsCount = Object.keys(sessions).length;
-
-      if (activeSessionsCount > 0) activeTimersCount += activeSessionsCount;
+      let globalActiveSessionCounts = 0;
 
       entries.forEach(e => {
+        let eDate = new Date(e.start || now);
+        
+        // Filtro Global
+        if (gStartD && eDate < gStartD) return;
+        if (gEndD && eDate > gEndD) return;
+
         let dur = e.duration || 0;
         let pid = e.memberId || 'unknown';
         let pName = e.memberName || 'Desconocido';
@@ -735,35 +594,44 @@
         globalTeamMap[pid].total += dur;
       });
 
-      Object.keys(sessions).forEach(pid => {
-        let sess = sessions[pid];
-        let elapsed = Math.floor((now - sess.startTime) / 1000);
-        elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
+      // Procesar sesiones activas para métricas Globales (Asumimos que un timer activo es de HOY)
+      if (!gEndD || now <= gEndD.getTime()) {
+        if (!gStartD || now >= gStartD.getTime()) {
+          Object.keys(sessions).forEach(pid => {
+            let sess = sessions[pid];
+            let elapsed = Math.floor((now - sess.startTime) / 1000);
+            elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
 
-        if (elapsed > 0) {
-          let pName = sess.memberName || 'Desconocido';
+            if (elapsed > 0) {
+              globalActiveSessionCounts++;
+              let pName = sess.memberName || 'Desconocido';
 
-          cardTotalSecs += elapsed;
-          if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, total: 0 };
-          cardMembersMap[pid].total += elapsed;
+              cardTotalSecs += elapsed;
+              if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: pName, total: 0 };
+              cardMembersMap[pid].total += elapsed;
 
-          if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, total: 0 };
-          globalTeamMap[pid].total += elapsed;
+              if (!globalTeamMap[pid]) globalTeamMap[pid] = { name: pName, total: 0 };
+              globalTeamMap[pid].total += elapsed;
+            }
+          });
         }
-      });
+      }
 
-      if (cardTotalSecs > 0 || activeSessionsCount > 0) {
+      if (globalActiveSessionCounts > 0) activeTimersCount += globalActiveSessionCounts;
+
+      if (cardTotalSecs > 0 || globalActiveSessionCounts > 0) {
         workedCardsCount++;
         totalBoardSecs += cardTotalSecs;
         cardsDataList.push({ 
           id: card.id,
           name: card.name, 
           total: cardTotalSecs, 
-          running: activeSessionsCount > 0, 
+          running: globalActiveSessionCounts > 0, 
           members: Object.values(cardMembersMap) 
         });
       }
 
+      /* ==================== TEAM LOGIC ==================== */
       const applyTeamTimeToMap = (dur, pid, pName) => {
         if (selectedTeamMember !== 'all' && pid !== selectedTeamMember) return;
         if (!teamDataMap[pid]) teamDataMap[pid] = { name: pName, total: 0, cards: {} };
@@ -790,7 +658,6 @@
           });
         }
       }
-
     });
 
     document.getElementById('s-total').textContent = fmtH(totalBoardSecs);
@@ -801,6 +668,7 @@
     processedCardsList = cardsDataList;
     renderCardsTab();
 
+    window.currentTeamDataMap = teamDataMap; // Export local data for chart rendering
     renderTeamTab(teamDataMap, selectedTeamMember);
 
     document.getElementById('last-update').textContent = 'Sincronizado: ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -816,10 +684,7 @@
     container.style.display = 'flex'; 
     
     let totalSecs = pids.reduce((acc, pid) => acc + teamDataMap[pid].total, 0);
-
-    const labels = [];
-    const dataValues = [];
-    const backgroundColors = [];
+    const labels = []; const dataValues = []; const backgroundColors = [];
 
     pids.sort((a,b) => teamDataMap[b].total - teamDataMap[a].total).forEach((pid, idx) => {
       let member = teamDataMap[pid];
@@ -830,10 +695,8 @@
     });
 
     if (teamChartInstance) {
-      teamChartInstance.data.labels = labels;
-      teamChartInstance.data.datasets[0].data = dataValues;
-      teamChartInstance.data.datasets[0].backgroundColor = backgroundColors;
-      teamChartInstance.update();
+      teamChartInstance.data.labels = labels; teamChartInstance.data.datasets[0].data = dataValues;
+      teamChartInstance.data.datasets[0].backgroundColor = backgroundColors; teamChartInstance.update();
     } else {
       teamChartInstance = new Chart(ctx, {
         type: 'doughnut',
@@ -855,12 +718,10 @@
     const searchQuery = (document.getElementById('card-search-input').value || '').toLowerCase().trim();
 
     let filteredCards = processedCardsList.filter(c => c.name.toLowerCase().includes(searchQuery));
-
-    // Limpiar gráficos anteriores para liberar memoria
     destroyCardCharts();
 
     if (!filteredCards.length) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontraron tarjetas que coincidan.</div>`;
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se encontraron tarjetas que coincidan con los filtros y la búsqueda.</div>`;
       return;
     }
     filteredCards.sort((a,b) => b.total - a.total);
@@ -868,10 +729,7 @@
     let html = filteredCards.map(card => {
       let isOpen = openAccordions.has(card.id);
       let membersHtml = card.members.sort((a,b) => b.total - a.total).map(m => `
-        <div class="log-row" style="margin: 0 20px 8px 40px;">
-          <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
-          <div class="log-dur">${fmt(m.total)}</div>
-        </div>
+        <div class="log-row" style="margin: 0 20px 8px 40px;"><span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span><div class="log-dur">${fmt(m.total)}</div></div>
       `).join('');
 
       return `
@@ -882,11 +740,8 @@
             ${card.running ? '<span style="font-size:10px; color:var(--green); margin-left:10px;">● Activo</span>' : ''}
             <span class="db-total">${fmt(card.total)}</span>
           </div>
-          
           <div class="db-body ${isOpen ? 'open' : ''}">
-            <div class="accordion-chart-wrap">
-              <canvas id="card-canvas-${card.id}"></canvas>
-            </div>
+            <div class="accordion-chart-wrap"><canvas id="card-canvas-${card.id}"></canvas></div>
             <div style="padding: 10px 0;">${membersHtml}</div>
           </div>
         </div>
@@ -894,50 +749,39 @@
     }).join('');
 
     container.innerHTML = html;
-
-    openAccordions.forEach(id => {
-      setTimeout(() => renderCardChart(id), 30);
-    });
+    openAccordions.forEach(id => { setTimeout(() => renderCardChart(id), 30); });
   }
 
   function renderCardChart(cardId) {
     const cardData = processedCardsList.find(c => c.id === cardId);
     if (!cardData || !cardData.total) return;
-
     const ctx = document.getElementById(`card-canvas-${cardId}`);
     if (!ctx) return;
 
-    const labels = [];
-    const dataValues = [];
-    const colors = [];
-
+    const labels = []; const dataValues = []; const colors = [];
     cardData.members.sort((a,b) => b.total - a.total).forEach((m, idx) => {
       let pct = ((m.total / cardData.total) * 100).toFixed(1);
-      labels.push(m.name);
-      dataValues.push(pct);
-      colors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+      labels.push(m.name); dataValues.push(pct); colors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
     });
 
     if (cardChartInstances[cardId]) cardChartInstances[cardId].destroy();
-
     cardChartInstances[cardId] = new Chart(ctx, {
       type: 'doughnut',
       data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0 }] },
       options: {
         responsive: true, maintainAspectRatio: false, cutout: '60%',
-        plugins: {
-          legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
-          tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } }
-        }
+        plugins: { legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } } }
       }
     });
   }
 
-  /* ── RENDERIZADO TAB EQUIPO ─────────────────────────────── */
+  /* ── RENDERIZADO TAB EQUIPO (AHORA CON GRÁFICOS) ─────────────────────────────── */
   function renderTeamTab(teamDataMap, selectedMemberId) {
     const pids = Object.keys(teamDataMap).sort((a,b) => teamDataMap[b].total - teamDataMap[a].total);
     const container = document.getElementById('team-container');
     
+    destroyTeamMemberCharts();
+
     if (!pids.length) {
       container.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div>No hay historial de trabajo registrado para estos filtros.</div>`;
       return;
@@ -947,7 +791,7 @@
       let p = teamDataMap[pid];
       let isOpen = openAccordions.has(`team_${pid}`);
       let cardsHtml = Object.keys(p.cards).sort((a,b) => p.cards[b] - p.cards[a]).map(cName => `
-        <div class="log-row"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(p.cards[cName])}</div></div>
+        <div class="log-row" style="margin: 0 20px 8px 40px;"><div class="log-card">${esc(cName)}</div><div class="log-dur">${fmt(p.cards[cName])}</div></div>
       `).join('');
 
       return `
@@ -959,14 +803,164 @@
           </div>
 
           <div class="db-body ${isOpen ? 'open' : ''}">
-            <div style="padding: 10px 20px;">${cardsHtml}</div>
+            <!-- NUEVO: Contenedor para el gráfico del miembro -->
+            <div class="accordion-chart-wrap"><canvas id="team-canvas-${pid}"></canvas></div>
+            <div style="padding: 10px 0;">${cardsHtml}</div>
           </div>
         </div>`;
     }).join('');
+    
     container.innerHTML = html;
+
+    // Levantar gráficos de los acordeones que estén abiertos
+    openAccordions.forEach(id => {
+      if(id.startsWith('team_')) setTimeout(() => renderTeamMemberChart(id.replace('team_', '')), 30);
+    });
   }
 
-  /* ── FILTROS CUSTOM & EXPORTACIONES ──────────────────────── */
+  function renderTeamMemberChart(pid) {
+    const pData = window.currentTeamDataMap[pid];
+    if (!pData || !pData.total) return;
+    const ctx = document.getElementById(`team-canvas-${pid}`);
+    if (!ctx) return;
+
+    const labels = []; const dataValues = []; const colors = [];
+    Object.keys(pData.cards).sort((a,b) => pData.cards[b] - pData.cards[a]).forEach((cName, idx) => {
+      let pct = ((pData.cards[cName] / pData.total) * 100).toFixed(1);
+      labels.push(cName); dataValues.push(pct); colors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+    });
+
+    if (teamMemberChartInstances[pid]) teamMemberChartInstances[pid].destroy();
+    teamMemberChartInstances[pid] = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels: labels, datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 0 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { 
+          legend: { display: false }, // Se oculta porque un miembro puede tener muchísimas tarjetas
+          tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } } 
+        }
+      }
+    });
+  }
+
+  /* ── PESTAÑA NUEVA (BETA): CUSTOM OVERALL ──────────────────────── */
+  window.renderCustomOverall = function() {
+    const cfId = document.getElementById('cf-overall-select').value;
+    const rangeType = document.getElementById('overall-range').value;
+    const { startD, endD } = getDateLimits(rangeType, 'overall-start', 'overall-end');
+    const container = document.getElementById('overall-results-container');
+
+    if (!cfId) {
+      container.innerHTML = '<div class="empty-state">Selecciona un campo en la lista desplegable de arriba para ver el gráfico general.</div>';
+      if (customOverallChartInstance) { customOverallChartInstance.destroy(); customOverallChartInstance = null; }
+      return;
+    }
+
+    const selectedField = boardCustomFields.find(cf => cf.id === cfId);
+    if (!selectedField) return;
+
+    // Mapeo rápido de Option ID a Text
+    const optionMap = {};
+    (selectedField.options || []).forEach(opt => { optionMap[opt.id] = opt.value.text; });
+
+    let aggregated = {};
+    let totalTime = 0;
+    const now = new Date();
+
+    rawCardStore.forEach(item => {
+      const cfItems = item.card.customFieldItems || [];
+      const matchCf = cfItems.find(c => c.idCustomField === cfId);
+      
+      let optionText = 'Sin asignar';
+      if (matchCf && matchCf.idValue && optionMap[matchCf.idValue]) {
+        optionText = optionMap[matchCf.idValue];
+      }
+
+      let cardTotal = 0;
+      (item.state.entries || []).forEach(e => {
+         let eDate = new Date(e.start || now);
+         if (startD && eDate < startD) return;
+         if (endD && eDate > endD) return;
+         cardTotal += (e.duration || 0);
+      });
+
+      if (!endD || now.getTime() <= endD.getTime()) {
+        if (!startD || now.getTime() >= startD.getTime()) {
+           Object.values(item.state.sessions || {}).forEach(sess => {
+             let elapsed = Math.floor((now - sess.startTime)/1000);
+             elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
+             cardTotal += elapsed;
+           });
+        }
+      }
+
+      if (cardTotal > 0) {
+         if (!aggregated[optionText]) aggregated[optionText] = 0;
+         aggregated[optionText] += cardTotal;
+         totalTime += cardTotal;
+      }
+    });
+
+    if (totalTime === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div>No se registró tiempo en este rango de fechas.</div>`;
+      if (customOverallChartInstance) { customOverallChartInstance.destroy(); customOverallChartInstance = null; }
+      return;
+    }
+
+    // HTML Rendering
+    const optionKeys = Object.keys(aggregated).sort((a,b) => aggregated[b] - aggregated[a]);
+    let htmlLines = optionKeys.map((name, idx) => `
+      <div class="log-row" style="margin-bottom: 8px; padding: 12px 16px; background: var(--surf); border: 1px solid var(--border);">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <div style="width:12px; height:12px; border-radius:50%; background:${DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]}"></div>
+          <span style="font-size: 14px; font-weight: 600; color: #fff;">${esc(name)}</span>
+        </div>
+        <div class="log-dur" style="font-size: 14px; color: var(--accent);">${fmt(aggregated[name])} <span style="font-size:11px; color:var(--txt-mut);">(${((aggregated[name]/totalTime)*100).toFixed(1)}%)</span></div>
+      </div>
+    `).join('');
+
+    let headerHtml = `
+      <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 200px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <div style="font-size: 11px; font-weight: bold; color: var(--txt-mut); text-transform: uppercase; margin-bottom: 8px;">Tiempo Total (Agrupado)</div>
+          <div style="font-size: 32px; font-weight: 700; color: var(--accent);">${fmt(totalTime)}</div>
+          <div style="font-size: 14px; color: var(--txt-mut); margin-top: 4px;">Equivale a ${fmtH(totalTime)}</div>
+        </div>
+        
+        <div style="width: 340px; min-height: 180px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; text-align: center;">Distribución Overall (%)</div>
+          <div style="position: relative; height: 140px;">
+            <canvas id="customOverallCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (customOverallChartInstance) { customOverallChartInstance.destroy(); customOverallChartInstance = null; }
+    container.innerHTML = headerHtml + htmlLines;
+
+    // Render Chart
+    const ctxCustom = document.getElementById('customOverallCanvas');
+    const cLabels = []; const cData = []; const cColors = [];
+    
+    optionKeys.forEach((name, idx) => {
+      let pct = totalTime > 0 ? ((aggregated[name] / totalTime) * 100).toFixed(1) : 0;
+      cLabels.push(name); cData.push(pct); cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+    });
+
+    customOverallChartInstance = new Chart(ctxCustom, {
+      type: 'doughnut',
+      data: { labels: cLabels, datasets: [{ data: cData, backgroundColor: cColors, borderWidth: 0, hoverOffset: 4 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '65%',
+        plugins: { legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } } }
+      }
+    });
+  };
+
+
+  /* ── FILTROS CUSTOM ORIGINALES (TAB 4) & EXPORTACIONES ──────────────────────── */
   function getFilteredCustomData() {
     const cfId = document.getElementById('cf-select').value;
     const valId = document.getElementById('cf-value-select').value;
@@ -979,65 +973,48 @@
     const { startD, endD } = getDateLimits(rangeType, 'custom-start', 'custom-end');
     const now = new Date();
 
-    let aggregated = {}; 
-    let displayData = []; 
+    let aggregated = {}; let displayData = []; 
 
     rawCardStore.forEach(item => {
       const cfItems = item.card.customFieldItems;
       if (!cfItems || !cfItems.some(cf => cf.idCustomField === cfId && cf.idValue === valId)) return;
 
-      let cardName = item.card.name;
-      let entries = item.state.entries || [];
-      let sessions = item.state.sessions || {};
-      let cardTotalSecs = 0;
-      let cardMembersMap = {}; 
+      let cardName = item.card.name; let entries = item.state.entries || []; let sessions = item.state.sessions || {};
+      let cardTotalSecs = 0; let cardMembersMap = {}; 
 
       entries.forEach(e => {
         if (selectedMemberId !== 'all' && e.memberId !== selectedMemberId) return;
-
         let eDate = new Date(e.start || Date.now());
         if (startD && eDate < startD) return;
         if (endD && eDate > endD) return;
 
-        let member = e.memberName || 'Desconocido';
-        let dur = e.duration || 0;
-        let key = `${member}___${cardName}`;
-
+        let member = e.memberName || 'Desconocido'; let dur = e.duration || 0; let key = `${member}___${cardName}`;
         if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
         aggregated[key].totalDuration += dur;
-
         if (!cardMembersMap[e.memberId]) cardMembersMap[e.memberId] = { name: member, total: 0 };
-        cardMembersMap[e.memberId].total += dur;
-        cardTotalSecs += dur;
+        cardMembersMap[e.memberId].total += dur; cardTotalSecs += dur;
       });
 
       if (!endD || now.getTime() <= endD.getTime()) {
         if (!startD || now.getTime() >= startD.getTime()) {
           Object.keys(sessions).forEach(pid => {
             if (selectedMemberId !== 'all' && pid !== selectedMemberId) return;
-
             let sess = sessions[pid];
             let elapsed = Math.floor((now - sess.startTime) / 1000);
             elapsed = Math.min(Math.max(0, elapsed), MAX_SECONDS);
 
             if (elapsed > 0) {
-              let member = sess.memberName || 'Desconocido';
-              let key = `${member}___${cardName}`;
-
+              let member = sess.memberName || 'Desconocido'; let key = `${member}___${cardName}`;
               if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
               aggregated[key].totalDuration += elapsed;
-
               if (!cardMembersMap[pid]) cardMembersMap[pid] = { name: member, total: 0 };
-              cardMembersMap[pid].total += elapsed;
-              cardTotalSecs += elapsed;
+              cardMembersMap[pid].total += elapsed; cardTotalSecs += elapsed;
             }
           });
         }
       }
 
-      if (cardTotalSecs > 0) {
-        displayData.push({ name: cardName, total: cardTotalSecs, members: Object.values(cardMembersMap) });
-      }
+      if (cardTotalSecs > 0) displayData.push({ name: cardName, total: cardTotalSecs, members: Object.values(cardMembersMap) });
     });
 
     return { aggregated, displayData };
@@ -1048,14 +1025,10 @@
     if (!result) return;
 
     if (actionType === 'export') {
-      const cfSelect = document.getElementById('cf-select');
-      const valSelect = document.getElementById('cf-value-select');
+      const cfSelect = document.getElementById('cf-select'); const valSelect = document.getElementById('cf-value-select');
       const cfName = cfSelect.options[cfSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
       const cfValue = valSelect.options[valSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
-
-      if (Object.keys(result.aggregated).length === 0) {
-        alert("No hay registros en el rango y filtros seleccionados."); return;
-      }
+      if (Object.keys(result.aggregated).length === 0) { alert("No hay registros en el rango y filtros seleccionados."); return; }
       downloadCSV(result.aggregated, `Desglose_${cfName}_${cfValue}.csv`);
 
     } else if (actionType === 'view') {
@@ -1066,31 +1039,21 @@
       }
 
       result.displayData.sort((a,b) => b.total - a.total);
-      let grandTotal = 0;
-      let customTeamMap = {}; 
+      let grandTotal = 0; let customTeamMap = {}; 
 
       let html = result.displayData.map((card, idx) => {
         grandTotal += card.total;
         let membersHtml = card.members.sort((a,b) => b.total - a.total).map(m => {
           customTeamMap[m.name] = (customTeamMap[m.name] || 0) + m.total;
-          return `
-            <div class="log-row" style="margin: 0 20px 8px 40px;">
-              <span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span>
-              <div class="log-dur">${fmt(m.total)}</div>
-            </div>
-          `;
+          return `<div class="log-row" style="margin: 0 20px 8px 40px;"><span style="font-size: 13px; color: var(--txt-main);">${esc(m.name)}</span><div class="log-dur">${fmt(m.total)}</div></div>`;
         }).join('');
-
         return `
           <div class="data-block">
             <div class="db-header" onclick="toggleAccordion(this, 'c_${idx}')">
-              <span class="db-caret open">▶</span>
-              <span class="db-title">${esc(card.name)}</span>
-              <span class="db-total">${fmt(card.total)}</span>
+              <span class="db-caret open">▶</span><span class="db-title">${esc(card.name)}</span><span class="db-total">${fmt(card.total)}</span>
             </div>
             <div class="db-body open"><div style="padding: 10px 0;">${membersHtml}</div></div>
-          </div>
-        `;
+          </div>`;
       }).join('');
 
       let headerHtml = `
@@ -1100,30 +1063,20 @@
             <div style="font-size: 32px; font-weight: 700; color: var(--accent);">${fmt(grandTotal)}</div>
             <div style="font-size: 14px; color: var(--txt-mut); margin-top: 4px;">Equivale a ${fmtH(grandTotal)}</div>
           </div>
-          
           <div style="width: 340px; min-height: 180px; background: var(--surf); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--txt-mut); margin-bottom: 8px; text-align: center;">Distribución (%)</div>
-            <div style="position: relative; height: 140px;">
-              <canvas id="customChartCanvas"></canvas>
-            </div>
+            <div style="position: relative; height: 140px;"><canvas id="customChartCanvas"></canvas></div>
           </div>
-        </div>
-      `;
+        </div>`;
       
       if (customChartInstance) { customChartInstance.destroy(); customChartInstance = null; }
-      
       container.innerHTML = headerHtml + html;
 
       const ctxCustom = document.getElementById('customChartCanvas');
-      const cLabels = [];
-      const cData = [];
-      const cColors = [];
-      
+      const cLabels = []; const cData = []; const cColors = [];
       Object.keys(customTeamMap).sort((a,b) => customTeamMap[b] - customTeamMap[a]).forEach((name, idx) => {
         let pct = grandTotal > 0 ? ((customTeamMap[name] / grandTotal) * 100).toFixed(1) : 0;
-        cLabels.push(name);
-        cData.push(pct);
-        cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
+        cLabels.push(name); cData.push(pct); cColors.push(DYNAMIC_PALETTE[idx % DYNAMIC_PALETTE.length]);
       });
 
       customChartInstance = new Chart(ctxCustom, {
@@ -1131,10 +1084,7 @@
         data: { labels: cLabels, datasets: [{ data: cData, backgroundColor: cColors, borderWidth: 0, hoverOffset: 4 }] },
         options: {
           responsive: true, maintainAspectRatio: false, cutout: '65%',
-          plugins: {
-            legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } },
-            tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } }
-          }
+          plugins: { legend: { position: 'right', labels: { color: '#c7d1db', font: { size: 11 } } }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}%` } } }
         }
       });
     }
@@ -1157,12 +1107,10 @@
 
         let member = e.memberName || 'Desconocido';
         let key = `${member}___${cardName}`;
-
         if (!aggregated[key]) aggregated[key] = { member: member, card: cardName, totalDuration: 0 };
         aggregated[key].totalDuration += (e.duration || 0);
       });
     });
-
     downloadCSV(aggregated, `TrackingTime_Global_${new Date().toISOString().slice(0,10)}.csv`);
   };
 
@@ -1184,29 +1132,19 @@
 
     let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     let url = URL.createObjectURL(blob);
-    let link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    let link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", filename);
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }
 
   /* ── INICIALIZACIÓN Y CICLO DE VIDA ───────────────────────── */
-  t.board('name').then(board => { 
-    document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; 
-  }).catch(() => {});
-
-  fetchCustomFieldsList();
+  t.board('name').then(board => { document.getElementById('board-name').textContent = board.name || 'Tablero Actual'; }).catch(() => {});
   
+  fetchCustomFieldsList();
   loadAndRenderData();
-
   setInterval(loadAndRenderData, 3 * 60 * 1000);
 
   window.addEventListener('focus', loadAndRenderData);
-  document.addEventListener('visibilitychange', function() { 
-    if (!document.hidden) loadAndRenderData(); 
-  });
+  document.addEventListener('visibilitychange', function() { if (!document.hidden) loadAndRenderData(); });
 </script>
 </body>
 </html>
