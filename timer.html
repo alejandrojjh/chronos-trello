@@ -14,6 +14,7 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 13px;
       padding: 0;
+      overflow-y: hidden; /* Evita scrollbars fantasmas durante redimensionamiento */
     }
 
     /* ── Header ───────────────────────────────────────────── */
@@ -37,6 +38,7 @@
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
+      transition: background 0.2s, color 0.2s;
     }
     .wl-toggle-btn:hover {
       background: #3a3d45;
@@ -101,6 +103,10 @@
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
     /* ── Entries List ─────────────────────────────────────── */
+    #details-section {
+      /* Transición suave para evitar saltos bruscos */
+      transition: opacity 0.2s ease-in-out;
+    }
     .entries-header {
       display: flex;
       justify-content: space-between;
@@ -286,7 +292,7 @@
       <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
     </div>
 
-    <div id="details-section" style="display: none;">
+    <div id="details-section" style="display: none; opacity: 0;">
       
       <div class="entries-header">
         <div class="entries-lbl">Logs de trabajo</div>
@@ -372,7 +378,7 @@
       var el = document.getElementById('err-banner');
       el.textContent = msg;
       el.style.display = msg ? 'block' : 'none';
-      t.sizeTo('#root').catch(function(){});
+      t.sizeTo(document.body).catch(function(){}); // Optimizado
     }
     function setSaveStatus(msg, isErr) {
       var el = document.getElementById('save-status');
@@ -491,7 +497,7 @@
           '</li>';
         }).join('');
       }
-      t.sizeTo('#root').catch(function(){});
+      t.sizeTo(document.body).catch(function(){}); // Optimizado
     }
 
     /* ── Delegación de Eventos ───────────────────────────── */
@@ -503,19 +509,23 @@
       document.getElementById('reset-panel').style.display = 'none';
       document.getElementById('edit-input').value = fmt(currentDur);
       document.getElementById('edit-panel').style.display = 'block';
-      t.sizeTo('#root').catch(function(){});
+      t.sizeTo(document.body).catch(function(){}); // Optimizado
     });
 
+    /* ── TOGGLE DETAILS EVENT (Flicker solucionado) ──────── */
     document.getElementById('toggle-details-btn').addEventListener('click', function () {
       var detailsSec = document.getElementById('details-section');
-      if (detailsSec.style.display === 'none') {
+      if (detailsSec.style.display === 'none' || detailsSec.style.opacity === '0') {
         detailsSec.style.display = 'block';
+        setTimeout(function() { detailsSec.style.opacity = '1'; }, 10);
         this.textContent = 'Hide Details';
       } else {
-        detailsSec.style.display = 'none';
+        detailsSec.style.opacity = '0';
+        setTimeout(function() { detailsSec.style.display = 'none'; }, 200);
         this.textContent = 'Show Details';
       }
-      t.sizeTo('#root').catch(function(){});
+      // Micro-retraso para darle tiempo al DOM de mostrar los elementos antes de decirle a Trello que cambie el tamaño del Iframe
+      setTimeout(function() { t.sizeTo(document.body).catch(function(){}); }, 50); 
     });
 
     /* ── EVENTO: Play / Stop ─────────────────────────────── */
@@ -615,18 +625,18 @@
       if (!state || !me) return;
       document.getElementById('edit-panel').style.display = 'none';
       document.getElementById('reset-panel').style.display = 'block';
-      t.sizeTo('#root').catch(function(){});
+      t.sizeTo(document.body).catch(function(){});
     });
 
     document.getElementById('cancel-reset').addEventListener('click', function () {
       document.getElementById('reset-panel').style.display = 'none';
-      t.sizeTo('#root').catch(function(){});
+      t.sizeTo(document.body).catch(function(){});
     });
 
     document.getElementById('cancel-edit').addEventListener('click', function () {
       document.getElementById('edit-panel').style.display = 'none';
       currentEditStart = null;
-      t.sizeTo('#root').catch(function(){});
+      t.sizeTo(document.body).catch(function(){});
     });
 
     /* ── EVENTO: Reset ───────────────────────────────────── */
