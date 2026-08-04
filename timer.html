@@ -326,8 +326,6 @@
   (function () {
     var KEY        = 'chronos';
     var ACTIVE_KEY = 'chronos-active-users';
-    var SUM_KEY    = 'chronos-summary';
-    var DAILY_KEY  = 'chronos-daily';
     var t          = window.TrelloPowerUp.iframe();
     
     var state      = null;
@@ -407,79 +405,6 @@
       var num = parseFloat(str);
       if (!isNaN(num)) return Math.floor(num * 60);
       return null;
-    }
-
-    /* ── sync board summary (NUEVA ARQUITECTURA OPTIMIZADA) ── */
-    function syncBoardSummary(cardStateObj) {
-      return Promise.all([
-        t.get('board', 'shared', SUM_KEY).catch(function(){ return {}; }),
-        t.get('board', 'shared', DAILY_KEY).catch(function(){ return {}; })
-      ]).then(function(res) {
-        var summary = res[0] || {};
-        var daily   = res[1] || {};
-
-        var cardId   = currentCard.id;
-        var cardName = currentCard.name;
-
-        // Cálculos locales para el resumen
-        var total = (cardStateObj.entries || []).reduce(function(a, e){ return a + (e.duration || 0); }, 0);
-        var running = !!(cardStateObj.sessions && Object.keys(cardStateObj.sessions).length > 0);
-        var mMap = {};
-
-        (cardStateObj.entries || []).forEach(function(e){
-          if (!e.memberId) return;
-          if (!mMap[e.memberId]) mMap[e.memberId] = { name: e.memberName, avatarUrl: e.avatarUrl, total: 0 };
-          mMap[e.memberId].total += e.duration;
-        });
-
-        if (cardStateObj.sessions) {
-          Object.keys(cardStateObj.sessions).forEach(function(id){
-            var s = cardStateObj.sessions[id];
-            var live = Math.min(Math.floor((Date.now() - s.startTime) / 1000), MAX_SECONDS);
-            if (!mMap[id]) mMap[id] = { name: s.memberName, avatarUrl: s.avatarUrl, total: 0 };
-            mMap[id].total += live;
-            total += live;
-          });
-        }
-
-        // Limpiar registros antiguos de esta tarjeta en Daily para reescribirlos
-        Object.keys(daily).forEach(function(day){
-          daily[day] = daily[day].filter(function(d){ return d.cardId !== cardId; });
-          if (daily[day].length === 0) delete daily[day];
-        });
-
-        // Escribir nuevos totales
-        if (!cardStateObj || (!total && !running)) {
-          delete summary[cardId];
-        } else {
-          var mList = Object.keys(mMap).map(function(id){
-            return { id: id, name: mMap[id].name, avatarUrl: mMap[id].avatarUrl, total: mMap[id].total };
-          });
-          summary[cardId] = { name: cardName, total: total, running: running, members: mList, updatedAt: Date.now() };
-
-          var cutoff = Date.now() - 365*24*3600*1000;
-          (cardStateObj.entries || []).forEach(function(e){
-            if (!e.start || e.start < cutoff) return;
-            var day = new Date(e.start).toISOString().slice(0,10);
-            if (!daily[day]) daily[day] = [];
-            daily[day].push({
-              cardId: cardId, cardName: cardName, memberId: e.memberId, memberName: e.memberName,
-              avatarUrl: e.avatarUrl, duration: e.duration, start: e.start
-            });
-          });
-        }
-
-        // Limpieza general de basura en Daily
-        var cutoffGeneral = Date.now() - 365*24*3600*1000;
-        Object.keys(daily).forEach(function(day){
-          if (new Date(day).getTime() < cutoffGeneral) delete daily[day];
-        });
-
-        return Promise.all([
-          t.set('board', 'shared', SUM_KEY, summary),
-          t.set('board', 'shared', DAILY_KEY, daily)
-        ]);
-      });
     }
 
     /* ── time calculations ───────────────────────────────── */
@@ -632,8 +557,6 @@
             t.set('card', 'shared', KEY, freshCardState),
             t.set('board', 'shared', ACTIVE_KEY, activeUsers)
           ]).then(function() {
-            return syncBoardSummary(freshCardState); // <--- Sincroniza el dashboard
-          }).then(function() {
             state = freshCardState;
             render();
             setSaveStatus('');
@@ -659,8 +582,7 @@
                   });
                 }
                 delete prevCardState.sessions[me.id];
-                return t.set(prevSession.cardId, 'shared', KEY, prevCardState)
-                  .then(function() { return syncBoardSummary(prevCardState); });
+                return t.set(prevSession.cardId, 'shared', KEY, prevCardState);
               }
             }).catch(function(e) { console.warn('Advertencia:', e); });
           }
@@ -674,8 +596,6 @@
               t.set('card', 'shared', KEY, freshCardState),
               t.set('board', 'shared', ACTIVE_KEY, activeUsers)
             ]).then(function() {
-              return syncBoardSummary(freshCardState); // <--- Sincroniza el dashboard
-            }).then(function() {
               state = freshCardState;
               render();
               setSaveStatus('');
@@ -730,8 +650,6 @@
           t.set('card', 'shared', KEY, freshCardState),
           t.set('board', 'shared', ACTIVE_KEY, activeUsers)
         ]).then(function(){
-          return syncBoardSummary(freshCardState); // <--- Sincroniza el dashboard
-        }).then(function(){
           state = freshCardState;
           render();
           setSaveStatus('');
@@ -777,7 +695,6 @@
         }
 
         return t.set('card', 'shared', KEY, freshCardState)
-          .then(function(){ return syncBoardSummary(freshCardState); }) // <--- Sincroniza el dashboard
           .then(function(){
             state = freshCardState;
             currentEditStart = null;
