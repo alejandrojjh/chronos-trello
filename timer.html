@@ -7,270 +7,54 @@
   <script src="https://p.trellocdn.com/power-up.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: transparent;
-      color: #b6c2cf;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 13px;
-      padding: 0;
-      overflow-y: hidden; /* Evita scrollbars fantasmas durante redimensionamiento */
-    }
-
-    /* ── Header ───────────────────────────────────────────── */
-    .wl-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .app-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: #dee4ea;
-    }
-    .wl-toggle-btn {
-      background: #2c2e33;
-      color: #9f9f9f;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    .wl-toggle-btn:hover {
-      background: #3a3d45;
-      color: #fff;
-    }
-
-    /* ── Active Timer Block ───────────────────────────────── */
-    .tracker-box {
-      background: #282a2e;
-      border-radius: 4px;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .tracker-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex: 1;
-      min-width: 0;
-    }
-    .tracker-input {
-      background: transparent;
-      border: none;
-      color: #dee4ea;
-      font-size: 14px;
-      font-weight: 500;
-      flex: 1;
-      min-width: 0;
-      outline: none;
-    }
-    .clock {
-      font-size: 16px;
-      font-weight: 700;
-      color: #dee4ea;
-      font-variant-numeric: tabular-nums;
-    }
-    .clock.running {
-      color: #fff;
-    }
-    
-    /* Botones */
-    .btn {
-      border: none;
-      background: #3a3d45;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
-    }
+    body { background: transparent; color: #b6c2cf; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; padding: 0; overflow-y: hidden; }
+    .wl-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .app-title { font-size: 14px; font-weight: 700; color: #dee4ea; }
+    .wl-toggle-btn { background: #2c2e33; color: #9f9f9f; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .wl-toggle-btn:hover { background: #3a3d45; color: #fff; }
+    .tracker-box { background: #282a2e; border-radius: 4px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .tracker-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+    .tracker-input { background: transparent; border: none; color: #dee4ea; font-size: 14px; font-weight: 500; flex: 1; min-width: 0; outline: none; }
+    .clock { font-size: 16px; font-weight: 700; color: #dee4ea; font-variant-numeric: tabular-nums; }
+    .clock.running { color: #fff; }
+    .btn { border: none; background: #3a3d45; color: #fff; padding: 8px 14px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
     .btn-start { background: #0052cc; }
     .btn-stop  { background: #de350b; }
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-    /* ── Entries List ─────────────────────────────────────── */
-    #details-section {
-      /* Transición suave para evitar saltos bruscos */
-      transition: opacity 0.2s ease-in-out;
-    }
-    .entries-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      margin-top: 4px;
-    }
-    .entries-lbl {
-      font-size: 11px;
-      font-weight: 700;
-      color: #8c9199;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-    }
-    .total-lbl {
-      font-size: 12px;
-      color: #8c9199;
-    }
-    .entries {
-      list-style: none;
-    }
-    .entry {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 4px;
-      border-radius: 4px;
-      transition: background 0.2s;
-      margin-bottom: 2px;
-    }
-    .entry:hover {
-      background: rgba(255,255,255,0.03);
-    }
-    .av {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 700;
-      color: #fff;
-      text-transform: uppercase;
-      overflow: hidden;
-    }
+    #details-section { transition: opacity 0.2s ease-in-out; }
+    .entries-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 4px; }
+    .entries-lbl { font-size: 11px; font-weight: 700; color: #8c9199; text-transform: uppercase; letter-spacing: .5px; }
+    .total-lbl { font-size: 12px; color: #8c9199; }
+    .entries { list-style: none; }
+    .entry { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-radius: 4px; transition: background 0.2s; margin-bottom: 2px; }
+    .entry:hover { background: rgba(255,255,255,0.03); }
+    .av { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; text-transform: uppercase; overflow: hidden; }
     .av img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .entry-info {
-      flex: 1;
-      min-width: 0;
-    }
-    .entry-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: #dee4ea;
-    }
-    .entry-time {
-      font-size: 11px;
-      color: #8c9199;
-      margin-top: 1px;
-    }
-
-    .entry-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .entry-dur {
-      font-size: 13px;
-      font-weight: 600;
-      color: #dee4ea;
-      font-variant-numeric: tabular-nums;
-    }
-    .entry-edit-btn {
-      background: transparent;
-      border: none;
-      color: #8c9199;
-      cursor: pointer;
-      font-size: 12px;
-      opacity: 0;
-      transition: opacity 0.2s, transform 0.2s;
-    }
-    .entry:hover .entry-edit-btn {
-      opacity: 1;
-      transform: scale(1.1);
-    }
-    .entry-edit-btn:hover {
-      filter: brightness(1.5);
-    }
-
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-name { font-size: 13px; font-weight: 600; color: #dee4ea; }
+    .entry-time { font-size: 11px; color: #8c9199; margin-top: 1px; }
+    .entry-actions { display: flex; align-items: center; gap: 8px; }
+    .entry-dur { font-size: 13px; font-weight: 600; color: #dee4ea; font-variant-numeric: tabular-nums; }
+    .entry-edit-btn { background: transparent; border: none; color: #8c9199; cursor: pointer; font-size: 12px; opacity: 0; transition: opacity 0.2s, transform 0.2s; }
+    .entry:hover .entry-edit-btn { opacity: 1; transform: scale(1.1); }
+    .entry-edit-btn:hover { filter: brightness(1.5); }
     .empty-msg { font-style: italic; color: #8c9199; padding: 8px 0; }
-
-    /* ── Footer ───────────────────────────────────────────── */
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px solid #2c2e33;
-    }
-    .reset-btn {
-      background: none;
-      border: none;
-      color: #8c9199;
-      font-size: 11px;
-      cursor: pointer;
-      text-decoration: underline;
-      padding: 0;
-    }
+    .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 10px; border-top: 1px solid #2c2e33; }
+    .reset-btn { background: none; border: none; color: #8c9199; font-size: 11px; cursor: pointer; text-decoration: underline; padding: 0; }
     .reset-btn:hover { color: #f87168; }
     .reset-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-    /* ── Paneles Inline (Reinicio y Edición) ──────────────── */
-    .inline-panel {
-      display: none;
-      background: #282a2e;
-      border-radius: 4px;
-      padding: 12px;
-      margin-top: 14px;
-    }
-    .inline-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: #8c9199;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .inline-input {
-      background: #1e1f22;
-      border: 1px solid #3a3d45;
-      color: #dee4ea;
-      border-radius: 4px;
-      padding: 6px 10px;
-      font-size: 13px;
-      width: 100%;
-      outline: none;
-      margin-bottom: 10px;
-      font-family: monospace;
-    }
+    .inline-panel { display: none; background: #282a2e; border-radius: 4px; padding: 12px; margin-top: 14px; }
+    .inline-title { font-size: 11px; font-weight: 700; color: #8c9199; text-transform: uppercase; margin-bottom: 8px; }
+    .inline-input { background: #1e1f22; border: 1px solid #3a3d45; color: #dee4ea; border-radius: 4px; padding: 6px 10px; font-size: 13px; width: 100%; outline: none; margin-bottom: 10px; font-family: monospace; }
     .inline-input:focus { border-color: #579dff; }
-    .inline-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-    .btn-sm {
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+    .inline-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .btn-sm { border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
     .btn-cancel { background: #3a3d45; color: #fff; }
     .btn-cancel:hover { background: #4a4d55; }
     .btn-confirm { background: #de350b; color: #fff; }
     .btn-confirm:hover { background: #bf2600; }
     .btn-save { background: #0052cc; color: #fff; }
     .btn-save:hover { background: #0747a6; }
-
     .save-status { font-size: 11px; color: #8c9199; text-align: right; margin-top: 4px; display: block; }
     .err-banner { display:none; background:#3d1f1f; border:1px solid #7a2d2d; border-radius:4px; padding:6px 10px; font-size:11px; color:#f87168; margin-bottom:6px; }
   </style>
@@ -278,12 +62,10 @@
 <body>
   <div id="root">
     <div class="err-banner" id="err-banner"></div>
-
     <div class="wl-header">
       <div class="app-title">TrackingTime</div>
       <button class="wl-toggle-btn" id="toggle-details-btn">Show Details</button>
     </div>
-
     <div class="tracker-box">
       <div class="tracker-left">
         <input type="text" class="tracker-input" value="Tiempo de tarea activo" id="task-title-mock" readonly>
@@ -291,22 +73,15 @@
       </div>
       <button class="btn btn-start" id="toggle-btn" disabled>▶ Iniciar</button>
     </div>
-
     <div id="details-section" style="display: none; opacity: 0;">
-      
       <div class="entries-header">
         <div class="entries-lbl">Logs de trabajo</div>
         <div class="total-lbl">Tiempo total: <strong id="all-total" style="color:#dee4ea;">--:--:--</strong></div>
       </div>
-
       <ul class="entries" id="entries"></ul>
-
-      <div class="footer">
-        <button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button>
-      </div>
+      <div class="footer"><button class="reset-btn" id="reset-btn" disabled>Reiniciar mis datos</button></div>
       <span class="save-status" id="save-status"></span>
 
-      <!-- Panel Confirmar Reinicio -->
       <div class="inline-panel" id="reset-panel">
         <div class="inline-title" style="color: #f87168;">¿Eliminar todos tus registros?</div>
         <div class="inline-actions">
@@ -315,7 +90,6 @@
         </div>
       </div>
 
-      <!-- Panel Modificar Tiempo Granular -->
       <div class="inline-panel" id="edit-panel">
         <div class="inline-title">Modificar registro (Pon '0' para borrarlo)</div>
         <input type="text" class="inline-input" id="edit-input" placeholder="Ej: 01:30:00, 1h 30m o 90">
@@ -324,15 +98,14 @@
           <button class="btn-sm btn-save" id="save-edit">Guardar</button>
         </div>
       </div>
-
     </div>
   </div>
 
   <script>
   (function () {
-    var KEY        = 'chronos';
-    var ACTIVE_KEY = 'chronos-active-users';
-    var t          = window.TrelloPowerUp.iframe();
+    var KEY               = 'chronos';
+    var MEMBER_ACTIVE_KEY = 'active-timer'; 
+    var t                 = window.TrelloPowerUp.iframe();
     
     var state      = null;
     var me         = null;
@@ -343,84 +116,89 @@
     var MAX_SESSION_HOURS = 9; 
     var MAX_SECONDS = MAX_SESSION_HOURS * 3600;
 
-    /* ── helpers ─────────────────────────────────────────── */
+    // ELIMINADOR DE ERRORES VIEJOS EN EL TABLERO
+    t.remove('board', 'shared', ['chronos-summary', 'chronos-daily', 'chronos-active-users']).catch(function(){});
+
+    function minifyState(s) {
+      if (!s) return {};
+      var out = { entries: [], sessions: {} };
+      if (s.entries) {
+        out.entries = s.entries.map(function(e) {
+          return {
+            i: e.i || e.memberId,
+            n: e.n || e.memberName,
+            a: e.a || e.avatarUrl || '',
+            s: e.s || e.start,
+            e: e.e || e.end,
+            d: e.d || e.duration
+          };
+        });
+      }
+      if (s.sessions) {
+        Object.keys(s.sessions).forEach(function(k) {
+          var sess = s.sessions[k];
+          out.sessions[k] = {
+            st: sess.st || sess.startTime,
+            n:  sess.n || sess.memberName,
+            a:  sess.a || sess.avatarUrl || ''
+          };
+        });
+      }
+      return out;
+    }
+
     function fmt(sec) {
       sec = Math.max(0, Math.floor(sec||0));
-      var h = Math.floor(sec / 3600);
-      var m = Math.floor((sec % 3600) / 60);
-      var s = sec % 60;
+      var h = Math.floor(sec / 3600); var m = Math.floor((sec % 3600) / 60); var s = sec % 60;
       return [h,m,s].map(function(v){ return String(v).padStart(2,'0'); }).join(':');
     }
     function fmtTime(ts) {
       var d = new Date(ts);
       return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
     }
-    function esc(s) {
-      return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-    function initials(name) {
-      return (name||'?').trim().split(/\s+/).slice(0,2).map(function(w){ return w[0]||'?'; }).join('').toUpperCase();
-    }
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function initials(name) { return (name||'?').trim().split(/\s+/).slice(0,2).map(function(w){ return w[0]||'?'; }).join('').toUpperCase(); }
     var COLORS = ['#579dff','#4bce97','#fea362','#9f8fef','#e774bb','#f87168'];
     function memberColor(id) {
-      var h = 0;
-      for (var i = 0; i < (id||'').length; i++) { h = (h * 31 + id.charCodeAt(i)) | 0; }
+      var h = 0; for (var i = 0; i < (id||'').length; i++) { h = (h * 31 + id.charCodeAt(i)) | 0; }
       return COLORS[Math.abs(h) % COLORS.length];
     }
-    function avatarHtml(memberId, memberName, avatarUrl) {
-      var color = memberColor(memberId || 'x');
-      if (avatarUrl) {
-        return '<div class="av"><img src="' + esc(avatarUrl) + '" onerror="this.parentNode.style.background=\'' + color + '\';this.remove()"></div>';
-      }
-      return '<div class="av" style="background:' + color + '">' + esc(initials(memberName)) + '</div>';
+    function avatarHtml(id, name, url) {
+      var color = memberColor(id || 'x');
+      if (url) return '<div class="av"><img src="' + esc(url) + '" onerror="this.parentNode.style.background=\'' + color + '\';this.remove()"></div>';
+      return '<div class="av" style="background:' + color + '">' + esc(initials(name)) + '</div>';
     }
     function showError(msg) {
       var el = document.getElementById('err-banner');
-      el.textContent = msg;
-      el.style.display = msg ? 'block' : 'none';
-      t.sizeTo(document.body).catch(function(){}); // Optimizado
+      el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+      t.sizeTo(document.body).catch(function(){});
     }
     function setSaveStatus(msg, isErr) {
       var el = document.getElementById('save-status');
-      el.textContent = msg;
-      el.className = 'save-status' + (isErr ? ' err' : '');
+      el.textContent = msg; el.className = 'save-status' + (isErr ? ' err' : '');
     }
-
     function parseTimeToSeconds(str) {
-      if (!str) return null;
-      str = str.trim().toLowerCase();
+      if (!str) return null; str = str.trim().toLowerCase();
       if (str === '0' || str === '00:00:00') return 0;
-
-      var hMatch = str.match(/(\d+)\s*h/);
-      var mMatch = str.match(/(\d+)\s*m/);
-      var sMatch = str.match(/(\d+)\s*s/);
-
-      if (hMatch || mMatch || sMatch) {
-        var h = hMatch ? parseInt(hMatch[1], 10) : 0;
-        var m = mMatch ? parseInt(mMatch[1], 10) : 0;
-        var s = sMatch ? parseInt(sMatch[1], 10) : 0;
+      var hM = str.match(/(\d+)\s*h/), mM = str.match(/(\d+)\s*m/), sM = str.match(/(\d+)\s*s/);
+      if (hM || mM || sM) {
+        var h = hM ? parseInt(hM[1], 10) : 0, m = mM ? parseInt(mM[1], 10) : 0, s = sM ? parseInt(sM[1], 10) : 0;
         return (h * 3600) + (m * 60) + s;
       }
-
-      var parts = str.split(':');
-      if (parts.length === 3) {
-        return (parseInt(parts[0], 10) * 3600) + (parseInt(parts[1], 10) * 60) + parseInt(parts[2], 10);
-      } else if (parts.length === 2) {
-        return (parseInt(parts[0], 10) * 3600) + (parseInt(parts[1], 10) * 60);
-      }
-      var num = parseFloat(str);
-      if (!isNaN(num)) return Math.floor(num * 60);
+      var p = str.split(':');
+      if (p.length === 3) return (parseInt(p[0], 10) * 3600) + (parseInt(p[1], 10) * 60) + parseInt(p[2], 10);
+      if (p.length === 2) return (parseInt(p[0], 10) * 3600) + (parseInt(p[1], 10) * 60);
+      var num = parseFloat(str); if (!isNaN(num)) return Math.floor(num * 60);
       return null;
     }
 
-    /* ── time calculations ───────────────────────────────── */
     function myTotal() {
       if (!state || !me) return 0;
-      var base = (state.entries||[]).filter(function(e){ return e.memberId === me.id; })
-                                    .reduce(function(s,e){ return s+(e.duration||0); },0);
+      var base = (state.entries||[]).filter(function(e){ return e.i === me.id; })
+                                    .reduce(function(s,e){ return s + (e.d || 0); },0);
       var sess = state.sessions && state.sessions[me.id];
-      if (sess && sess.startTime) {
-        var elapsed = Math.floor((Date.now()-sess.startTime)/1000);
+      if (sess && sess.st) {
+        var elapsed = Math.floor((Date.now() - sess.st)/1000);
         base += Math.min(elapsed, MAX_SECONDS);
       }
       return base;
@@ -428,12 +206,12 @@
     
     function allTotal() {
       if (!state) return 0;
-      var base = (state.entries||[]).reduce(function(s,e){ return s+(e.duration||0); },0);
+      var base = (state.entries||[]).reduce(function(s,e){ return s + (e.d || 0); },0);
       if (state.sessions) {
         Object.keys(state.sessions).forEach(function(id){
           var s = state.sessions[id];
-          if (s && s.startTime) {
-            var elapsed = Math.floor((Date.now()-s.startTime)/1000);
+          if (s && s.st) {
+            var elapsed = Math.floor((Date.now() - s.st)/1000);
             base += Math.min(elapsed, MAX_SECONDS);
           }
         });
@@ -447,60 +225,44 @@
       document.getElementById('all-total').textContent = fmt(allTotal());
     }
 
-    /* ── render ──────────────────────────────────────────── */
     function render() {
       if (!state || !me) return;
-      var btn      = document.getElementById('toggle-btn');
-      var resetBtn = document.getElementById('reset-btn');
-      btn.disabled      = false;
-      resetBtn.disabled = false;
+      var btn = document.getElementById('toggle-btn'); var resetBtn = document.getElementById('reset-btn');
+      btn.disabled = false; resetBtn.disabled = false;
 
       var mySess  = state.sessions && state.sessions[me.id];
       var running = !!mySess;
       var clockEl = document.getElementById('clock');
 
       if (running) {
-        clockEl.className = 'clock running';
-        btn.className = 'btn btn-stop';
-        btn.textContent = '⏹ Stop';
+        clockEl.className = 'clock running'; btn.className = 'btn btn-stop'; btn.textContent = '⏹ Stop';
         if (!tick) { updateClock(); tick = setInterval(updateClock, 1000); }
       } else {
         if (tick) { clearInterval(tick); tick = null; }
-        clockEl.className   = 'clock';
-        clockEl.textContent = fmt(myTotal());
-        btn.className = 'btn btn-start';
-        btn.textContent = '▶ Play';
+        clockEl.className = 'clock'; clockEl.textContent = fmt(myTotal());
+        btn.className = 'btn btn-start'; btn.textContent = '▶ Play';
         document.getElementById('all-total').textContent = fmt(allTotal());
       }
 
       var entries = (state.entries||[]).slice().reverse().slice(0,10);
       var el = document.getElementById('entries');
       
-      if (!entries.length) {
-        el.innerHTML = '<li class="empty-msg">Sin registros en esta tarjeta</li>';
-      } else {
+      if (!entries.length) { el.innerHTML = '<li class="empty-msg">Sin registros en esta tarjeta</li>'; } 
+      else {
         el.innerHTML = entries.map(function(e){
-          var isMe = e.memberId===me.id;
-          var name = isMe ? 'Tú' : (e.memberName||'Desconocido');
-          var editHtml = isMe ? '<button class="entry-edit-btn" data-start="'+e.start+'" data-dur="'+e.duration+'" title="Modificar este registro">✏️</button>' : '';
+          var isMe = e.i === me.id;
+          var name = isMe ? 'Tú' : (e.n||'Desconocido');
+          var editHtml = isMe ? '<button class="entry-edit-btn" data-start="'+e.s+'" data-dur="'+e.d+'" title="Modificar">✏️</button>' : '';
 
           return '<li class="entry">' +
-            avatarHtml(e.memberId, e.memberName, e.avatarUrl) +
-            '<div class="entry-info">' +
-              '<div class="entry-name">'+esc(name)+'</div>' +
-              '<div class="entry-time">'+fmtTime(e.start)+' – tracker</div>' +
-            '</div>' +
-            '<div class="entry-actions">' +
-              '<div class="entry-dur">'+fmt(e.duration)+'</div>' +
-              editHtml +
-            '</div>' +
-          '</li>';
+            avatarHtml(e.i, e.n, e.a) +
+            '<div class="entry-info"><div class="entry-name">'+esc(name)+'</div><div class="entry-time">'+fmtTime(e.s)+' – tracker</div></div>' +
+            '<div class="entry-actions"><div class="entry-dur">'+fmt(e.d)+'</div>'+editHtml+'</div></li>';
         }).join('');
       }
-      t.sizeTo(document.body).catch(function(){}); // Optimizado
+      t.sizeTo(document.body).catch(function(){});
     }
 
-    /* ── Delegación de Eventos ───────────────────────────── */
     document.getElementById('entries').addEventListener('click', function(e) {
       var btn = e.target.closest('.entry-edit-btn');
       if (!btn || !state || !me) return;
@@ -509,249 +271,159 @@
       document.getElementById('reset-panel').style.display = 'none';
       document.getElementById('edit-input').value = fmt(currentDur);
       document.getElementById('edit-panel').style.display = 'block';
-      t.sizeTo(document.body).catch(function(){}); // Optimizado
+      t.sizeTo(document.body).catch(function(){});
     });
 
-    /* ── TOGGLE DETAILS EVENT (Flicker solucionado) ──────── */
     document.getElementById('toggle-details-btn').addEventListener('click', function () {
       var detailsSec = document.getElementById('details-section');
       if (detailsSec.style.display === 'none' || detailsSec.style.opacity === '0') {
-        detailsSec.style.display = 'block';
-        setTimeout(function() { detailsSec.style.opacity = '1'; }, 10);
-        this.textContent = 'Hide Details';
+        detailsSec.style.display = 'block'; setTimeout(function() { detailsSec.style.opacity = '1'; }, 10); this.textContent = 'Hide Details';
       } else {
-        detailsSec.style.opacity = '0';
-        setTimeout(function() { detailsSec.style.display = 'none'; }, 200);
-        this.textContent = 'Show Details';
+        detailsSec.style.opacity = '0'; setTimeout(function() { detailsSec.style.display = 'none'; }, 200); this.textContent = 'Show Details';
       }
-      // Micro-retraso para darle tiempo al DOM de mostrar los elementos antes de decirle a Trello que cambie el tamaño del Iframe
       setTimeout(function() { t.sizeTo(document.body).catch(function(){}); }, 50); 
     });
 
-    /* ── EVENTO: Play / Stop ─────────────────────────────── */
     document.getElementById('toggle-btn').addEventListener('click', function () {
       if (!state || !me) return;
-      var btn = this;
-      btn.disabled = true;
-      showError('');
-      setSaveStatus('Guardando…');
+      var btn = this; btn.disabled = true; showError(''); setSaveStatus('Guardando…');
 
       Promise.all([
         t.get('card', 'shared', KEY).catch(function(){ return null; }),
-        t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; })
+        t.get('member', 'private', MEMBER_ACTIVE_KEY).catch(function(){ return null; })
       ]).then(function(results) {
-        var freshCardState = results[0] || {};
-        var activeUsers    = results[1] || {};
-
+        var freshCardState = results[0] || {}; var activeCardRef = results[1];
         if (!freshCardState.sessions) freshCardState.sessions = {};
         if (!freshCardState.entries)  freshCardState.entries  = [];
 
         var isRunningOnThisCard = !!freshCardState.sessions[me.id];
 
         if (isRunningOnThisCard) {
-          // DETENER
           var sess = freshCardState.sessions[me.id];
-          var now  = Date.now();
-          var dur  = Math.min(Math.floor((now - sess.startTime) / 1000), MAX_SECONDS);
+          var sTime = sess.st || sess.startTime;
+          var now = Date.now();
+          var dur = Math.min(Math.floor((now - sTime) / 1000), MAX_SECONDS);
 
           if (dur > 0) {
-            freshCardState.entries.push({
-              memberId: me.id, memberName: me.fullName, avatarUrl: me.avatarUrl || '',
-              start: sess.startTime, end: now, duration: dur
-            });
+            freshCardState.entries.push({ i: me.id, n: me.fullName, a: me.avatarUrl || '', s: sTime, e: now, d: dur });
           }
           delete freshCardState.sessions[me.id];
-          delete activeUsers[me.id];
+
+          freshCardState = minifyState(freshCardState);
 
           return Promise.all([
             t.set('card', 'shared', KEY, freshCardState),
-            t.set('board', 'shared', ACTIVE_KEY, activeUsers)
+            t.remove('member', 'private', MEMBER_ACTIVE_KEY)
           ]).then(function() {
-            state = freshCardState;
-            render();
-            setSaveStatus('');
+            state = freshCardState; render(); setSaveStatus('');
           });
 
         } else {
-          // INICIAR
-          var prevSession = activeUsers[me.id];
           var closePrevCardPromise = Promise.resolve();
-
-          if (prevSession && prevSession.cardId && prevSession.cardId !== currentCard.id) {
-            closePrevCardPromise = t.get(prevSession.cardId, 'shared', KEY).then(function(prevCardState) {
+          if (activeCardRef && activeCardRef.id && activeCardRef.id !== currentCard.id) {
+            closePrevCardPromise = t.get(activeCardRef.id, 'shared', KEY).then(function(prevCardState) {
               if (prevCardState && prevCardState.sessions && prevCardState.sessions[me.id]) {
                 var pSess = prevCardState.sessions[me.id];
+                var sTime = pSess.st || pSess.startTime;
                 var now   = Date.now();
-                var dur   = Math.min(Math.floor((now - pSess.startTime) / 1000), MAX_SECONDS);
+                var dur   = Math.min(Math.floor((now - sTime) / 1000), MAX_SECONDS);
                 
                 if (dur > 0) {
                   if (!prevCardState.entries) prevCardState.entries = [];
-                  prevCardState.entries.push({
-                    memberId: me.id, memberName: me.fullName, avatarUrl: me.avatarUrl || '',
-                    start: pSess.startTime, end: now, duration: dur
-                  });
+                  prevCardState.entries.push({ i: me.id, n: me.fullName, a: me.avatarUrl || '', s: sTime, e: now, d: dur });
                 }
                 delete prevCardState.sessions[me.id];
-                return t.set(prevSession.cardId, 'shared', KEY, prevCardState);
+                return t.set(activeCardRef.id, 'shared', minifyState(prevCardState));
               }
-            }).catch(function(e) { console.warn('Advertencia:', e); });
+            }).catch(function(e) { console.warn('Cerrar prev falló:', e); });
           }
 
           return closePrevCardPromise.then(function() {
             var now = Date.now();
-            freshCardState.sessions[me.id] = { startTime: now, memberName: me.fullName, avatarUrl: me.avatarUrl || '' };
-            activeUsers[me.id] = { cardId: currentCard.id, cardName: currentCard.name, startTime: now };
+            freshCardState.sessions[me.id] = { st: now, n: me.fullName, a: me.avatarUrl || '' };
+            freshCardState = minifyState(freshCardState);
 
             return Promise.all([
               t.set('card', 'shared', KEY, freshCardState),
-              t.set('board', 'shared', ACTIVE_KEY, activeUsers)
+              t.set('member', 'private', MEMBER_ACTIVE_KEY, { id: currentCard.id })
             ]).then(function() {
-              state = freshCardState;
-              render();
-              setSaveStatus('');
+              state = freshCardState; render(); setSaveStatus('');
             });
           });
         }
-      }).catch(function(err) {
-        setSaveStatus('Error', true);
-        showError('No se pudo guardar: ' + String(err));
-      }).finally(function() {
-        btn.disabled = false;
-      });
+      }).catch(function(err) { setSaveStatus('Error', true); showError(String(err)); }).finally(function() { btn.disabled = false; });
     });
 
-    /* ── PANELS INLINE CONTROLS ───────────────────────────────────── */
     document.getElementById('reset-btn').addEventListener('click', function () {
       if (!state || !me) return;
-      document.getElementById('edit-panel').style.display = 'none';
-      document.getElementById('reset-panel').style.display = 'block';
-      t.sizeTo(document.body).catch(function(){});
+      document.getElementById('edit-panel').style.display = 'none'; document.getElementById('reset-panel').style.display = 'block'; t.sizeTo(document.body).catch(function(){});
     });
+    document.getElementById('cancel-reset').addEventListener('click', function () { document.getElementById('reset-panel').style.display = 'none'; t.sizeTo(document.body).catch(function(){}); });
+    document.getElementById('cancel-edit').addEventListener('click', function () { document.getElementById('edit-panel').style.display = 'none'; currentEditStart = null; t.sizeTo(document.body).catch(function(){}); });
 
-    document.getElementById('cancel-reset').addEventListener('click', function () {
-      document.getElementById('reset-panel').style.display = 'none';
-      t.sizeTo(document.body).catch(function(){});
-    });
-
-    document.getElementById('cancel-edit').addEventListener('click', function () {
-      document.getElementById('edit-panel').style.display = 'none';
-      currentEditStart = null;
-      t.sizeTo(document.body).catch(function(){});
-    });
-
-    /* ── EVENTO: Reset ───────────────────────────────────── */
     document.getElementById('confirm-reset').addEventListener('click', function () {
       if (!state || !me) return;
-      document.getElementById('reset-panel').style.display = 'none';
-      setSaveStatus('Borrando…');
+      document.getElementById('reset-panel').style.display = 'none'; setSaveStatus('Borrando…');
       
-      Promise.all([
-        t.get('card', 'shared', KEY).catch(function(){ return {}; }),
-        t.get('board', 'shared', ACTIVE_KEY).catch(function(){ return {}; })
-      ]).then(function(results) {
-        var freshCardState = results[0] || {};
-        var activeUsers = results[1] || {};
-
+      t.get('card', 'shared', KEY).then(function(freshCardState) {
+        freshCardState = freshCardState || {};
         if (freshCardState.sessions) delete freshCardState.sessions[me.id];
-        freshCardState.entries = (freshCardState.entries||[]).filter(function(e){ return e.memberId !== me.id; });
-        delete activeUsers[me.id];
+        freshCardState.entries = (freshCardState.entries||[]).filter(function(e){ return (e.i || e.memberId) !== me.id; });
+        freshCardState = minifyState(freshCardState);
 
         return Promise.all([
           t.set('card', 'shared', KEY, freshCardState),
-          t.set('board', 'shared', ACTIVE_KEY, activeUsers)
-        ]).then(function(){
-          state = freshCardState;
-          render();
-          setSaveStatus('');
-        });
-      }).catch(function(err){
-        setSaveStatus('Error', true);
-        showError('Error: ' + String(err));
-      });
+          t.remove('member', 'private', MEMBER_ACTIVE_KEY)
+        ]).then(function(){ state = freshCardState; render(); setSaveStatus(''); });
+      }).catch(function(err){ setSaveStatus('Error', true); showError(String(err)); });
     });
 
-    /* ── EVENTO: Edición Granular ────────────────────────── */
     document.getElementById('save-edit').addEventListener('click', function () {
       if (!state || !me || currentEditStart === null) return;
+      var newSeconds = parseTimeToSeconds(document.getElementById('edit-input').value);
+      if (newSeconds === null || newSeconds < 0) { showError("Formato inválido."); return; }
 
-      var editInput = document.getElementById('edit-input');
-      var newSeconds = parseTimeToSeconds(editInput.value);
-      if (newSeconds === null || newSeconds < 0) {
-        showError("Usa formato válido: '01:30:00', '1h 30m' o '0' para borrar.");
-        return;
-      }
+      showError(''); setSaveStatus('Guardando…'); document.getElementById('edit-panel').style.display = 'none';
 
-      showError('');
-      setSaveStatus('Guardando…');
-      document.getElementById('edit-panel').style.display = 'none';
-
-      Promise.all([
-        t.get('card', 'shared', KEY).catch(function(){ return {}; })
-      ]).then(function(results) {
-        var freshCardState = results[0] || {};
+      t.get('card', 'shared', KEY).then(function(freshCardState) {
+        freshCardState = freshCardState || {};
         if (!freshCardState.entries) freshCardState.entries = [];
 
         var entryIndex = freshCardState.entries.findIndex(function(e) {
-          return e.memberId === me.id && e.start === currentEditStart;
+          return (e.i || e.memberId) === me.id && (e.s || e.start) === currentEditStart;
         });
 
         if (entryIndex > -1) {
           if (newSeconds === 0) {
             freshCardState.entries.splice(entryIndex, 1);
           } else {
-            freshCardState.entries[entryIndex].duration = newSeconds;
-            freshCardState.entries[entryIndex].end = freshCardState.entries[entryIndex].start + (newSeconds * 1000);
+            var eObj = freshCardState.entries[entryIndex];
+            eObj.d = newSeconds;
+            eObj.e = (eObj.s || eObj.start) + (newSeconds * 1000);
+            delete eObj.duration; delete eObj.end; 
           }
         }
+        freshCardState = minifyState(freshCardState);
 
-        return t.set('card', 'shared', KEY, freshCardState)
-          .then(function(){
-            state = freshCardState;
-            currentEditStart = null;
-            render();
-            setSaveStatus('');
-          });
-      }).catch(function(err){
-        setSaveStatus('Error', true);
-        showError('Error: ' + String(err));
-      });
+        return t.set('card', 'shared', KEY, freshCardState).then(function(){
+          state = freshCardState; currentEditStart = null; render(); setSaveStatus('');
+        });
+      }).catch(function(err){ setSaveStatus('Error', true); showError(String(err)); });
     });
 
     /* ── init ────────────────────────────────────────────── */
-    var memberFetch = t.member('id', 'fullName', 'username', 'avatar').catch(function () {
-      return { id: 'anon-' + Math.random().toString(36).slice(2), fullName: 'Usuario', username: 'usuario', avatar: null };
-    });
+    var memberFetch = t.member('id', 'fullName', 'username', 'avatar').catch(function () { return { id: 'anon', fullName: 'Usuario', username: 'usuario', avatar: null }; });
+    t.card('id', 'name').then(function(c) { if(c) { currentCard = c; document.getElementById('task-title-mock').value = c.name || ''; } }).catch(function(){});
 
-    t.card('id', 'name').then(function(cardData) {
-      if(cardData) {
-        currentCard = cardData;
-        document.getElementById('task-title-mock').value = cardData.name || '';
-      }
-    }).catch(function(){});
+    Promise.all([ t.get('card', 'shared', KEY).catch(function(){ return null; }), memberFetch ]).then(function (results) {
+      var raw = results[0]; var m = results[1];
+      var avatarUrl = ''; if (m && m.avatar) avatarUrl = 'https://trello-members.s3.amazonaws.com/' + m.id + '/' + m.avatar + '/50.png';
 
-    Promise.all([
-      t.get('card', 'shared', KEY).catch(function(){ return null; }),
-      memberFetch
-    ]).then(function (results) {
-      var raw = results[0];
-      var m   = results[1];
-      var avatarUrl = '';
-      if (m && m.avatar) avatarUrl = 'https://trello-members.s3.amazonaws.com/' + m.id + '/' + m.avatar + '/50.png';
-
-      me = {
-        id:        (m && m.id) || 'anon',
-        fullName:  (m && (m.fullName || m.username)) || 'Usuario',
-        avatarUrl: avatarUrl
-      };
-
+      me = { id: (m && m.id) || 'anon', fullName: (m && (m.fullName || m.username)) || 'Usuario', avatarUrl: avatarUrl };
       state = raw || {};
-      if (!state.sessions) state.sessions = {};
-      if (!state.entries)  state.entries  = [];
-
+      if (!state.sessions) state.sessions = {}; if (!state.entries) state.entries = [];
       render();
-    }).catch(function (err) {
-      showError('Error al inicializar: ' + String(err));
-    });
+    }).catch(function (err) { showError('Error inicialización: ' + String(err)); });
 
   })();
   </script>
