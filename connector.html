@@ -8,11 +8,8 @@
 <body>
 <script>
 (function () {
-  var KEY       = 'chronos';
-  var SUM_KEY   = 'chronos-summary';   /* board shared: totals per card + per member */
-  var DAILY_KEY = 'chronos-daily';     /* board shared: per-day entries */
+  var KEY = 'chronos';
 
-  /* ── Helpers ligeros para UI ─────────────────────────────── */
   function anyRunning(d) {
     return !!(d && d.sessions && Object.keys(d.sessions).length > 0);
   }
@@ -22,7 +19,7 @@
     var names = [];
     Object.keys(d.sessions).forEach(function(id){
       var s = d.sessions[id];
-      if (s && s.memberName) names.push(s.memberName);
+      if (s && s.n) names.push(s.n); // AHORA LEE LA VERSIÓN MINIFICADA "n"
     });
     if (names.length === 0) return 'Trabajando en esto...';
     return names.join(', ') + ' trabajando...';
@@ -31,8 +28,6 @@
   var baseUrl = location.href.replace(/\/[^/]*$/, '');
 
   window.TrelloPowerUp.initialize({
-
-    /* ── card-buttons ─────────────────────────────────────── */
     'card-buttons': function (t) {
       return t.get('card', 'shared', KEY).then(function(d){
         var running = anyRunning(d);
@@ -46,27 +41,18 @@
       });
     },
 
-    /* ── card-badges (vista frontal) - LECTURA ULTRA RÁPIDA ── */
     'card-badges': function (t) {
       return [{
         dynamic: function () {
-          // Solo leemos el estado de la tarjeta actual (O(1))
           return t.get('card', 'shared', KEY).then(function(d){
             var running = anyRunning(d);
-
-            // Si nadie está corriendo el timer, no renderizamos badge para ahorrar memoria
             if (!running) return [];
-
             return {
               text:     getActiveUsersText(d),
               color:    'green',
-              refresh:  15, // Refresco ligero cada 15 segundos solo si está activo
+              refresh:  15,
               callback: function (t) {
-                return t.popup({
-                  title:  'TrackingTime',
-                  url:    baseUrl + '/timer.html',
-                  height: 420
-                });
+                return t.popup({ title: 'TrackingTime', url: baseUrl + '/timer.html', height: 420 });
               }
             };
           }).catch(function() { return []; });
@@ -74,58 +60,37 @@
       }];
     },
 
-    /* ── card-detail-badges (detalle interno superior) ────── */
     'card-detail-badges': function (t) {
       return [{
         dynamic: function () {
           return t.get('card', 'shared', KEY).then(function(d){
             var running = anyRunning(d);
             if (!running) return [];
-
-            return {
-              title:   'TrackingTime',
-              text:    getActiveUsersText(d),
-              color:   'green',
-              refresh: 15
-            };
+            return { title: 'TrackingTime', text: getActiveUsersText(d), color: 'green', refresh: 15 };
           }).catch(function() { return []; });
         }
       }];
     },
 
-    /* ── card-back-section ────────────────────────────────── */
     'card-back-section': function (t) {
       return {
-        title: '',
-        icon:  'https://cdn-icons-png.flaticon.com/512/111/111168.png',
+        title: '', icon: 'https://cdn-icons-png.flaticon.com/512/111/111168.png',
         content: { type: 'iframe', url: t.signUrl(baseUrl + '/timer.html'), height: 230 }
       };
     },
 
-    /* ── board-buttons ────────────────────────────────────── */
     'board-buttons': function (t) {
       return [{
         text: 'TrackingTime Reports',
         callback: function (t) {
-          return t.modal({
-            title:      'TrackingTime Reports',
-            url:        t.signUrl(baseUrl + '/dashboard.html'),
-            fullscreen: false,
-            height:     700
-          });
+          return t.modal({ title: 'TrackingTime Reports', url: t.signUrl(baseUrl + '/dashboard.html'), fullscreen: false, height: 700 });
         }
       }];
     },
 
-    /* ── show-settings ────────────────────────────────────── */
     'show-settings': function (t) {
-      return t.popup({
-        title:  'TrackingTime – Configuración',
-        url:    t.signUrl(baseUrl + '/settings.html'),
-        height: 420
-      });
+      return t.popup({ title: 'TrackingTime – Configuración', url: t.signUrl(baseUrl + '/settings.html'), height: 420 });
     }
-
   });
 })();
 </script>
