@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html> 
+<html>
 <head>
   <meta charset="utf-8">
   <title>TrackingTime</title>
@@ -10,6 +10,7 @@
 (function () {
   var KEY = 'chronos';
 
+  /* ── Helpers ligeros para UI (Minificados) ── */
   function anyRunning(d) {
     return !!(d && d.sessions && Object.keys(d.sessions).length > 0);
   }
@@ -19,21 +20,26 @@
     var names = [];
     Object.keys(d.sessions).forEach(function(id){
       var s = d.sessions[id];
-      if (s && s.n) names.push(s.n); // AHORA LEE LA VERSIÓN MINIFICADA "n"
+      // Leemos la variable comprimida 'n' (name)
+      if (s && s.n) names.push(s.n); 
     });
-    if (names.length === 0) return 'Trabajando en esto...';
-    return names.join(', ') + ' trabajando...';
+    
+    // Formato exacto solicitado en inglés
+    if (names.length === 0) return 'Working on it...';
+    return names.join(', ') + ' working on it...';
   }
 
   var baseUrl = location.href.replace(/\/[^/]*$/, '');
 
   window.TrelloPowerUp.initialize({
+    
+    /* ── Botón dentro de la tarjeta ── */
     'card-buttons': function (t) {
       return t.get('card', 'shared', KEY).then(function(d){
         var running = anyRunning(d);
         return [{
           icon: 'https://cdn-icons-png.flaticon.com/512/111/111168.png',
-          text: running ? '⏹ Detener mi timer' : '▶ Iniciar mi timer',
+          text: running ? '⏹ Stop my timer' : '▶ Start my timer',
           callback: function (t) {
             return t.popup({ title:'TrackingTime', url: baseUrl + '/timer.html', height:420 });
           }
@@ -41,6 +47,7 @@
       });
     },
 
+    /* ── Insignia en la portada de la tarjeta (Tablero) ── */
     'card-badges': function (t) {
       return [{
         dynamic: function () {
@@ -60,6 +67,7 @@
       }];
     },
 
+    /* ── Insignia adentro de la tarjeta (Arriba) ── */
     'card-detail-badges': function (t) {
       return [{
         dynamic: function () {
@@ -72,6 +80,7 @@
       }];
     },
 
+    /* ── Sección del Timer adentro de la tarjeta ── */
     'card-back-section': function (t) {
       return {
         title: '', icon: 'https://cdn-icons-png.flaticon.com/512/111/111168.png',
@@ -79,6 +88,7 @@
       };
     },
 
+    /* ── Botón del menú superior del Tablero ── */
     'board-buttons': function (t) {
       return [{
         text: 'TrackingTime Reports',
@@ -88,8 +98,9 @@
       }];
     },
 
+    /* ── Botón de ajustes ── */
     'show-settings': function (t) {
-      return t.popup({ title: 'TrackingTime – Configuración', url: t.signUrl(baseUrl + '/settings.html'), height: 420 });
+      return t.popup({ title: 'TrackingTime Settings', url: t.signUrl(baseUrl + '/settings.html'), height: 420 });
     }
   });
 })();
